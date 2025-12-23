@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/staff.dart';
 import '../models/tip_history.dart';
+import '../models/gifter_level.dart';
 import '../services/tip_service.dart';
+import '../services/gifter_service.dart';
 
 class SendTipScreen extends StatefulWidget {
   final Staff staff;
@@ -59,13 +61,127 @@ class _SendTipScreenState extends State<SendTipScreen> {
     );
 
     await _tipService.sendTip(tip);
+    
+    // ギフター情報を更新（EXPを追加）
+    final oldInfo = GifterService.getGifterInfo();
+    final oldExp = oldInfo.totalExp;
+    final newInfo = GifterService.addGiftExp(widget.staff.id, amount);
+    
+    // レベルアップチェック
+    final didLevelUp = GifterService.checkLevelUp(oldExp, newInfo.totalExp);
 
     if (mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${widget.staff.name}さんに¥$amountのチップを送りました')),
-      );
+      Navigator.pop(context, true); // 更新フラグを返す
+      
+      if (didLevelUp) {
+        // レベルアップ通知
+        final newLevel = newInfo.currentLevel;
+        _showLevelUpDialog(newLevel);
+      } else {
+        // 通常の送信完了通知
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${widget.staff.name}さんに¥$amountのチップを送りました'),
+                Text(
+                  '+$amount EXP獲得！',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.yellow,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
     }
+  }
+  
+  void _showLevelUpDialog(GifterLevel newLevel) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Text(newLevel.badge, style: const TextStyle(fontSize: 40)),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'レベルアップ！',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'ギフターレベル ${newLevel.level}',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              newLevel.title,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(int.parse(newLevel.color.replaceAll('#', '0xFF'))),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              '🎉 おめでとうございます！ 🎉',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '新しい特典が解放されました：',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...newLevel.benefits.map((benefit) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(benefit, style: const TextStyle(fontSize: 13))),
+                ],
+              ),
+            )),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${widget.staff.name}さんにチップを送りました'),
+                ),
+              );
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

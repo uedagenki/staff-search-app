@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:html' as html;
 import 'dart:convert';
 import '../services/tip_service.dart';
+import '../services/gifter_service.dart';
 import '../models/gifter_level.dart';
 import 'following_screen.dart';
 import 'bookings_screen.dart';
@@ -35,14 +36,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<String> _userCategories = [];
   
   // ギフター情報
-  UserGifterInfo _gifterInfo = UserGifterInfo.demo();
+  late UserGifterInfo _gifterInfo;
 
   @override
   void initState() {
     super.initState();
+    _loadGifterInfo();
     _checkLoginStatus();
     _loadUserProfile();
     _loadTotalTips();
+  }
+  
+  void _loadGifterInfo() {
+    setState(() {
+      _gifterInfo = GifterService.getGifterInfo();
+    });
   }
 
   void _checkLoginStatus() {
@@ -143,6 +151,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _totalTips = total;
       _isLoading = false;
     });
+  }
+  
+  // 画面再表示時にデータをリロード
+  void _refreshData() {
+    _loadGifterInfo();
+    _loadTotalTips();
   }
 
   @override

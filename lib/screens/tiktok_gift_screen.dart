@@ -3,7 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../models/staff.dart';
 import '../models/gift_item.dart';
 import '../models/tip_history.dart';
+import '../models/gifter_level.dart';
 import '../services/tip_service.dart';
+import '../services/gifter_service.dart';
 
 class TikTokGiftScreen extends StatefulWidget {
   final Staff staff;
@@ -139,6 +141,14 @@ class _TikTokGiftScreenState extends State<TikTokGiftScreen> with SingleTickerPr
     );
 
     await _tipService.sendTip(tip);
+    
+    // ギフター情報を更新（EXPを追加）
+    final oldInfo = GifterService.getGifterInfo();
+    final oldExp = oldInfo.totalExp;
+    final newInfo = GifterService.addGiftExp(widget.staff.id, totalPrice);
+    
+    // レベルアップチェック
+    final didLevelUp = GifterService.checkLevelUp(oldExp, newInfo.totalExp);
 
     setState(() {
       _balance -= totalPrice;
@@ -149,9 +159,29 @@ class _TikTokGiftScreenState extends State<TikTokGiftScreen> with SingleTickerPr
       // アニメーション効果を表示
       _showGiftAnimation();
       
+      // 送信完了通知
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${_selectedGift!.emoji} ${_selectedGift!.name} x$_quantity を送りました！'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${_selectedGift!.emoji} ${_selectedGift!.name} x$_quantity を送りました！'),
+              if (didLevelUp)
+                Text(
+                  '🎉 レベルアップ！ レベル${newInfo.currentLevel.level} (${newInfo.currentLevel.title})',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.yellow),
+                ),
+              Text(
+                '+$totalPrice EXP獲得！',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.yellow,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
           backgroundColor: Colors.green,
         ),
       );
