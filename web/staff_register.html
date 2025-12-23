@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スタッフ新規登録 - STAFF SEARCH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .register-header {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d2d2d 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .register-header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .register-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .register-body {
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0a0a0a;
+            box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .photo-upload {
+            padding: 30px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .photo-upload:hover {
+            border-color: #0a0a0a;
+            background: rgba(10, 10, 10, 0.02);
+        }
+
+        .photo-upload input[type="file"] {
+            display: none;
+        }
+
+        .photo-upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .skip-button {
+            background: transparent;
+            color: #666;
+            border: none;
+            padding: 8px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-top: 10px;
+        }
+
+        .register-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d2d2d 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .register-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(10, 10, 10, 0.3);
+        }
+
+        .login-link {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #0a0a0a;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-header">
+            <h1>💼 スタッフ新規登録</h1>
+            <p style="color: white; margin-top: 10px; font-size: 14px;">フリープランで今すぐ開始</p>
+            <p>プロフェッショナルとしてスタート</p>
+        </div>
+
+        <div class="register-body">
+            <form id="staffRegisterForm">
+                <div class="form-group">
+                    <label for="name">お名前 <span style="color: red;">*</span></label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        placeholder="山田 太郎" 
+                        required
+                    >
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="storeName">店舗名</label>
+                        <input 
+                            type="text" 
+                            id="storeName" 
+                            name="storeName" 
+                            placeholder="〇〇サロン"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="companyName">会社名</label>
+                        <input 
+                            type="text" 
+                            id="companyName" 
+                            name="companyName" 
+                            placeholder="株式会社〇〇"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="age">年齢 <span style="color: red;">*</span></label>
+                        <input 
+                            type="number" 
+                            id="age" 
+                            name="age" 
+                            placeholder="25" 
+                            min="18"
+                            max="100"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">性別 <span style="color: red;">*</span></label>
+                        <select id="gender" name="gender" required>
+                            <option value="">選択してください</option>
+                            <option value="male">男性</option>
+                            <option value="female">女性</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">住所 <span style="color: red;">*</span></label>
+                    <div style="display: flex; gap: 10px;">
+                        <input 
+                            type="text" 
+                            id="address" 
+                            name="address" 
+                            placeholder="東京都渋谷区" 
+                            required
+                            style="flex: 1;"
+                        >
+                        <button 
+                            type="button" 
+                            id="getLocationBtn"
+                            style="padding: 10px 15px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap; font-size: 14px;"
+                            title="現在地の住所を取得"
+                        >
+                            📍 現在地取得
+                        </button>
+                    </div>
+                    <div id="locationStatus" style="font-size: 12px; margin-top: 5px; color: #666;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="jobTitle">職種 <span style="color: red;">*</span></label>
+                    <select id="jobTitle" name="jobTitle" required>
+                        <option value="">選択してください</option>
+                        <option value="beautician">美容師</option>
+                        <option value="consultant">コンサルタント</option>
+                        <option value="trainer">トレーナー</option>
+                        <option value="lawyer">弁護士・士業</option>
+                        <option value="designer">デザイナー</option>
+                        <option value="engineer">エンジニア</option>
+                        <option value="teacher">講師・教師</option>
+                        <option value="medical">医療従事者</option>
+                        <option value="other">その他</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>プロフィール写真</label>
+                    <div class="photo-upload" onclick="document.getElementById('photoUpload').click()">
+                        <input type="file" id="photoUpload" accept="image/*">
+                        <div class="photo-upload-icon">📷</div>
+                        <p style="color: #666; font-size: 14px;">クリックして写真をアップロード</p>
+                        <p style="color: #999; font-size: 12px; margin-top: 8px;">推奨: 正方形、最小 400x400px</p>
+                    </div>
+                    <button type="button" class="skip-button" onclick="skipPhoto()">写真は後で追加する</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="experience">経験年数 <span style="color: red;">*</span></label>
+                    <input 
+                        type="number" 
+                        id="experience" 
+                        name="experience" 
+                        placeholder="5" 
+                        min="0"
+                        max="50"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="bio">自己紹介 <span style="color: red;">*</span></label>
+                    <textarea 
+                        id="bio" 
+                        name="bio" 
+                        placeholder="あなたの経験やスキル、強みなどを自由に記入してください..."
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">メールアドレス <span style="color: red;">*</span></label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="example@email.com" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">パスワード <span style="color: red;">*</span></label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="8文字以上" 
+                        minlength="8"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="register-button">フリープランで登録する</button>
+
+                <div class="login-link">
+                    すでにアカウントをお持ちの方は <a href="staff_login.html">ログイン</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let photoSkipped = false;
+
+        function skipPhoto() {
+            photoSkipped = true;
+            document.querySelector('.photo-upload').style.opacity = '0.5';
+            document.querySelector('.skip-button').textContent = '写真をスキップしました';
+        }
+
+        // 写真アップロード処理
+        document.getElementById('photoUpload').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const fileName = e.target.files[0].name;
+                document.querySelector('.photo-upload p').textContent = `選択済み: ${fileName}`;
+                document.querySelector('.photo-upload').style.borderColor = '#0a0a0a';
+                document.querySelector('.skip-button').style.display = 'none';
+            }
+        });
+
+        // 位置情報取得機能
+        document.getElementById('getLocationBtn').addEventListener('click', async function() {
+            const statusDiv = document.getElementById('locationStatus');
+            const addressInput = document.getElementById('address');
+            const btn = this;
+            
+            // ボタンを無効化
+            btn.disabled = true;
+            btn.textContent = '取得中...';
+            statusDiv.textContent = '位置情報を取得しています...';
+            statusDiv.style.color = '#667eea';
+            
+            if (!navigator.geolocation) {
+                statusDiv.textContent = 'このブラウザは位置情報に対応していません';
+                statusDiv.style.color = 'red';
+                btn.disabled = false;
+                btn.textContent = '📍 現在地取得';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                async function(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    try {
+                        // OpenStreetMap Nominatim APIを使用（無料・登録不要）
+                        const response = await fetch(
+                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1&accept-language=ja`,
+                            {
+                                headers: {
+                                    'User-Agent': 'StaffSearchApp/1.0'
+                                }
+                            }
+                        );
+                        
+                        if (!response.ok) {
+                            throw new Error('住所の取得に失敗しました');
+                        }
+                        
+                        const data = await response.json();
+                        
+                        // 住所情報を抽出（県・市・町まで）
+                        const address = data.address;
+                        let formattedAddress = '';
+                        
+                        // 都道府県
+                        if (address.state) {
+                            formattedAddress += address.state;
+                        } else if (address.province) {
+                            formattedAddress += address.province;
+                        }
+                        
+                        // 市区町村
+                        if (address.city) {
+                            formattedAddress += address.city;
+                        } else if (address.town) {
+                            formattedAddress += address.town;
+                        } else if (address.village) {
+                            formattedAddress += address.village;
+                        } else if (address.county) {
+                            formattedAddress += address.county;
+                        }
+                        
+                        // 町域
+                        if (address.suburb) {
+                            formattedAddress += address.suburb;
+                        } else if (address.neighbourhood) {
+                            formattedAddress += address.neighbourhood;
+                        }
+                        
+                        if (formattedAddress) {
+                            addressInput.value = formattedAddress;
+                            statusDiv.textContent = '✓ 住所を取得しました';
+                            statusDiv.style.color = 'green';
+                        } else {
+                            statusDiv.textContent = '住所情報が見つかりませんでした。手動で入力してください。';
+                            statusDiv.style.color = 'orange';
+                        }
+                        
+                    } catch (error) {
+                        console.error('Geocoding error:', error);
+                        statusDiv.textContent = '住所の取得に失敗しました。手動で入力してください。';
+                        statusDiv.style.color = 'orange';
+                    }
+                    
+                    btn.disabled = false;
+                    btn.textContent = '📍 現在地取得';
+                },
+                function(error) {
+                    let errorMsg = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = '位置情報の使用が拒否されました';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = '位置情報を取得できませんでした';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = '位置情報の取得がタイムアウトしました';
+                            break;
+                        default:
+                            errorMsg = '位置情報の取得中にエラーが発生しました';
+                    }
+                    statusDiv.textContent = errorMsg + '。手動で入力してください。';
+                    statusDiv.style.color = 'orange';
+                    btn.disabled = false;
+                    btn.textContent = '📍 現在地取得';
+                }
+            );
+        });
+
+        // フォーム送信処理
+        document.getElementById('staffRegisterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const storeName = document.getElementById('storeName').value;
+            const companyName = document.getElementById('companyName').value;
+            const age = document.getElementById('age').value;
+            const address = document.getElementById('address').value;
+            const gender = document.getElementById('gender').value;
+            const jobTitle = document.getElementById('jobTitle').value;
+            const experience = document.getElementById('experience').value;
+            const bio = document.getElementById('bio').value;
+            const email = document.getElementById('email').value;
+            const hasPhoto = document.getElementById('photoUpload').files.length > 0;
+
+            // スタッフ情報をローカルストレージに保存
+            const staffData = {
+                name: name,
+                storeName: storeName,
+                companyName: companyName,
+                age: age,
+                address: address,
+                gender: gender,
+                jobTitle: jobTitle,
+                experience: experience,
+                bio: bio,
+                email: email,
+                hasPhoto: hasPhoto,
+                registeredAt: new Date().toISOString(),
+                plan: 'free' // デフォルトはフリープラン
+            };
+            
+            localStorage.setItem('staff_profile', JSON.stringify(staffData));
+            localStorage.setItem('staff_logged_in', 'true');
+            
+            // 登録成功（デモ）
+            alert(`スタッフ登録完了！\nようこそ ${name} さん\n\nプロフィールを充実させて、多くのユーザーに見つけてもらいましょう！`);
+            
+            // スタッフアプリにリダイレクト
+            window.location.href = 'https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
+        });
+    </script>
+</body>
+</html>

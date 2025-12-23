@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>運営管理者ログイン - STAFF SEARCH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-top: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .remember-forgot label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .remember-forgot input[type="checkbox"] {
+            margin-right: 6px;
+        }
+
+        .remember-forgot a {
+            color: #2a5298;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .remember-forgot a:hover {
+            text-decoration: underline;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(42, 82, 152, 0.3);
+        }
+
+        .security-notice {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .security-notice p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .security-notice .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .back-to-top {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .back-to-top a {
+            color: #2a5298;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-to-top a:hover {
+            text-decoration: underline;
+        }
+
+        .ip-tracking {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 20px;
+            }
+
+            .login-header {
+                padding: 30px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 24px;
+            }
+
+            .login-body {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🔐 運営管理者ログイン</h1>
+            <p>STAFF SEARCH 管理システム</p>
+            <div class="admin-badge">ADMINISTRATOR ONLY</div>
+        </div>
+
+        <div class="login-body">
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="adminId">管理者ID</label>
+                    <input 
+                        type="text" 
+                        id="adminId" 
+                        name="adminId" 
+                        placeholder="例: admin001" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">パスワード</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="パスワードを入力" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="twoFactorCode">二段階認証コード</label>
+                    <input 
+                        type="text" 
+                        id="twoFactorCode" 
+                        name="twoFactorCode" 
+                        placeholder="6桁の認証コード" 
+                        maxlength="6"
+                    >
+                </div>
+
+                <div class="remember-forgot">
+                    <label>
+                        <input type="checkbox" name="remember">
+                        ログイン状態を保持
+                    </label>
+                    <a href="#">パスワードリセット</a>
+                </div>
+
+                <button type="submit" class="login-button">ログイン</button>
+            </form>
+
+            <div class="security-notice">
+                <div class="icon">🛡️</div>
+                <p>
+                    <strong>セキュリティ通知</strong><br>
+                    管理者アクセスは全て記録されます。<br>
+                    不正アクセスは法的措置の対象となります。
+                </p>
+            </div>
+
+            <div class="ip-tracking">
+                アクセスIPアドレスとログイン履歴が記録されます
+            </div>
+
+            <div class="back-to-top">
+                <a href="lp.html">
+                    ← トップページに戻る
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const adminId = document.getElementById('adminId').value;
+            const password = document.getElementById('password').value;
+            const twoFactorCode = document.getElementById('twoFactorCode').value;
+
+            // デモ用の簡易認証
+            if (adminId && password) {
+                if (twoFactorCode && twoFactorCode.length === 6) {
+                    // 運営管理アプリにリダイレクト
+                    window.location.href = 'https://5062-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
+                } else {
+                    alert('二段階認証コードを入力してください（6桁）');
+                }
+            } else {
+                alert('管理者IDとパスワードを入力してください');
+            }
+        });
+
+        // 自動フォーカス
+        document.getElementById('adminId').focus();
+    </script>
+</body>
+</html>

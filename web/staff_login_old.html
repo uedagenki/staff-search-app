@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スタッフログイン - STAFF SEARCH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 420px;
+            padding: 50px 40px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-section h1 {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            color: #0a0a0a;
+            margin-bottom: 10px;
+        }
+
+        .logo-section p {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 300;
+        }
+
+        .staff-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d2d2d 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        .plan-info {
+            background: #f8f9ff;
+            border-left: 3px solid #667eea;
+            padding: 12px 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+
+        .plan-info p {
+            font-size: 0.8rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .plan-info a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .plan-info a:hover {
+            text-decoration: underline;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0a0a0a;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.1);
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 0.85rem;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            color: #666;
+        }
+
+        .remember-me input {
+            margin-right: 6px;
+        }
+
+        .forgot-link {
+            color: #0a0a0a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d2d2d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(10, 10, 10, 0.4);
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(10, 10, 10, 0.5);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .divider span {
+            position: relative;
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .signup-link {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 25px;
+        }
+
+        .signup-link a {
+            color: #0a0a0a;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        .pricing-link {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #fffbf0;
+            border-radius: 6px;
+            border: 1px solid #ffeaa7;
+        }
+
+        .pricing-link p {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .pricing-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .pricing-link a:hover {
+            text-decoration: underline;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #999;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link a:hover {
+            color: #0a0a0a;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 40px 30px;
+            }
+
+            .logo-section h1 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-section">
+            <h1>STAFF SEARCH</h1>
+            <p>プロフェッショナル管理</p>
+        </div>
+
+        <div style="text-align: center;">
+            <span class="staff-badge">💼 スタッフログイン</span>
+        </div>
+
+        <div class="plan-info">
+            <p>💡 スタッフとして活動するには登録プランへの加入が必要です。<a href="lp.html#pricing">プラン詳細を見る</a></p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">スタッフID / メールアドレス</label>
+                <input type="email" id="email" name="email" placeholder="staff@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">パスワード</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <div class="remember-forgot">
+                <label class="remember-me">
+                    <input type="checkbox" name="remember">
+                    ログイン状態を保持
+                </label>
+                <a href="#" class="forgot-link">パスワードを忘れた方</a>
+            </div>
+
+            <button type="submit" class="login-button">ログイン</button>
+        </form>
+
+        <div class="divider">
+            <span>新規スタッフ登録</span>
+        </div>
+
+        <div class="signup-link">
+            初めてご利用の方は <a href="#">スタッフ登録はこちら</a>
+        </div>
+
+        <div class="pricing-link">
+            <p>🎯 登録プランを選ぶ</p>
+            <a href="lp.html#pricing">料金プラン一覧を見る →</a>
+        </div>
+
+        <div class="back-link">
+            <a href="lp.html">← トップページに戻る</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('スタッフログイン機能は開発中です。\n実際のアプリではこちらからスタッフ管理画面にアクセスできます。');
+            // 実際の実装では、ここでログイン処理を行います
+        });
+    </script>
+</body>
+</html>

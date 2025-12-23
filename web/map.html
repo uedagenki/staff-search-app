@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Search</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+        .legend {
+            position: absolute;
+            top: 120px;
+            left: 16px;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 400;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            font-size: 12px;
+        }
+        .legend-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+        .stats {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 400;
+            display: flex;
+            justify-content: space-around;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .store-popup {
+            min-width: 320px;
+            max-width: 380px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .popup-header {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%);
+            padding: 16px;
+            border-radius: 8px 8px 0 0;
+            margin: -15px -20px 0 -20px;
+        }
+        .store-popup h3 {
+            margin: 0 0 6px 0;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .store-popup p {
+            margin: 0;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .popup-section-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+            margin: 16px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #ff6b35;
+        }
+        .staff-list {
+            margin-top: 0;
+            max-height: 360px;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .staff-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .staff-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .staff-list::-webkit-scrollbar-thumb {
+            background: #ff6b35;
+            border-radius: 10px;
+        }
+        .staff-list::-webkit-scrollbar-thumb:hover {
+            background: #e55a28;
+        }
+        .staff-card {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .staff-card:hover {
+            background: #fff5f2;
+            border-color: #ff6b35;
+            transform: translateX(4px);
+            box-shadow: 0 3px 8px rgba(255,107,53,0.15);
+        }
+        .staff-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 12px;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+        .staff-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .staff-name {
+            font-weight: bold;
+            font-size: 15px;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .staff-job {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        .staff-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            flex-wrap: wrap;
+        }
+        .staff-rating {
+            color: #f59e0b;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .staff-status {
+            display: inline-block;
+            padding: 3px 10px;
+            background: #10b981;
+            color: white;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .staff-status.offline {
+            background: #94a3b8;
+        }
+        .view-profile-btn {
+            display: block;
+            width: 100%;
+            margin-top: 12px;
+            padding: 10px;
+            background: #ff6b35;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .view-profile-btn:hover {
+            background: #e55a28;
+        }
+        .individual-popup {
+            min-width: 250px;
+        }
+        .individual-popup h3 {
+            margin: 0 0 8px 0;
+            color: #4A90E2;
+            font-size: 18px;
+        }
+        .individual-card {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .search-container {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 900;
+            display: flex;
+            gap: 8px;
+        }
+        .search-box {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            width: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .search-box.active {
+            width: 280px;
+            opacity: 1;
+        }
+        .search-box input {
+            border: none;
+            outline: none;
+            font-size: 14px;
+            flex: 1;
+            min-width: 0;
+        }
+        .search-box input::placeholder {
+            color: #999;
+        }
+        .search-icon {
+            color: #666;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .search-button {
+            background: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .search-button:hover {
+            background: #f8f9fa;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .search-button:active {
+            transform: scale(0.95);
+        }
+        .search-results {
+            position: absolute;
+            top: 76px;
+            right: 16px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            max-width: 320px;
+            max-height: 450px;
+            overflow-y: auto;
+            z-index: 900;
+            display: none;
+        }
+        .search-results.active {
+            display: block;
+        }
+        .search-result-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        .search-result-item:hover {
+            background: #f8f9fa;
+        }
+        .search-result-type {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .search-result-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        .search-result-detail {
+            font-size: 12px;
+            color: #666;
+        }
+        .no-results {
+            padding: 24px;
+            text-align: center;
+            color: #999;
+        }
+        .clear-search {
+            color: #999;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .clear-search:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <!-- 検索UI -->
+    <div class="search-container">
+        <div class="search-box" id="searchBox">
+            <span class="search-icon">🔍</span>
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="店舗名、スタッフ名、会社名で検索"
+                autocomplete="off"
+            >
+            <span class="clear-search" id="clearSearch" style="display: none;">✕</span>
+        </div>
+        <div class="search-button" id="searchButton">
+            <span style="font-size: 20px;">🔍</span>
+        </div>
+    </div>
+    
+    <!-- 検索結果 -->
+    <div class="search-results" id="searchResults"></div>
+    
+    <div class="legend">
+        <div class="legend-item">
+            <svg class="legend-icon" viewBox="0 0 24 24">
+                <path fill="#ff6b35" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            </svg>
+            <span>店舗/会社</span>
+        </div>
+        <div class="legend-item">
+            <svg class="legend-icon" viewBox="0 0 24 24">
+                <path fill="#4A90E2" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            </svg>
+            <span>個人</span>
+        </div>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-item">
+            <div class="stat-value" id="store-count">0</div>
+            <div class="stat-label">店舗/会社</div>
+        </div>
+        <div style="width: 1px; background: #ddd;"></div>
+        <div class="stat-item">
+            <div class="stat-value" id="staff-count">0</div>
+            <div class="stat-label">スタッフ</div>
+        </div>
+    </div>
+
+    <script>
+        // 地図を初期化
+        const map = L.map('map').setView([35.6812, 139.7671], 13);
+        
+        // OpenStreetMapタイルを追加
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // カスタムアイコン
+        const storeIcon = L.divIcon({
+            html: '<svg width="30" height="40" viewBox="0 0 24 32"><path fill="#ff6b35" d="M12 0C7.8 0 4 3.8 4 8c0 7 8 16 8 16s8-9 8-16c0-4.2-3.8-8-8-8z"/><circle cx="12" cy="8" r="3" fill="white"/></svg>',
+            className: 'custom-marker',
+            iconSize: [30, 40],
+            iconAnchor: [15, 40]
+        });
+        
+        const individualIcon = L.divIcon({
+            html: '<svg width="30" height="40" viewBox="0 0 24 32"><path fill="#4A90E2" d="M12 0C7.8 0 4 3.8 4 8c0 7 8 16 8 16s8-9 8-16c0-4.2-3.8-8-8-8z"/><circle cx="12" cy="8" r="3" fill="white"/></svg>',
+            className: 'custom-marker',
+            iconSize: [30, 40],
+            iconAnchor: [15, 40]
+        });
+
+        // サンプルデータ（大幅に増加）
+        const stores = [
+            {
+                name: '渋谷保険センター',
+                company: 'ABC保険株式会社',
+                lat: 35.6595, 
+                lng: 139.7004,
+                staff: [
+                    { id: '1', name: '鈴木 太郎', job: '生命保険アドバイザー', rating: 4.8, isOnline: true, image: 'https://i.pravatar.cc/100?img=12' },
+                    { id: '11', name: '中村 一郎', job: '保険コンサルタント', rating: 4.6, isOnline: false, image: 'https://i.pravatar.cc/100?img=13' }
+                ]
+            },
+            {
+                name: 'Salon de Beaute 新宿',
+                company: 'ビューティーサロングループ',
+                lat: 35.6938,
+                lng: 139.7034,
+                staff: [
+                    { id: '2', name: '田中 美咲', job: '美容師', rating: 4.9, isOnline: true, image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100' },
+                    { id: '4', name: '佐藤 健', job: 'スタイリスト', rating: 4.7, isOnline: true, image: 'https://i.pravatar.cc/100?img=33' },
+                    { id: '12', name: '山本 さくら', job: 'ヘアスタイリスト', rating: 4.8, isOnline: false, image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100' }
+                ]
+            },
+            {
+                name: '東京不動産',
+                company: '東京不動産グループ',
+                lat: 35.6850,
+                lng: 139.7514,
+                staff: [
+                    { id: '3', name: '山田 花子', job: '不動産エージェント', rating: 4.6, isOnline: true, image: 'https://i.pravatar.cc/100?img=45' },
+                    { id: '13', name: '木村 拓也', job: '不動産コンサルタント', rating: 4.5, isOnline: true, image: 'https://i.pravatar.cc/100?img=15' }
+                ]
+            },
+            {
+                name: 'Tokyo Fitness 六本木',
+                company: 'Tokyo Fitness Group',
+                lat: 35.6627,
+                lng: 139.7295,
+                staff: [
+                    { id: '14', name: '高橋 誠', job: 'パーソナルトレーナー', rating: 4.9, isOnline: true, image: 'https://i.pravatar.cc/100?img=14' },
+                    { id: '15', name: '佐々木 愛', job: 'ヨガインストラクター', rating: 4.8, isOnline: true, image: 'https://i.pravatar.cc/100?img=47' },
+                    { id: '16', name: '林 大輔', job: 'フィットネストレーナー', rating: 4.7, isOnline: false, image: 'https://i.pravatar.cc/100?img=51' }
+                ]
+            },
+            {
+                name: '青山税理士事務所',
+                company: null,
+                lat: 35.6654,
+                lng: 139.7107,
+                staff: [
+                    { id: '5', name: '伊藤 明', job: '税理士', rating: 4.7, isOnline: true, image: 'https://i.pravatar.cc/100?img=52' },
+                    { id: '17', name: '小林 恵子', job: '会計士', rating: 4.6, isOnline: false, image: 'https://i.pravatar.cc/100?img=23' }
+                ]
+            },
+            {
+                name: 'デザインスタジオ品川',
+                company: 'Creative Design Inc.',
+                lat: 35.6284,
+                lng: 139.7387,
+                staff: [
+                    { id: '18', name: '加藤 翔太', job: 'グラフィックデザイナー', rating: 4.8, isOnline: true, image: 'https://i.pravatar.cc/100?img=60' },
+                    { id: '19', name: '松本 美穂', job: 'UIUXデザイナー', rating: 4.9, isOnline: true, image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' },
+                    { id: '20', name: '田口 健', job: 'Webデザイナー', rating: 4.6, isOnline: false, image: 'https://i.pravatar.cc/100?img=61' }
+                ]
+            },
+            {
+                name: '銀座法律事務所',
+                company: null,
+                lat: 35.6717,
+                lng: 139.7642,
+                staff: [
+                    { id: '21', name: '斉藤 真一', job: '弁護士', rating: 4.9, isOnline: true, image: 'https://i.pravatar.cc/100?img=68' },
+                    { id: '22', name: '石川 由美', job: '弁護士', rating: 4.7, isOnline: true, image: 'https://i.pravatar.cc/100?img=24' }
+                ]
+            },
+            {
+                name: 'ビューティークリニック表参道',
+                company: 'Beauty Clinic Group',
+                lat: 35.6651,
+                lng: 139.7126,
+                staff: [
+                    { id: '23', name: '吉田 麻衣', job: 'エステティシャン', rating: 4.8, isOnline: true, image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=100' },
+                    { id: '24', name: '藤田 奈々', job: 'ネイリスト', rating: 4.7, isOnline: true, image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100' },
+                    { id: '25', name: '岡田 彩', job: 'メイクアップアーティスト', rating: 4.9, isOnline: false, image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100' }
+                ]
+            }
+        ];
+
+        const individuals = [
+            { id: '6', name: '渡辺 翔', job: 'フリーランスプログラマー', rating: 4.8, isOnline: true, lat: 35.6762, lng: 139.6503, image: 'https://i.pravatar.cc/100?img=70' },
+            { id: '7', name: '井上 結衣', job: 'フリーランスライター', rating: 4.6, isOnline: true, lat: 35.6580, lng: 139.7016, image: 'https://i.pravatar.cc/100?img=44' },
+            { id: '8', name: '森 健太', job: 'フリーランスカメラマン', rating: 4.9, isOnline: true, lat: 35.6470, lng: 139.7163, image: 'https://i.pravatar.cc/100?img=71' },
+            { id: '9', name: '清水 由香', job: 'フリーランス翻訳家', rating: 4.7, isOnline: false, lat: 35.6897, lng: 139.7005, image: 'https://i.pravatar.cc/100?img=46' },
+            { id: '10', name: '大野 拓海', job: 'フリーランスイラストレーター', rating: 4.8, isOnline: true, lat: 35.6752, lng: 139.7708, image: 'https://i.pravatar.cc/100?img=72' }
+        ];
+
+        // スタッフカードをクリックしたときの処理
+        function handleStaffClick(staffId) {
+            // Flutterアプリにメッセージを送る（実装例）
+            if (window.parent) {
+                window.parent.postMessage({
+                    type: 'navigate_to_staff',
+                    staffId: staffId
+                }, '*');
+            }
+            // または新しいウィンドウで開く
+            alert(`スタッフID: ${staffId} のプロフィールを開きます（開発中）`);
+        }
+
+        // 統計を更新
+        document.getElementById('store-count').textContent = stores.length;
+        document.getElementById('staff-count').textContent = 
+            stores.reduce((sum, store) => sum + store.staff.length, 0) + individuals.length;
+
+        // 検索機能
+        const searchButton = document.getElementById('searchButton');
+        const searchBox = document.getElementById('searchBox');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearch = document.getElementById('clearSearch');
+        const searchResults = document.getElementById('searchResults');
+        let allMarkers = [];
+
+        // 検索ボタンのクリック
+        searchButton.addEventListener('click', () => {
+            searchBox.classList.toggle('active');
+            if (searchBox.classList.contains('active')) {
+                searchInput.focus();
+            } else {
+                searchInput.value = '';
+                clearSearch.style.display = 'none';
+                searchResults.classList.remove('active');
+            }
+        });
+
+        // 検索入力
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            
+            if (query.length > 0) {
+                clearSearch.style.display = 'block';
+                performSearch(query);
+            } else {
+                clearSearch.style.display = 'none';
+                searchResults.classList.remove('active');
+            }
+        });
+
+        // クリアボタン
+        clearSearch.addEventListener('click', () => {
+            searchInput.value = '';
+            clearSearch.style.display = 'none';
+            searchResults.classList.remove('active');
+            searchInput.focus();
+        });
+
+        // Enterキーで検索
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = searchInput.value.trim();
+                if (query.length > 0) {
+                    performSearch(query);
+                }
+            }
+        });
+
+        // 検索実行
+        function performSearch(query) {
+            const results = [];
+            const lowerQuery = query.toLowerCase();
+
+            // 店舗を検索
+            stores.forEach((store, storeIndex) => {
+                // 店舗名で検索
+                if (store.name.toLowerCase().includes(lowerQuery)) {
+                    results.push({
+                        type: 'store',
+                        name: store.name,
+                        detail: store.company || `${store.staff.length}人のスタッフ`,
+                        lat: store.lat,
+                        lng: store.lng,
+                        marker: allMarkers.find(m => m.options.storeIndex === storeIndex)
+                    });
+                }
+
+                // 会社名で検索
+                if (store.company && store.company.toLowerCase().includes(lowerQuery)) {
+                    if (!results.find(r => r.name === store.name)) {
+                        results.push({
+                            type: 'store',
+                            name: store.name,
+                            detail: store.company,
+                            lat: store.lat,
+                            lng: store.lng,
+                            marker: allMarkers.find(m => m.options.storeIndex === storeIndex)
+                        });
+                    }
+                }
+
+                // スタッフ名で検索
+                store.staff.forEach(staff => {
+                    if (staff.name.toLowerCase().includes(lowerQuery)) {
+                        results.push({
+                            type: 'staff',
+                            name: staff.name,
+                            detail: `${staff.job} - ${store.name}`,
+                            lat: store.lat,
+                            lng: store.lng,
+                            marker: allMarkers.find(m => m.options.storeIndex === storeIndex)
+                        });
+                    }
+                });
+            });
+
+            // 個人スタッフを検索
+            individuals.forEach((person, personIndex) => {
+                if (person.name.toLowerCase().includes(lowerQuery)) {
+                    results.push({
+                        type: 'individual',
+                        name: person.name,
+                        detail: person.job,
+                        lat: person.lat,
+                        lng: person.lng,
+                        marker: allMarkers.find(m => m.options.individualIndex === personIndex)
+                    });
+                }
+            });
+
+            displaySearchResults(results);
+        }
+
+        // 検索結果を表示
+        function displaySearchResults(results) {
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="no-results">検索結果が見つかりませんでした</div>';
+                searchResults.classList.add('active');
+                return;
+            }
+
+            let html = '';
+            results.forEach(result => {
+                const typeLabel = result.type === 'store' ? '店舗' : 
+                                 result.type === 'staff' ? 'スタッフ' : 
+                                 '個人';
+                html += `
+                    <div class="search-result-item" onclick="goToResult(${result.lat}, ${result.lng}, ${JSON.stringify(result.name).replace(/"/g, '&quot;')})">
+                        <div class="search-result-type">${typeLabel}</div>
+                        <div class="search-result-name">${result.name}</div>
+                        <div class="search-result-detail">${result.detail}</div>
+                    </div>
+                `;
+            });
+
+            searchResults.innerHTML = html;
+            searchResults.classList.add('active');
+        }
+
+        // 検索結果の位置へ移動
+        window.goToResult = function(lat, lng, name) {
+            map.setView([lat, lng], 16);
+            searchResults.classList.remove('active');
+            
+            // 該当するマーカーを点滅させる
+            const marker = allMarkers.find(m => 
+                Math.abs(m.getLatLng().lat - lat) < 0.0001 && 
+                Math.abs(m.getLatLng().lng - lng) < 0.0001
+            );
+            
+            if (marker) {
+                setTimeout(() => {
+                    marker.openPopup();
+                }, 300);
+            }
+        };
+
+        // マーカーを配列に保存（検索用）
+        let storeIndex = 0;
+        stores.forEach(store => {
+            const marker = L.marker([store.lat, store.lng], { 
+                icon: storeIcon,
+                storeIndex: storeIndex++
+            }).addTo(map);
+            
+            let popupContent = `
+                <div class="store-popup">
+                    <div class="popup-header">
+                        <h3>${store.name}</h3>
+                        ${store.company ? `<p>${store.company}</p>` : ''}
+                    </div>
+                    <div class="popup-section-title">所属スタッフ (${store.staff.length}人)</div>
+                    <div class="staff-list">
+            `;
+            
+            store.staff.forEach(staff => {
+                popupContent += `
+                    <div class="staff-card" onclick="handleStaffClick('${staff.id}')">
+                        <img src="${staff.image}" alt="${staff.name}" class="staff-avatar" onerror="this.src='https://via.placeholder.com/60'">
+                        <div class="staff-info">
+                            <div class="staff-name">${staff.name}</div>
+                            <div class="staff-job">${staff.job}</div>
+                            <div class="staff-meta">
+                                <span class="staff-rating">⭐ ${staff.rating}</span>
+                                <span class="staff-status ${staff.isOnline ? '' : 'offline'}">
+                                    ${staff.isOnline ? '出勤中' : '退勤中'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            popupContent += `</div>
+                <a href="#" class="view-profile-btn" onclick="alert('店舗詳細画面へ（開発中）'); return false;">
+                    店舗詳細を見る
+                </a>
+            </div>`;
+            
+            marker.bindPopup(popupContent, {
+                maxWidth: 400,
+                minWidth: 320,
+                maxHeight: 500,
+                autoPan: true,
+                autoPanPadding: [80, 80],
+                className: 'custom-popup'
+            });
+            
+            allMarkers.push(marker);
+        });
+
+        let individualIndex = 0;
+        individuals.forEach(person => {
+            const marker = L.marker([person.lat, person.lng], { 
+                icon: individualIcon,
+                individualIndex: individualIndex++
+            }).addTo(map);
+            
+            const popupContent = `
+                <div class="individual-popup">
+                    <h3>${person.name}</h3>
+                    <div class="individual-card">
+                        <img src="${person.image}" alt="${person.name}" class="staff-avatar">
+                        <div class="staff-info">
+                            <div class="staff-job">${person.job}</div>
+                            <div class="staff-meta">
+                                <span class="staff-rating">⭐ ${person.rating}</span>
+                                <span class="staff-status ${person.isOnline ? '' : 'offline'}">
+                                    ${person.isOnline ? 'オンライン' : 'オフライン'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#" class="view-profile-btn" onclick="handleStaffClick('${person.id}'); return false;">
+                        プロフィールを見る
+                    </a>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent, {
+                maxWidth: 280
+            });
+            
+            allMarkers.push(marker);
+        });
+
+        // 現在位置を取得
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    map.setView([lat, lng], 14);
+                    
+                    // 現在位置マーカー
+                    L.circleMarker([lat, lng], {
+                        radius: 8,
+                        fillColor: '#4285F4',
+                        color: 'white',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 1
+                    }).addTo(map).bindPopup('現在位置');
+                },
+                (error) => {
+                    console.log('位置情報取得エラー:', error);
+                }
+            );
+        }
+    </script>
+</body>
+</html>
