@@ -282,6 +282,19 @@
                     </select>
                 </div>
 
+                <!-- その他の職種入力欄 -->
+                <div class="form-group" id="customJobTitleGroup" style="display: none;">
+                    <label for="customJobTitle">職種を入力してください <span style="color: red;">*</span></label>
+                    <input 
+                        type="text" 
+                        id="customJobTitle" 
+                        name="customJobTitle" 
+                        placeholder="例: カウンセラー、コーチ、セラピスト" 
+                        maxlength="15"
+                    >
+                    <p style="font-size: 12px; color: #666; margin-top: 4px;">15文字以内で入力してください</p>
+                </div>
+
                 <div class="form-group">
                     <label>プロフィール写真</label>
                     <div class="photo-upload" onclick="document.getElementById('photoUpload').click()">
@@ -356,6 +369,21 @@
             document.querySelector('.photo-upload').style.opacity = '0.5';
             document.querySelector('.skip-button').textContent = '写真をスキップしました';
         }
+
+        // 職種選択時の処理
+        document.getElementById('jobTitle').addEventListener('change', function() {
+            const customJobTitleGroup = document.getElementById('customJobTitleGroup');
+            const customJobTitleInput = document.getElementById('customJobTitle');
+            
+            if (this.value === 'other') {
+                customJobTitleGroup.style.display = 'block';
+                customJobTitleInput.required = true;
+            } else {
+                customJobTitleGroup.style.display = 'none';
+                customJobTitleInput.required = false;
+                customJobTitleInput.value = '';
+            }
+        });
 
         // 写真アップロード処理
         document.getElementById('photoUpload').addEventListener('change', function(e) {
@@ -489,11 +517,31 @@
             const age = document.getElementById('age').value;
             const address = document.getElementById('address').value;
             const gender = document.getElementById('gender').value;
-            const jobTitle = document.getElementById('jobTitle').value;
+            const jobTitleSelect = document.getElementById('jobTitle').value;
+            const customJobTitle = document.getElementById('customJobTitle').value;
             const experience = document.getElementById('experience').value;
             const bio = document.getElementById('bio').value;
             const email = document.getElementById('email').value;
             const hasPhoto = document.getElementById('photoUpload').files.length > 0;
+
+            // 職種を決定（その他の場合はカスタム入力を使用）
+            let finalJobTitle = '';
+            if (jobTitleSelect === 'other' && customJobTitle) {
+                finalJobTitle = customJobTitle;
+            } else {
+                // 職種コードを日本語に変換
+                const jobTitleMap = {
+                    'beautician': '美容師',
+                    'consultant': 'コンサルタント',
+                    'trainer': 'トレーナー',
+                    'lawyer': '弁護士・士業',
+                    'designer': 'デザイナー',
+                    'engineer': 'エンジニア',
+                    'teacher': '講師・教師',
+                    'medical': '医療従事者'
+                };
+                finalJobTitle = jobTitleMap[jobTitleSelect] || jobTitleSelect;
+            }
 
             // スタッフ情報をローカルストレージに保存
             const staffData = {
@@ -501,13 +549,15 @@
                 storeName: storeName,
                 companyName: companyName,
                 age: age,
+                location: address,
                 address: address,
                 gender: gender,
-                jobTitle: jobTitle,
+                jobTitle: finalJobTitle,
                 experience: experience,
                 bio: bio,
                 email: email,
                 hasPhoto: hasPhoto,
+                profileImages: [],
                 registeredAt: new Date().toISOString(),
                 plan: 'free' // デフォルトはフリープラン
             };
