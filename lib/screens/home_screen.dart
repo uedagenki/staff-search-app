@@ -15,6 +15,7 @@ import 'story_viewer_screen.dart';
 import 'filter_settings_screen.dart';
 import 'live_feed_screen.dart';
 import 'staff_detail_screen.dart';
+import 'user_posts_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -276,6 +277,19 @@ class _HomeScreenState extends State<HomeScreen> {
           // 右側のアイコン
           Row(
             children: [
+              // ユーザー投稿ボタン
+              IconButton(
+                icon: const Icon(Icons.people_alt_outlined),
+                tooltip: 'みんなの投稿',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const UserPostsScreen(),
+                    ),
+                  );
+                },
+              ),
               // 通知ボタン（バッジ付き）
               Stack(
                 children: [

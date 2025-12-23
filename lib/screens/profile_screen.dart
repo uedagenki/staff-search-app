@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:html' as html;
 import 'dart:convert';
 import '../services/tip_service.dart';
+import '../models/gifter_level.dart';
 import 'following_screen.dart';
 import 'bookings_screen.dart';
 import 'tip_history_screen.dart';
@@ -32,6 +33,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _userAddress;
   String? _userGender;
   List<String> _userCategories = [];
+  
+  // ギフター情報
+  UserGifterInfo _gifterInfo = UserGifterInfo.demo();
 
   @override
   void initState() {
@@ -248,6 +252,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             
             const SizedBox(height: 16),
+            
+            // ギフターレベルカード
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildGifterLevelCard(),
+            ),
+            
+            const SizedBox(height: 12),
             
             // チップ総額カード
             if (!_isLoading)
@@ -474,6 +486,170 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // ギフターレベルカード
+  Widget _buildGifterLevelCard() {
+    final level = _gifterInfo.currentLevel;
+    final progress = _gifterInfo.levelProgress;
+    final expToNext = _gifterInfo.expToNextLevel;
+    
+    // 色をColorオブジェクトに変換
+    final cardColor = Color(int.parse(level.color.replaceAll('#', '0xFF')));
+    
+    return Card(
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              cardColor,
+              cardColor.withValues(alpha: 0.7),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // レベルとバッジ
+            Row(
+              children: [
+                Text(
+                  level.badge,
+                  style: const TextStyle(fontSize: 36),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ギフターレベル ${level.level}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        level.title,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 経験値バー
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'EXP: ${_gifterInfo.totalExp.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (level.level < 6)
+                      Text(
+                        '次のレベルまで $expToNext EXP',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white70,
+                        ),
+                      )
+                    else
+                      const Text(
+                        '最高レベル達成！',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 12,
+                    backgroundColor: Colors.white.withValues(alpha: 0.3),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 統計情報
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatItem(
+                    '総ギフト額',
+                    '¥${_gifterInfo.totalGiftAmount.toStringAsFixed(0)}',
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 30,
+                  color: Colors.white30,
+                ),
+                Expanded(
+                  child: _buildStatItem(
+                    'ギフト回数',
+                    '${_gifterInfo.giftCount}回',
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: Colors.white70,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 
