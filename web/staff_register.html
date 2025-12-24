@@ -656,6 +656,52 @@
             localStorage.setItem('staff_profile', JSON.stringify(staffData));
             localStorage.setItem('staff_logged_in', 'true');
             
+            // ユーザーアプリ用のスタッフリストに追加
+            let staffList = [];
+            try {
+                const existingList = localStorage.getItem('all_staff_list');
+                if (existingList) {
+                    staffList = JSON.parse(existingList);
+                }
+            } catch (e) {
+                console.error('既存スタッフリストの読み込みエラー:', e);
+            }
+            
+            // 新規スタッフをリストに追加（重複チェック）
+            const staffId = 'staff_' + Date.now();
+            const existingIndex = staffList.findIndex(s => s.email === email);
+            
+            const staffListItem = {
+                id: staffId,
+                name: name,
+                storeName: storeName,
+                companyName: companyName,
+                jobTitle: finalJobTitle,
+                category: finalJobTitle,
+                rating: 5.0,
+                reviews: 0,
+                hourlyRate: 5000,
+                experience: experience + '年',
+                bio: bio,
+                location: address,
+                distance: '0.0km',
+                imageUrl: uploadedPhotos.length > 0 ? uploadedPhotos[0].data : 'https://via.placeholder.com/150',
+                isOnline: false,
+                tags: [finalJobTitle],
+                email: email,
+                registeredAt: new Date().toISOString()
+            };
+            
+            if (existingIndex >= 0) {
+                // 既存のスタッフを更新
+                staffList[existingIndex] = staffListItem;
+            } else {
+                // 新規スタッフを追加
+                staffList.unshift(staffListItem);
+            }
+            
+            localStorage.setItem('all_staff_list', JSON.stringify(staffList));
+            
             // 登録成功（デモ）
             const photoCount = uploadedPhotos.length;
             const photoMsg = photoCount > 0 ? `\n写真: ${photoCount}枚登録済み` : '';

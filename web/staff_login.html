@@ -375,6 +375,54 @@
                     localStorage.setItem('staff_profile', JSON.stringify(defaultStaffData));
                 }
                 
+                // ユーザーアプリ用のスタッフリストに追加/更新
+                try {
+                    const staffProfileStr = localStorage.getItem('staff_profile');
+                    if (staffProfileStr) {
+                        const staffProfile = JSON.parse(staffProfileStr);
+                        let staffList = [];
+                        
+                        const existingListStr = localStorage.getItem('all_staff_list');
+                        if (existingListStr) {
+                            staffList = JSON.parse(existingListStr);
+                        }
+                        
+                        const existingIndex = staffList.findIndex(s => s.email === email);
+                        const staffListItem = {
+                            id: existingIndex >= 0 ? staffList[existingIndex].id : 'staff_' + Date.now(),
+                            name: staffProfile.name || 'スタッフ',
+                            storeName: staffProfile.storeName || '',
+                            companyName: staffProfile.companyName || '',
+                            jobTitle: staffProfile.jobTitle || '美容師',
+                            category: staffProfile.jobTitle || '美容師',
+                            rating: 5.0,
+                            reviews: 0,
+                            hourlyRate: 5000,
+                            experience: staffProfile.experience || '1年',
+                            bio: staffProfile.bio || '',
+                            location: staffProfile.address || '東京都',
+                            distance: '0.0km',
+                            imageUrl: (staffProfile.profileImages && staffProfile.profileImages.length > 0) 
+                                ? staffProfile.profileImages[0].data 
+                                : 'https://via.placeholder.com/150',
+                            isOnline: false,
+                            tags: [staffProfile.jobTitle || '美容師'],
+                            email: email,
+                            registeredAt: staffProfile.registeredAt || new Date().toISOString()
+                        };
+                        
+                        if (existingIndex >= 0) {
+                            staffList[existingIndex] = staffListItem;
+                        } else {
+                            staffList.unshift(staffListItem);
+                        }
+                        
+                        localStorage.setItem('all_staff_list', JSON.stringify(staffList));
+                    }
+                } catch (e) {
+                    console.error('スタッフリスト更新エラー:', e);
+                }
+                
                 alert('ログイン成功！');
                 window.location.href = 'https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
             }
@@ -415,6 +463,54 @@
                         plan: 'free'
                     };
                     localStorage.setItem('staff_profile', JSON.stringify(defaultStaffData));
+                }
+                
+                // ユーザーアプリ用のスタッフリストに追加/更新
+                try {
+                    const staffProfileStr = localStorage.getItem('staff_profile');
+                    if (staffProfileStr) {
+                        const staffProfile = JSON.parse(staffProfileStr);
+                        let staffList = [];
+                        
+                        const existingListStr = localStorage.getItem('all_staff_list');
+                        if (existingListStr) {
+                            staffList = JSON.parse(existingListStr);
+                        }
+                        
+                        const existingIndex = staffList.findIndex(s => s.email === email);
+                        const staffListItem = {
+                            id: existingIndex >= 0 ? staffList[existingIndex].id : 'staff_' + Date.now(),
+                            name: staffProfile.name || 'スタッフ',
+                            storeName: staffProfile.storeName || '',
+                            companyName: staffProfile.companyName || '',
+                            jobTitle: staffProfile.jobTitle || '美容師',
+                            category: staffProfile.jobTitle || '美容師',
+                            rating: 5.0,
+                            reviews: 0,
+                            hourlyRate: 5000,
+                            experience: staffProfile.experience || '1年',
+                            bio: staffProfile.bio || '',
+                            location: staffProfile.address || '東京都',
+                            distance: '0.0km',
+                            imageUrl: (staffProfile.profileImages && staffProfile.profileImages.length > 0) 
+                                ? staffProfile.profileImages[0].data 
+                                : 'https://via.placeholder.com/150',
+                            isOnline: false,
+                            tags: [staffProfile.jobTitle || '美容師'],
+                            email: email,
+                            registeredAt: staffProfile.registeredAt || new Date().toISOString()
+                        };
+                        
+                        if (existingIndex >= 0) {
+                            staffList[existingIndex] = staffListItem;
+                        } else {
+                            staffList.unshift(staffListItem);
+                        }
+                        
+                        localStorage.setItem('all_staff_list', JSON.stringify(staffList));
+                    }
+                } catch (e) {
+                    console.error('スタッフリスト更新エラー:', e);
                 }
                 
                 alert('ログイン成功！');

@@ -93,9 +93,47 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadStaffListFromStorage();
     _loadFilterSettings();
     _loadLocation();
     _loadNotificationCount();
+  }
+
+  Future<void> _loadStaffListFromStorage() async {
+    try {
+      final staffListJson = html.window.localStorage['all_staff_list'];
+      if (staffListJson != null && staffListJson.isNotEmpty) {
+        final List<dynamic> decoded = json.decode(staffListJson);
+        final loadedStaff = decoded.map((data) {
+          return Staff(
+            id: data['id'] ?? '',
+            name: data['name'] ?? '',
+            category: data['category'] ?? '',
+            rating: (data['rating'] ?? 5.0).toDouble(),
+            reviews: data['reviews'] ?? 0,
+            hourlyRate: data['hourlyRate'] ?? 5000,
+            experience: data['experience'] ?? '',
+            bio: data['bio'] ?? '',
+            location: data['location'] ?? '',
+            distance: (data['distance'] ?? '0.0km').toString().replaceAll('km', ''),
+            imageUrl: data['imageUrl'] ?? 'https://via.placeholder.com/150',
+            isOnline: data['isOnline'] ?? false,
+            tags: List<String>.from(data['tags'] ?? []),
+          );
+        }).toList();
+        
+        // 既存のモックデータと結合（新規登録スタッフを先頭に）
+        if (mounted) {
+          setState(() {
+            _staffList = [...loadedStaff, ...MockData.getStaffList()];
+          });
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to load staff list from storage: $e');
+      }
+    }
   }
 
   Future<void> _loadNotificationCount() async {
