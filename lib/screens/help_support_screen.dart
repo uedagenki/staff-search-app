@@ -16,6 +16,37 @@ class HelpSupportScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // アプリ使用説明セクション
+              Card(
+                color: Colors.purple[50],
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.lightbulb_outline, color: Colors.purple[700], size: 28),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'アプリの使い方',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildUsageStep('1', 'スタッフを検索', 'カテゴリ、場所、評価などの条件であなたにぴったりのスタッフを探します'),
+                      _buildUsageStep('2', 'プロフィール確認', 'スタッフのプロフィール、レビュー、ライブ配信で詳細をチェック'),
+                      _buildUsageStep('3', 'メッセージ・予約', '気になるスタッフにメッセージを送ったり、直接予約が可能'),
+                      _buildUsageStep('4', 'サービス利用', '予約した日時にサービスを受け、完了後にレビューを投稿'),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               // サポートチャットカード
               Card(
                 child: InkWell(
@@ -178,6 +209,59 @@ class HelpSupportScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildUsageStep(String number, String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: Colors.purple[700],
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(
+              child: Text(
+                number,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

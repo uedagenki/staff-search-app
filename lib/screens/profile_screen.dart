@@ -13,6 +13,8 @@ import 'profile_settings_screen.dart';
 import 'staff/staff_dashboard_screen.dart';
 import 'ranking_screen.dart';
 import 'headhunt_screen.dart';
+import 'help_support_screen.dart';
+import 'webview_screen.dart';
 import 'admin/content_moderation_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -450,8 +452,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.help_outline,
               title: 'ヘルプ・サポート',
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('ヘルプ機能（開発中）')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HelpSupportScreen(),
+                  ),
+                );
+              },
+            ),
+            
+            _buildMenuItem(
+              context,
+              icon: Icons.privacy_tip_outlined,
+              title: 'プライバシーポリシー',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const WebViewScreen(
+                      url: 'https://5060-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/privacy_policy.html',
+                      title: 'プライバシーポリシー',
+                    ),
+                  ),
+                );
+              },
+            ),
+            
+            _buildMenuItem(
+              context,
+              icon: Icons.description_outlined,
+              title: '利用規約',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const WebViewScreen(
+                      url: 'https://5060-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/terms_of_service.html',
+                      title: '利用規約',
+                    ),
+                  ),
                 );
               },
             ),

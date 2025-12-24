@@ -204,6 +204,39 @@
             margin: 0;
         }
 
+        /* アプリ説明図セクション */
+        .app-explanation-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 70px 30px;
+        }
+
+        .app-explanation-section h2 {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2.2rem;
+            color: #0a0a0a;
+        }
+
+        .explanation-image-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .explanation-image-container:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+        }
+
+        .explanation-image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
         /* 機能紹介セクション */
         .features-section {
             background: white;
@@ -980,6 +1013,14 @@
                     <p>リアルタイムでスタッフの様子を確認</p>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- アプリ説明図セクション -->
+    <section class="app-explanation-section animate-on-scroll">
+        <h2>STAFF SEARCH - アプリ機能説明</h2>
+        <div class="explanation-image-container">
+            <img src="https://www.genspark.ai/api/files/s/YVAu2J8B?cache_control=3600" alt="スタッフサーチアプリ機能説明図" loading="lazy">
         </div>
     </section>
 
