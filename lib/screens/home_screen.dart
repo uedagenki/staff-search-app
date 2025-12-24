@@ -105,20 +105,31 @@ class _HomeScreenState extends State<HomeScreen> {
       if (staffListJson != null && staffListJson.isNotEmpty) {
         final List<dynamic> decoded = json.decode(staffListJson);
         final loadedStaff = decoded.map((data) {
+          // experienceから年数を抽出（例: "5年" -> 5）
+          int experienceYears = 1;
+          final expStr = data['experience'] ?? '1年';
+          final match = RegExp(r'(\d+)').firstMatch(expStr);
+          if (match != null) {
+            experienceYears = int.parse(match.group(1) ?? '1');
+          }
+          
           return Staff(
             id: data['id'] ?? '',
             name: data['name'] ?? '',
+            jobTitle: data['jobTitle'] ?? '',
             category: data['category'] ?? '',
+            profileImage: data['imageUrl'] ?? 'https://via.placeholder.com/150',
             rating: (data['rating'] ?? 5.0).toDouble(),
-            reviews: data['reviews'] ?? 0,
-            hourlyRate: data['hourlyRate'] ?? 5000,
-            experience: data['experience'] ?? '',
-            bio: data['bio'] ?? '',
-            location: data['location'] ?? '',
-            distance: (data['distance'] ?? '0.0km').toString().replaceAll('km', ''),
-            imageUrl: data['imageUrl'] ?? 'https://via.placeholder.com/150',
+            reviewCount: data['reviews'] ?? 0,
             isOnline: data['isOnline'] ?? false,
-            tags: List<String>.from(data['tags'] ?? []),
+            isLive: false,
+            location: data['location'] ?? '',
+            bio: data['bio'] ?? '',
+            skills: List<String>.from(data['tags'] ?? []),
+            experience: experienceYears,
+            qrCode: 'QR_${data['id'] ?? ''}',
+            storeName: data['storeName'] ?? '',
+            companyName: data['companyName'] ?? '',
           );
         }).toList();
         
