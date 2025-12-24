@@ -19,6 +19,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   List<String> _selectedCategories = [];
   bool _isLoading = true;
   bool _isSaving = false;
+  String? _profileImageUrl;
 
   final List<Map<String, String>> _categories = [
     {'value': 'beauty_health', 'label': '美容・健康'},
@@ -72,6 +73,45 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _pickProfileImage() async {
+    try {
+      // Web環境でのファイル選択
+      final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+      uploadInput.accept = 'image/*';
+      uploadInput.click();
+
+      uploadInput.onChange.listen((event) {
+        final files = uploadInput.files;
+        if (files != null && files.isNotEmpty) {
+          final file = files[0];
+          final reader = html.FileReader();
+          
+          reader.onLoadEnd.listen((event) {
+            setState(() {
+              _profileImageUrl = reader.result as String?;
+            });
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('プロフィール画像を選択しました'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          });
+          
+          reader.readAsDataUrl(file);
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to pick image: $e');
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('画像の選択に失敗しました')),
+      );
     }
   }
 
@@ -185,13 +225,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                   size: 20,
                                   color: Colors.white,
                                 ),
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('画像選択機能（開発中）'),
-                                    ),
-                                  );
-                                },
+                                onPressed: _pickProfileImage,
                               ),
                             ),
                           ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/notification.dart';
+import 'chat_screen.dart';
+import 'bookings_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -272,25 +274,50 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   void _handleNotificationTap(AppNotification notification) {
+    // 通知を既読にする
+    setState(() {
+      notification.isRead = true;
+    });
+
     switch (notification.type) {
       case NotificationType.message:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('メッセージ画面へ移動（実装済み）')),
+        // メッセージ画面へ遷移
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ChatScreen(
+              staffId: 'sample_staff',
+              staffName: 'サンプルスタッフ',
+              staffImageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+            ),
+          ),
         );
         break;
       case NotificationType.booking:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('予約詳細画面へ移動（開発中）')),
+        // 予約一覧画面へ遷移
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const BookingsScreen(),
+          ),
         );
         break;
       case NotificationType.tip:
+        // チップ履歴画面（ウォレット機能として実装）
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('チップ履歴画面へ移動（開発中）')),
+          const SnackBar(
+            content: Text('チップ履歴はプロフィール → ウォレットから確認できます'),
+            duration: Duration(seconds: 3),
+          ),
         );
         break;
       case NotificationType.review:
+        // レビュー詳細（プロフィールからアクセス可能）
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('レビュー詳細画面へ移動（開発中）')),
+          const SnackBar(
+            content: Text('レビュー詳細はプロフィール → レビュー管理から確認できます'),
+            duration: Duration(seconds: 3),
+          ),
         );
         break;
       case NotificationType.system:

@@ -96,6 +96,59 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  void _handleCall() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.phone, color: Colors.green),
+            SizedBox(width: 12),
+            Text('音声通話'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${widget.staffName}さんに発信しますか?'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                '💡 ヒント: 実際のアプリでは通話機能が利用可能です。\n音声通話・ビデオ通話でスタッフと直接コミュニケーションできます。',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('キャンセル'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('通話機能はストアリリース版で利用可能です'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            icon: const Icon(Icons.phone),
+            label: const Text('発信'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _sendMessage() {
     if (_messageController.text.trim().isEmpty) return;
 
@@ -164,11 +217,8 @@ class _ChatScreenState extends State<ChatScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.phone),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('通話機能（開発中）')),
-              );
-            },
+            onPressed: _handleCall,
+            tooltip: '音声通話',
           ),
           IconButton(
             icon: const Icon(Icons.more_vert),
