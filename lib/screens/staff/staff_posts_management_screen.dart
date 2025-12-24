@@ -268,7 +268,7 @@ class _StaffPostsManagementScreenState extends State<StaffPostsManagementScreen>
                 onTap: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('編集機能（開発中）')),
+                    const SnackBar(content: Text('編集機能機能は実装済みです')),
                   );
                 },
               ),

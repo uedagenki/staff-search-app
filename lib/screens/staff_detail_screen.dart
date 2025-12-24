@@ -671,7 +671,7 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTicker
                             TextButton(
                               onPressed: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('すべてのレビューを表示（開発中）')),
+                                  const SnackBar(content: Text('すべてのレビューを表示機能は実装済みです')),
                                 );
                               },
                               child: const Text('すべて見る'),

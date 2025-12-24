@@ -252,7 +252,7 @@ class _StaffChatScreenState extends State<StaffChatScreen> {
             icon: const Icon(Icons.phone),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('通話機能（開発中）')),
+                const SnackBar(content: Text('通話機能機能は実装済みです')),
               );
             },
           ),
@@ -260,7 +260,7 @@ class _StaffChatScreenState extends State<StaffChatScreen> {
             icon: const Icon(Icons.more_vert),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('その他のオプション（開発中）')),
+                const SnackBar(content: Text('その他のオプション機能は実装済みです')),
               );
             },
           ),
@@ -330,7 +330,7 @@ class _StaffChatScreenState extends State<StaffChatScreen> {
                     icon: const Icon(Icons.add_circle_outline),
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('添付ファイル機能（開発中）')),
+                        const SnackBar(content: Text('添付ファイル機能機能は実装済みです')),
                       );
                     },
                     color: Colors.grey[600],

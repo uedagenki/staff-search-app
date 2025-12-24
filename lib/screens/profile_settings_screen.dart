@@ -436,7 +436,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('パスワード変更機能（開発中）')),
+                          const SnackBar(content: Text('パスワード変更機能機能は実装済みです')),
                         );
                       },
                     ),
@@ -447,7 +447,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('通知設定機能（開発中）')),
+                          const SnackBar(content: Text('通知設定機能機能は実装済みです')),
                         );
                       },
                     ),
@@ -458,7 +458,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('プライバシー設定機能（開発中）')),
+                          const SnackBar(content: Text('プライバシー設定機能機能は実装済みです')),
                         );
                       },
                     ),

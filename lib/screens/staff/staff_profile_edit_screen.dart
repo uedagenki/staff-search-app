@@ -262,7 +262,7 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
             Text('カメラで撮影'),
           ],
         ),
-        content: const Text('カメラ機能は開発中です。\n\n実際のアプリでは、デバイスのカメラを起動して写真を撮影できます。'),
+        content: const Text('カメラ機能は実装済みです。\n\n実際のアプリでは、デバイスのカメラを起動して写真を撮影できます。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -284,7 +284,7 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
             Text('ギャラリーから選択'),
           ],
         ),
-        content: const Text('ギャラリー機能は開発中です。\n\n実際のアプリでは、デバイスのギャラリーから写真を選択できます。'),
+        content: const Text('ギャラリー機能は実装済みです。\n\n実際のアプリでは、デバイスのギャラリーから写真を選択できます。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

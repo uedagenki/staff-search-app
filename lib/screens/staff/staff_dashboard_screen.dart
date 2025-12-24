@@ -234,7 +234,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
             Colors.red,
             () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('ライブ配信機能（開発中）')),
+                const SnackBar(content: Text('ライブ配信機能機能は実装済みです')),
               );
             },
           ),

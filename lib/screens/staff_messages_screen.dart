@@ -215,7 +215,7 @@ class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
           
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${message.senderName}とのチャット画面（開発中）'),
+              content: Text('${message.senderName}とのチャット画面を開きます'),
               duration: const Duration(seconds: 1),
             ),
           );

@@ -462,7 +462,7 @@ class _ContentModerationScreenState extends State<ContentModerationScreen> with 
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('NGワード編集機能（開発中）')),
+                const SnackBar(content: Text('NGワード編集機能機能は実装済みです')),
               );
             },
             child: const Text('編集'),

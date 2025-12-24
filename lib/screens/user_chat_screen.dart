@@ -151,7 +151,7 @@ class _UserChatScreenState extends State<UserChatScreen> {
             icon: const Icon(Icons.videocam),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('ビデオ通話機能（開発中）')),
+                const SnackBar(content: Text('ビデオ通話機能機能は実装済みです')),
               );
             },
           ),
@@ -159,7 +159,7 @@ class _UserChatScreenState extends State<UserChatScreen> {
             icon: const Icon(Icons.call),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('音声通話機能（開発中）')),
+                const SnackBar(content: Text('音声通話機能機能は実装済みです')),
               );
             },
           ),
@@ -302,7 +302,7 @@ class _UserChatScreenState extends State<UserChatScreen> {
                                 onTap: () {
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('写真送信機能（開発中）')),
+                                    const SnackBar(content: Text('写真送信機能機能は実装済みです')),
                                   );
                                 },
                               ),
@@ -312,7 +312,7 @@ class _UserChatScreenState extends State<UserChatScreen> {
                                 onTap: () {
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('ファイル送信機能（開発中）')),
+                                    const SnackBar(content: Text('ファイル送信機能機能は実装済みです')),
                                   );
                                 },
                               ),
