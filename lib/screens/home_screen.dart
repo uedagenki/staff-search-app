@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:html' as html;
+import 'dart:convert';
 import '../models/staff.dart';
 import '../models/staff_story.dart';
 import '../data/mock_data.dart';
@@ -28,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final PageController _pageController = PageController();
   final LocationService _locationService = LocationService();
   List<Staff> _staffList = MockData.getStaffList();
+  int _notificationCount = 0;
   List<Staff> _filteredStaffList = [];
   final List<StaffStory> _stories = _getMockStories();
   Position? _currentPosition;
@@ -91,6 +95,26 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadFilterSettings();
     _loadLocation();
+    _loadNotificationCount();
+  }
+
+  Future<void> _loadNotificationCount() async {
+    try {
+      final notificationsJson = html.window.localStorage['notifications'];
+      if (notificationsJson != null && notificationsJson.isNotEmpty) {
+        final List<dynamic> decoded = json.decode(notificationsJson);
+        final unreadCount = decoded.where((n) => n['isRead'] == false).length;
+        if (mounted) {
+          setState(() {
+            _notificationCount = unreadCount;
+          });
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to load notification count: $e');
+      }
+    }
   }
 
   Future<void> _loadLocation() async {
@@ -295,39 +319,42 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const NotificationsScreen(),
                         ),
                       );
+                      // 通知画面から戻ってきたら未読数を再読み込み
+                      _loadNotificationCount();
                     },
                   ),
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: const Text(
-                        '2',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                  if (_notificationCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
                         ),
-                        textAlign: TextAlign.center,
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          _notificationCount > 99 ? '99+' : '$_notificationCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               // フィルターボタン
