@@ -354,6 +354,27 @@
                 localStorage.setItem('staff_logged_in', 'true');
                 localStorage.setItem('staff_email', email);
                 
+                // staff_profileが存在しない場合、デフォルトデータを作成
+                if (!localStorage.getItem('staff_profile')) {
+                    const defaultStaffData = {
+                        name: 'スタッフ',
+                        email: email,
+                        storeName: '',
+                        companyName: '',
+                        age: null,
+                        location: '東京都',
+                        address: '東京都',
+                        gender: null,
+                        jobTitle: '美容師',
+                        experience: '1年',
+                        bio: 'よろしくお願いします',
+                        profileImages: [],
+                        registeredAt: new Date().toISOString(),
+                        plan: 'free'
+                    };
+                    localStorage.setItem('staff_profile', JSON.stringify(defaultStaffData));
+                }
+                
                 alert('ログイン成功！');
                 window.location.href = 'https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
             }
@@ -374,6 +395,27 @@
                 // ログイン状態を保存
                 localStorage.setItem('staff_logged_in', 'true');
                 localStorage.setItem('staff_email', email);
+                
+                // staff_profileが存在しない場合、デフォルトデータを作成
+                if (!localStorage.getItem('staff_profile')) {
+                    const defaultStaffData = {
+                        name: 'スタッフ',
+                        email: email,
+                        storeName: '',
+                        companyName: '',
+                        age: null,
+                        location: '東京都',
+                        address: '東京都',
+                        gender: null,
+                        jobTitle: '美容師',
+                        experience: '1年',
+                        bio: 'よろしくお願いします',
+                        profileImages: [],
+                        registeredAt: new Date().toISOString(),
+                        plan: 'free'
+                    };
+                    localStorage.setItem('staff_profile', JSON.stringify(defaultStaffData));
+                }
                 
                 alert('ログイン成功！');
                 window.location.href = 'https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';

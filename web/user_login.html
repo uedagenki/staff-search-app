@@ -354,6 +354,22 @@
                 localStorage.setItem('user_logged_in', 'true');
                 localStorage.setItem('user_email', email);
                 
+                // user_profileが存在しない場合、デフォルトデータを作成
+                if (!localStorage.getItem('user_profile')) {
+                    const defaultUserData = {
+                        name: 'ユーザー',
+                        email: email,
+                        age: null,
+                        address: '東京都',
+                        gender: null,
+                        categories: ['美容・健康'],
+                        registeredAt: new Date().toISOString(),
+                        profileImage: null,
+                        phone: null
+                    };
+                    localStorage.setItem('user_profile', JSON.stringify(defaultUserData));
+                }
+                
                 alert('ログイン成功！');
                 window.location.href = 'https://5060-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
             }
@@ -374,6 +390,22 @@
                 // ログイン状態を保存
                 localStorage.setItem('user_logged_in', 'true');
                 localStorage.setItem('user_email', email);
+                
+                // user_profileが存在しない場合、デフォルトデータを作成
+                if (!localStorage.getItem('user_profile')) {
+                    const defaultUserData = {
+                        name: 'ユーザー',
+                        email: email,
+                        age: null,
+                        address: '東京都',
+                        gender: null,
+                        categories: ['美容・健康'],
+                        registeredAt: new Date().toISOString(),
+                        profileImage: null,
+                        phone: null
+                    };
+                    localStorage.setItem('user_profile', JSON.stringify(defaultUserData));
+                }
                 
                 alert('ログイン成功！');
                 window.location.href = 'https://5060-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
