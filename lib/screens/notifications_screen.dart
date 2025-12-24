@@ -288,7 +288,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             builder: (context) => const ChatScreen(
               staffId: 'sample_staff',
               staffName: 'サンプルスタッフ',
-              staffImageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+              staffImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
             ),
           ),
         );
