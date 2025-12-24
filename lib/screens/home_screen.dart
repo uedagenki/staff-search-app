@@ -493,6 +493,8 @@ class _HomeScreenState extends State<HomeScreen> {
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Theme.of(context).colorScheme.primary,
       unselectedItemColor: Colors.grey,
+      selectedFontSize: 10,
+      unselectedFontSize: 10,
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
