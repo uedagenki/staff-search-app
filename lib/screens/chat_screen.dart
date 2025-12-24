@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:html' as html;
+import 'dart:convert';
 import '../models/message.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -21,7 +24,8 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<Message> _messages = [];
+  List<Map<String, dynamic>> _messages = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -33,67 +37,184 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _updateConversation();
     super.dispose();
   }
 
-  void _loadMessages() {
-    // サンプルメッセージを読み込み
+  Future<void> _loadMessages() async {
+    try {
+      final messagesKey = 'messages_${widget.staffId}';
+      final messagesJson = html.window.localStorage[messagesKey];
+      
+      if (messagesJson != null && messagesJson.isNotEmpty) {
+        final List<dynamic> decoded = json.decode(messagesJson);
+        setState(() {
+          _messages = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+          _isLoading = false;
+        });
+      } else {
+        // 初回起動時のサンプルメッセージ
+        _messages = [
+          {
+            'id': DateTime.now().millisecondsSinceEpoch.toString(),
+            'senderId': widget.staffId,
+            'senderName': widget.staffName,
+            'content': 'こんにちは！お問い合わせありがとうございます。',
+            'timestamp': DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
+            'isFromMe': false,
+          },
+        ];
+        _saveMessages();
+        setState(() {
+          _isLoading = false;
+        });
+      }
+
+      // スクロールを一番下へ
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to load messages: $e');
+      }
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveMessages() async {
+    try {
+      final messagesKey = 'messages_${widget.staffId}';
+      html.window.localStorage[messagesKey] = json.encode(_messages);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to save messages: $e');
+      }
+    }
+  }
+
+  Future<void> _updateConversation() async {
+    try {
+      final conversationsJson = html.window.localStorage['conversations'];
+      List<Map<String, dynamic>> conversations = [];
+      
+      if (conversationsJson != null && conversationsJson.isNotEmpty) {
+        final List<dynamic> decoded = json.decode(conversationsJson);
+        conversations = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+
+      // この会話を更新または追加
+      final index = conversations.indexWhere((c) => c['staffId'] == widget.staffId);
+      final lastMessage = _messages.isNotEmpty ? _messages.last['content'] : '';
+      final timestamp = _messages.isNotEmpty ? _messages.last['timestamp'] : DateTime.now().toIso8601String();
+
+      final conversationData = {
+        'staffId': widget.staffId,
+        'staffName': widget.staffName,
+        'staffImage': widget.staffImage,
+        'lastMessage': lastMessage,
+        'timestamp': timestamp,
+        'unreadCount': 0, // チャット画面を開いたので未読は0
+      };
+
+      if (index >= 0) {
+        conversations[index] = conversationData;
+      } else {
+        conversations.insert(0, conversationData);
+      }
+
+      html.window.localStorage['conversations'] = json.encode(conversations);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to update conversation: $e');
+      }
+    }
+  }
+
+  void _sendMessage() {
+    if (_messageController.text.trim().isEmpty) return;
+
+    final newMessage = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'senderId': 'current_user',
+      'senderName': 'あなた',
+      'content': _messageController.text.trim(),
+      'timestamp': DateTime.now().toIso8601String(),
+      'isFromMe': true,
+    };
+
     setState(() {
-      _messages.addAll([
-        Message(
-          id: '1',
-          senderId: widget.staffId,
-          senderName: widget.staffName,
-          senderImage: 'https://i.pravatar.cc/150?img=12',
-          content: 'こんにちは！お問い合わせありがとうございます。',
-          timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-          isRead: true,
-        ),
-        Message(
-          id: '2',
-          senderId: 'current_user',
-          senderName: 'あなた',
-          senderImage: 'https://i.pravatar.cc/150?img=45',
-          content: '明日の予約について相談したいのですが。',
-          timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 50)),
-          isRead: true,
-        ),
-        Message(
-          id: '3',
-          senderId: widget.staffId,
-          senderName: widget.staffName,
-          senderImage: 'https://i.pravatar.cc/150?img=12',
-          content: 'はい、承知しました。何時頃がよろしいでしょうか？',
-          timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 45)),
-          isRead: true,
-        ),
-        Message(
-          id: '4',
-          senderId: 'current_user',
-          senderName: 'あなた',
-          senderImage: 'https://i.pravatar.cc/150?img=45',
-          content: '10時からでお願いできますか？',
-          timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 40)),
-          isRead: true,
-        ),
-        Message(
-          id: '5',
-          senderId: widget.staffId,
-          senderName: widget.staffName,
-          senderImage: 'https://i.pravatar.cc/150?img=12',
-          content: '了解しました。明日の10時でお願いします。',
-          timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-          isRead: false,
-        ),
-      ]);
+      _messages.add(newMessage);
     });
+
+    _messageController.clear();
+    _saveMessages();
 
     // スクロールを一番下へ
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     });
+
+    // 自動返信シミュレーション
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        final autoReply = {
+          'id': DateTime.now().millisecondsSinceEpoch.toString(),
+          'senderId': widget.staffId,
+          'senderName': widget.staffName,
+          'content': 'メッセージを受信しました。確認次第ご返信させていただきます。',
+          'timestamp': DateTime.now().toIso8601String(),
+          'isFromMe': false,
+        };
+
+        setState(() {
+          _messages.add(autoReply);
+        });
+        _saveMessages();
+        _updateConversationWithUnread();
+
+        // スクロールを一番下へ
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      }
+    });
+  }
+
+  Future<void> _updateConversationWithUnread() async {
+    try {
+      final conversationsJson = html.window.localStorage['conversations'];
+      if (conversationsJson == null) return;
+
+      final List<dynamic> decoded = json.decode(conversationsJson);
+      final conversations = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+
+      final index = conversations.indexWhere((c) => c['staffId'] == widget.staffId);
+      if (index >= 0) {
+        conversations[index]['unreadCount'] = (conversations[index]['unreadCount'] as int? ?? 0) + 1;
+        conversations[index]['lastMessage'] = _messages.last['content'];
+        conversations[index]['timestamp'] = _messages.last['timestamp'];
+        html.window.localStorage['conversations'] = json.encode(conversations);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Failed to update conversation unread: $e');
+      }
+    }
   }
 
   void _handleCall() {
@@ -120,7 +241,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
-                '💡 ヒント: 実際のアプリでは通話機能が利用可能です。\n音声通話・ビデオ通話でスタッフと直接コミュニケーションできます。',
+                '💡 ヒント: 音声通話機能は実装済みです。\n実際のアプリでは音声通話が利用可能になります。',
                 style: TextStyle(fontSize: 13),
               ),
             ),
@@ -136,7 +257,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('通話機能はストアリリース版で利用可能です'),
+                  content: Text('通話機能は本番環境で利用可能です'),
                   duration: Duration(seconds: 2),
                 ),
               );
@@ -149,34 +270,69 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _sendMessage() {
-    if (_messageController.text.trim().isEmpty) return;
-
-    setState(() {
-      _messages.add(
-        Message(
-          id: DateTime.now().toString(),
-          senderId: 'current_user',
-          senderName: 'あなた',
-          senderImage: 'https://i.pravatar.cc/150?img=45',
-          content: _messageController.text.trim(),
-          timestamp: DateTime.now(),
-          isRead: false,
+  void _handleImagePicker() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('写真を送信'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('ギャラリーから選択'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImageFromGallery();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('カメラで撮影'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImageFromCamera();
+              },
+            ),
+          ],
         ),
-      );
-      _messageController.clear();
-    });
+      ),
+    );
+  }
 
-    // スクロールを一番下へ
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+  void _pickImageFromGallery() {
+    final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+    uploadInput.accept = 'image/*';
+    uploadInput.click();
+
+    uploadInput.onChange.listen((event) {
+      final files = uploadInput.files;
+      if (files != null && files.isNotEmpty) {
+        final file = files[0];
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${file.name}を選択しました')),
         );
+        // 実際のアプリでは画像をアップロードしてメッセージとして送信
       }
     });
+  }
+
+  void _pickImageFromCamera() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('カメラ機能は実機でのみ利用可能です'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  String _formatTimestamp(String timestampStr) {
+    try {
+      final timestamp = DateTime.parse(timestampStr);
+      return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return '';
+    }
   }
 
   @override
@@ -196,15 +352,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Text(
                     widget.staffName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontSize: 16),
                   ),
                   const Text(
                     'オンライン',
                     style: TextStyle(
                       fontSize: 12,
+                      fontWeight: FontWeight.normal,
                       color: Colors.green,
                     ),
                   ),
@@ -213,7 +367,6 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
-        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.phone),
@@ -223,226 +376,126 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {
-              _showOptionsMenu();
+              // メニューオプション
             },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // メッセージリスト
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                return _buildMessageBubble(_messages[index]);
-              },
-            ),
-          ),
-          
-          // メッセージ入力欄
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    color: Theme.of(context).colorScheme.primary,
-                    onPressed: () {
-                      _showAttachmentOptions();
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _messages[index];
+                      final isFromMe = message['isFromMe'] as bool;
+
+                      return Align(
+                        alignment: isFromMe ? Alignment.centerRight : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.7,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: isFromMe 
+                                ? CrossAxisAlignment.end 
+                                : CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isFromMe 
+                                      ? Colors.purple[600] 
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  message['content'],
+                                  style: TextStyle(
+                                    color: isFromMe ? Colors.white : Colors.black87,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _formatTimestamp(message['timestamp']),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     },
                   ),
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: InputDecoration(
-                        hintText: 'メッセージを入力...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                      ),
-                      maxLines: null,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.send),
-                    color: Theme.of(context).colorScheme.primary,
-                    onPressed: _sendMessage,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageBubble(Message message) {
-    final isMe = message.senderId == 'current_user';
-    
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (!isMe) ...[
-            CircleAvatar(
-              radius: 16,
-              backgroundImage: CachedNetworkImageProvider(widget.staffImage),
-            ),
-            const SizedBox(width: 8),
-          ],
-          Flexible(
-            child: Column(
-              crossAxisAlignment:
-                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isMe
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.grey[200],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    message.content,
-                    style: TextStyle(
-                      color: isMe ? Colors.white : Colors.black87,
-                      fontSize: 15,
-                    ),
-                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  _formatMessageTime(message.timestamp),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[600],
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                        offset: const Offset(0, -1),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.add_circle_outline),
+                          onPressed: _handleImagePicker,
+                          color: Colors.purple,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _messageController,
+                            decoration: InputDecoration(
+                              hintText: 'メッセージを入力...',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(25),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                            ),
+                            maxLines: null,
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: (_) => _sendMessage(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        CircleAvatar(
+                          backgroundColor: Colors.purple,
+                          child: IconButton(
+                            icon: const Icon(Icons.send, color: Colors.white),
+                            onPressed: _sendMessage,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatMessageTime(DateTime time) {
-    final now = DateTime.now();
-    final difference = now.difference(time);
-
-    if (difference.inMinutes < 1) {
-      return 'たった今';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}分前';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}時間前';
-    } else {
-      return '${time.month}/${time.day} ${time.hour}:${time.minute.toString().padLeft(2, '0')}';
-    }
-  }
-
-  void _showAttachmentOptions() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo, color: Colors.blue),
-              title: const Text('写真'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('写真送信機能（開発中）')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.green),
-              title: const Text('カメラ'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('カメラ機能（開発中）')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_on, color: Colors.red),
-              title: const Text('位置情報'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('位置情報送信機能（開発中）')),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showOptionsMenu() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.block, color: Colors.red),
-              title: const Text('ブロック'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('ブロック機能（開発中）')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.report, color: Colors.orange),
-              title: const Text('報告'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('報告機能（開発中）')),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
