@@ -79,8 +79,13 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
   void _loadProfileData() {
     try {
       final profileJson = html.window.localStorage['staff_profile'];
+      debugPrint('===== プロフィールデータロード開始 =====');
+      debugPrint('LocalStorage staff_profile: $profileJson');
+      
       if (profileJson != null) {
         final profile = json.decode(profileJson) as Map<String, dynamic>;
+        debugPrint('デコードされたプロフィール: ${profile.keys}');
+        debugPrint('Email: ${profile['email']}');
         
         setState(() {
           _nameController.text = profile['name'] ?? '';
@@ -89,6 +94,9 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
           _bioController.text = profile['bio'] ?? '';
           _addressController.text = profile['address'] ?? profile['location'] ?? '';
           _emailController.text = profile['email'] ?? '';
+          _storeAddressController.text = profile['storeAddress'] ?? '';
+          _storeLatitude = profile['storeLatitude']?.toDouble();
+          _storeLongitude = profile['storeLongitude']?.toDouble();
           
           // 経験年数を抽出
           final expStr = profile['experience']?.toString() ?? '1';
@@ -114,9 +122,20 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
             }).toList();
           }
         });
+        
+        debugPrint('ロード完了 - Name: ${_nameController.text}, Email: ${_emailController.text}');
+        debugPrint('画像数: ${_profileImages.length}');
+      } else {
+        debugPrint('⚠️ staff_profile がLocalStorageに存在しません');
       }
     } catch (e) {
-      debugPrint('Failed to load profile data: $e');
+      debugPrint('❌ プロフィールデータロードエラー: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('プロフィールデータの読み込みに失敗しました: $e'),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
   }
 
@@ -147,20 +166,31 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
   }
 
   void _pickImages() {
+    debugPrint('===== 画像選択開始 =====');
+    debugPrint('現在の画像数: ${_profileImages.length}/$_maxImages');
+    
     final input = html.FileUploadInputElement()..accept = 'image/*';
     input.multiple = true;
     
     input.onChange.listen((e) {
       final files = input.files;
-      if (files != null) {
+      debugPrint('選択されたファイル数: ${files?.length ?? 0}');
+      
+      if (files != null && files.isNotEmpty) {
+        int addedCount = 0;
+        
         for (var file in files) {
           if (_profileImages.length >= _maxImages) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('写真は最大$_maxImages枚までです')),
+              SnackBar(
+                content: Text('写真は最大$_maxImages枚までです'),
+                backgroundColor: Colors.orange,
+              ),
             );
             break;
           }
           
+          debugPrint('ファイル読み込み中: ${file.name}');
           final reader = html.FileReader();
           reader.onLoadEnd.listen((e) {
             setState(() {
@@ -168,14 +198,41 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
                 'name': file.name,
                 'data': reader.result as String,
               });
+              addedCount++;
             });
+            
+            debugPrint('✅ 画像追加完了: ${file.name}');
+            debugPrint('現在の画像数: ${_profileImages.length}');
+            
+            if (addedCount == files.length || _profileImages.length >= _maxImages) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('写真を${addedCount}枚追加しました (合計: ${_profileImages.length}枚)'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
           });
+          
+          reader.onError.listen((error) {
+            debugPrint('❌ 画像読み込みエラー: $error');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('画像の読み込みに失敗しました: ${file.name}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          });
+          
           reader.readAsDataUrl(file);
         }
+      } else {
+        debugPrint('⚠️ ファイルが選択されませんでした');
       }
     });
     
     input.click();
+    debugPrint('ファイル選択ダイアログを開きました');
   }
 
   void _removeImage(int index) {
@@ -223,9 +280,21 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
   }
 
   Future<void> _saveProfile() async {
+    debugPrint('===== プロフィール保存開始 =====');
+    
     if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('名前を入力してください')),
+      );
+      return;
+    }
+    
+    if (_emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('メールアドレスが設定されていません。\n再度ログインしてください。'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -233,6 +302,11 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
     setState(() {
       _isSaving = true;
     });
+    
+    debugPrint('保存データ準備中...');
+    debugPrint('Name: ${_nameController.text}');
+    debugPrint('Email: ${_emailController.text}');
+    debugPrint('Images: ${_profileImages.length}');
 
     try {
       final profileData = {
@@ -255,7 +329,10 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
         'registeredAt': _getRegisteredAt(),
       };
 
-      html.window.localStorage['staff_profile'] = json.encode(profileData);
+      final profileJson = json.encode(profileData);
+      html.window.localStorage['staff_profile'] = profileJson;
+      debugPrint('✅ staff_profile 保存完了');
+      debugPrint('保存データサイズ: ${profileJson.length} bytes');
 
       // ユーザーアプリ用のスタッフリストにも反映
       try {
@@ -299,9 +376,11 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
           staffList.insert(0, staffListItem);
         }
         
-        html.window.localStorage['all_staff_list'] = json.encode(staffList);
+        final staffListJson = json.encode(staffList);
+        html.window.localStorage['all_staff_list'] = staffListJson;
+        debugPrint('✅ all_staff_list 更新完了 (${staffList.length}件)');
       } catch (e) {
-        debugPrint('スタッフリスト更新エラー: $e');
+        debugPrint('❌ スタッフリスト更新エラー: $e');
       }
 
       await Future.delayed(const Duration(milliseconds: 500));
@@ -312,13 +391,14 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('プロフィールを保存しました'),
+          SnackBar(
+            content: Text('プロフィールを保存しました\n画像: ${_profileImages.length}枚'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
-
+        
+        debugPrint('✅ プロフィール保存完了');
         Navigator.pop(context, true);
       }
     } catch (e) {
