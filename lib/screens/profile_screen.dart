@@ -409,20 +409,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             
             const Divider(height: 32),
             
-            // スタッフ管理画面へのアクセス
-            _buildMenuItem(
-              context,
-              icon: Icons.business_center,
-              title: 'スタッフ管理画面',
-              color: Colors.purple,
-              onTap: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => const StaffDashboardScreen()),
-                // );
-              },
-            ),
-            
             _buildMenuItem(
               context,
               icon: Icons.settings,
