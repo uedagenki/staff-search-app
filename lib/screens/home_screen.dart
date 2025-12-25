@@ -317,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -336,8 +336,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Image.network(
                 'staff_search_logo.png',
-                width: 28,
-                height: 28,
+                width: 24,
+                height: 24,
                 errorBuilder: (context, error, stackTrace) {
                   return Icon(
                     Icons.search,
@@ -346,16 +346,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
               Text(
                 'STAFF SEARCH',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               // モード切り替えドロップダウン
               const SimpleModeDropdown(),
             ],

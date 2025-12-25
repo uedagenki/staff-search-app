@@ -9,10 +9,10 @@ class SimpleModeDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: Colors.grey[300]!),
         ),
         child: Row(
@@ -20,21 +20,21 @@ class SimpleModeDropdown extends StatelessWidget {
           children: [
             const Icon(
               Icons.person_outline,
-              size: 16,
+              size: 14,
               color: Color(0xFF667EEA),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             const Text(
               'ユーザー',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             Icon(
               Icons.arrow_drop_down,
-              size: 16,
+              size: 14,
               color: Colors.grey[600],
             ),
           ],
@@ -159,10 +159,10 @@ class StaffModeDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: Colors.grey[300]!),
         ),
         child: Row(
@@ -170,21 +170,21 @@ class StaffModeDropdown extends StatelessWidget {
           children: [
             const Icon(
               Icons.work_outline,
-              size: 16,
+              size: 14,
               color: Color(0xFFF093FB),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 4),
             const Text(
               'スタッフ',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             Icon(
               Icons.arrow_drop_down,
-              size: 16,
+              size: 14,
               color: Colors.grey[600],
             ),
           ],
