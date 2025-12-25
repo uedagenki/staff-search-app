@@ -112,41 +112,8 @@ class SimpleModeDropdown extends StatelessWidget {
         ),
       );
     } else {
-      // ログイン済みの場合は確認ダイアログを表示
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.work_outline, color: Color(0xFFF093FB)),
-              SizedBox(width: 8),
-              Text('スタッフモードに切り替え'),
-            ],
-          ),
-          content: const Text(
-            'スタッフアプリに移動します。\n\n予約管理、売上分析、投稿管理などのスタッフ専用機能が利用できます。',
-            style: TextStyle(height: 1.5),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('キャンセル'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // スタッフアプリにリダイレクト
-                html.window.location.href = 'https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF093FB),
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('スタッフアプリへ'),
-            ),
-          ],
-        ),
-      );
+      // ログイン済みの場合は直接スタッフアプリにリダイレクト（ダイアログなし）
+      html.window.location.href = 'https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
     }
   }
 }
@@ -262,41 +229,8 @@ class StaffModeDropdown extends StatelessWidget {
         ),
       );
     } else {
-      // ログイン済みの場合は確認ダイアログを表示
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.person_outline, color: Color(0xFF667EEA)),
-              SizedBox(width: 8),
-              Text('ユーザーモードに切り替え'),
-            ],
-          ),
-          content: const Text(
-            'ユーザーアプリに移動します。\n\nスタッフ検索、予約、メッセージなどのユーザー機能が利用できます。',
-            style: TextStyle(height: 1.5),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('キャンセル'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // ユーザーアプリにリダイレクト
-                html.window.location.href = 'https://5060-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF667EEA),
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('ユーザーアプリへ'),
-            ),
-          ],
-        ),
-      );
+      // ログイン済みの場合は直接ユーザーアプリにリダイレクト（ダイアログなし）
+      html.window.location.href = 'https://5060-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
     }
   }
 }
