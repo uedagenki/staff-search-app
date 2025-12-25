@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:html' as html;
+import 'dart:convert';
 import '../staff_chat_screen.dart';
 import '../../models/chat_message.dart';
+import '../../services/chat_service.dart';
 
 class StaffMessagesScreen extends StatefulWidget {
   const StaffMessagesScreen({super.key});
@@ -11,58 +14,117 @@ class StaffMessagesScreen extends StatefulWidget {
 }
 
 class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
-  final List<ChatRoom> _chatRooms = [
-    ChatRoom(
-      id: 'room_001',
-      userId: 'user_001',
-      userName: '山田 太郎',
-      userImage: 'https://i.pravatar.cc/150?img=12',
-      lastMessage: 'ありがとうございました！また利用します',
-      lastMessageTime: DateTime.now().subtract(const Duration(minutes: 5)),
-      unreadCount: 2,
-      isOnline: true,
-    ),
-    ChatRoom(
-      id: 'room_002',
-      userId: 'user_002',
-      userName: '佐藤 花子',
-      userImage: 'https://i.pravatar.cc/150?img=45',
-      lastMessage: '予約の変更は可能でしょうか？',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 1)),
-      unreadCount: 0,
-      isOnline: false,
-    ),
-    ChatRoom(
-      id: 'room_003',
-      userId: 'user_003',
-      userName: '鈴木 一郎',
-      userImage: 'https://i.pravatar.cc/150?img=33',
-      lastMessage: '詳細について教えてください',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 3)),
-      unreadCount: 1,
-      isOnline: true,
-    ),
-    ChatRoom(
-      id: 'room_004',
-      userId: 'user_004',
-      userName: '田中 美咲',
-      userImage: 'https://i.pravatar.cc/150?img=23',
-      lastMessage: '承知しました',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 1)),
-      unreadCount: 0,
-      isOnline: false,
-    ),
-    ChatRoom(
-      id: 'room_005',
-      userId: 'user_005',
-      userName: '伊藤 健太',
-      userImage: 'https://i.pravatar.cc/150?img=68',
-      lastMessage: 'よろしくお願いします',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 2)),
-      unreadCount: 0,
-      isOnline: false,
-    ),
-  ];
+  final ChatService _chatService = ChatService();
+  List<ChatRoom> _chatRooms = [];
+  String _staffId = '';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStaffInfo();
+    _loadChatRooms();
+  }
+
+  void _loadStaffInfo() {
+    try {
+      final profileData = html.window.localStorage['staff_profile'];
+      if (profileData != null) {
+        final profile = json.decode(profileData);
+        _staffId = profile['email'] ?? 'staff_${DateTime.now().millisecondsSinceEpoch}';
+      } else {
+        _staffId = 'staff_${DateTime.now().millisecondsSinceEpoch}';
+      }
+    } catch (e) {
+      _staffId = 'staff_${DateTime.now().millisecondsSinceEpoch}';
+    }
+  }
+
+  Future<void> _loadChatRooms() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // LocalStorageから全てのチャットメッセージを読み込む
+      final allKeys = html.window.localStorage.keys?.toList() ?? [];
+      final chatKeys = allKeys.where((key) => key.startsWith('chat_messages_')).toList();
+      
+      final List<ChatRoom> rooms = [];
+      
+      for (var key in chatKeys) {
+        final messagesJson = html.window.localStorage[key];
+        if (messagesJson != null && messagesJson.isNotEmpty) {
+          try {
+            final List<dynamic> messages = json.decode(messagesJson);
+            
+            if (messages.isNotEmpty) {
+              // スタッフ宛のメッセージのみを抽出
+              final staffMessages = messages.where((m) => 
+                m['recipientType'] == 'staff' || m['senderType'] == 'staff'
+              ).toList();
+              
+              if (staffMessages.isNotEmpty) {
+                // 最新メッセージを取得
+                final lastMessage = staffMessages.last;
+                final timestamp = DateTime.parse(lastMessage['timestamp']);
+                
+                // ユーザー情報を取得
+                String userId = '';
+                String userName = '';
+                String userImage = '';
+                
+                if (lastMessage['senderType'] == 'user') {
+                  userId = lastMessage['senderId'];
+                  userName = lastMessage['senderName'];
+                  userImage = 'https://i.pravatar.cc/150?img=12';
+                } else {
+                  userId = lastMessage['recipientId'] ?? 'user_unknown';
+                  userName = lastMessage['recipientName'] ?? 'ユーザー';
+                  userImage = 'https://i.pravatar.cc/150?img=12';
+                }
+                
+                // 未読メッセージ数をカウント
+                final unreadCount = staffMessages.where((m) => 
+                  m['senderType'] == 'user' && m['isRead'] != true
+                ).length;
+                
+                rooms.add(ChatRoom(
+                  id: key.replaceAll('chat_messages_', ''),
+                  userId: userId,
+                  userName: userName,
+                  userImage: userImage,
+                  lastMessage: lastMessage['message'] ?? '',
+                  lastMessageTime: timestamp,
+                  unreadCount: unreadCount,
+                  isOnline: false,
+                ));
+              }
+            }
+          } catch (e) {
+            debugPrint('Error parsing chat room: $e');
+          }
+        }
+      }
+      
+      // 最終メッセージ時間でソート（新しい順）
+      rooms.sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
+      
+      if (mounted) {
+        setState(() {
+          _chatRooms = rooms;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading chat rooms: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   String _formatTime(DateTime time) {
     final now = DateTime.now();
@@ -98,36 +160,57 @@ class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
               ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadChatRooms,
+            tooltip: '更新',
+          ),
+        ],
         elevation: 0,
       ),
-      body: _chatRooms.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 80,
-                    color: Colors.grey[400],
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _chatRooms.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.chat_bubble_outline,
+                        size: 80,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'メッセージはまだありません',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'ユーザーからメッセージが届くと\nここに表示されます',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'メッセージはまだありません',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                    ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadChatRooms,
+                  child: ListView.builder(
+                    itemCount: _chatRooms.length,
+                    itemBuilder: (context, index) {
+                      final room = _chatRooms[index];
+                      return _buildChatRoomCard(room);
+                    },
                   ),
-                ],
-              ),
-            )
-          : ListView.builder(
-              itemCount: _chatRooms.length,
-              itemBuilder: (context, index) {
-                final room = _chatRooms[index];
-                return _buildChatRoomCard(room);
-              },
-            ),
+                ),
     );
   }
 
@@ -137,27 +220,15 @@ class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => StaffChatScreen(chatRoom: room),
+            builder: (context) => StaffChatScreen(
+              userId: room.userId,
+              userName: room.userName,
+              userImage: room.userImage,
+            ),
           ),
         ).then((_) {
-          // チャットから戻ってきたら未読カウントをリセット
-          if (mounted) {
-            setState(() {
-              final index = _chatRooms.indexWhere((r) => r.id == room.id);
-              if (index != -1) {
-                _chatRooms[index] = ChatRoom(
-                  id: room.id,
-                  userId: room.userId,
-                  userName: room.userName,
-                  userImage: room.userImage,
-                  lastMessage: room.lastMessage,
-                  lastMessageTime: room.lastMessageTime,
-                  unreadCount: 0,
-                  isOnline: room.isOnline,
-                );
-              }
-            });
-          }
+          // チャットから戻ってきたら未読カウントをリセットしてリロード
+          _loadChatRooms();
         });
       },
       child: Container(

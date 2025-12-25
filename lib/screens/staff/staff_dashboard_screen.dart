@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:html' as html;
+import 'dart:convert';
 import 'staff_posts_management_screen.dart';
 import 'staff_bookings_screen.dart';
 import 'staff_tips_screen.dart';
@@ -16,6 +18,9 @@ class StaffDashboardScreen extends StatefulWidget {
 class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
   int _currentIndex = 0;
   String _staffName = 'スタッフ';
+  String _jobTitle = '';
+  String _companyName = '';
+  String _storeName = '';
   bool _isOnline = false;
 
   @override
@@ -26,8 +31,24 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
 
   Future<void> _loadStaffInfo() async {
     final prefs = await SharedPreferences.getInstance();
+    
+    // LocalStorageからstaff_profileを取得
+    final profileJson = html.window.localStorage['staff_profile'];
+    if (profileJson != null) {
+      try {
+        final profileData = json.decode(profileJson);
+        setState(() {
+          _staffName = profileData['name'] ?? 'スタッフ';
+          _jobTitle = profileData['jobTitle'] ?? '';
+          _companyName = profileData['companyName'] ?? '';
+          _storeName = profileData['storeName'] ?? '';
+        });
+      } catch (e) {
+        // JSONパースエラー
+      }
+    }
+    
     setState(() {
-      _staffName = prefs.getString('staff_name') ?? 'スタッフ';
       _isOnline = prefs.getBool('staff_is_online') ?? false;
     });
   }
@@ -110,6 +131,10 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
           setState(() {
             _currentIndex = index;
           });
+          // プロフィールタブから戻った時にデータを再読み込み
+          if (_currentIndex == 0) {
+            _loadStaffInfo();
+          }
         },
       ),
     );
@@ -146,6 +171,26 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
+          const SizedBox(height: 8),
+          if (_jobTitle.isNotEmpty)
+            Text(
+              _jobTitle,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+          if (_storeName.isNotEmpty || _companyName.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '${_storeName.isNotEmpty ? _storeName : _companyName}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
           const SizedBox(height: 8),
           Text(
             _isOnline ? '出勤中です' : '現在退勤中です',
@@ -233,8 +278,30 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
             Icons.videocam,
             Colors.red,
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('ライブ配信機能機能は実装済みです')),
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('ライブ配信'),
+                  content: const Text('ライブ配信を開始しますか？\n\n本番環境では実際のライブストリーミング機能が利用可能です。'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('キャンセル'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('ライブ配信を開始しました（デモ）'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      },
+                      child: const Text('開始'),
+                    ),
+                  ],
+                ),
               );
             },
           ),

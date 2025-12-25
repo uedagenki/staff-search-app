@@ -9,7 +9,9 @@ import '../models/staff.dart';
 import '../models/staff_story.dart';
 import '../data/mock_data.dart';
 import '../widgets/staff_card.dart';
+import '../widgets/mode_switcher.dart';
 import '../services/location_service.dart';
+import '../services/app_mode_service.dart';
 import 'search_screen.dart';
 import 'profile_screen.dart';
 import 'messages_screen.dart';
@@ -30,6 +32,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final PageController _pageController = PageController();
   final LocationService _locationService = LocationService();
+  final AppModeService _modeService = AppModeService();
   List<Staff> _staffList = MockData.getStaffList();
   int _notificationCount = 0;
   List<Staff> _filteredStaffList = [];
@@ -130,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
             qrCode: 'QR_${data['id'] ?? ''}',
             storeName: data['storeName'] ?? '',
             companyName: data['companyName'] ?? '',
-            pricing: data['pricing'] as Map<String, dynamic>?,
+            // pricing: data['pricing'] as Map<String, dynamic>?,
             coupons: data['coupons'] as List<dynamic>?,
           );
         }).toList();
@@ -330,29 +333,39 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // ロゴ
+          // ロゴとモード切り替え
           Row(
             children: [
               Image.network(
                 'staff_search_logo.png',
-                width: 32,
-                height: 32,
+                width: 28,
+                height: 28,
                 errorBuilder: (context, error, stackTrace) {
                   return Icon(
                     Icons.search,
                     color: Theme.of(context).colorScheme.primary,
-                    size: 20,
+                    size: 18,
                   );
                 },
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
                 'STAFF SEARCH',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary,
                 ),
+              ),
+              const SizedBox(width: 12),
+              // モード切り替えドロップダウン
+              ModeDropdown(
+                modeService: _modeService,
+                onModeChanged: () {
+                  setState(() {
+                    // モード変更時に画面を更新
+                  });
+                },
               ),
             ],
           ),

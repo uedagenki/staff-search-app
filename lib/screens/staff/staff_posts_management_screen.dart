@@ -267,9 +267,7 @@ class _StaffPostsManagementScreenState extends State<StaffPostsManagementScreen>
                 title: const Text('編集'),
                 onTap: () {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('編集機能機能は実装済みです')),
-                  );
+                  _editPost(post);
                 },
               ),
               ListTile(
@@ -333,6 +331,61 @@ class _StaffPostsManagementScreenState extends State<StaffPostsManagementScreen>
           Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
+    );
+  }
+
+  void _editPost(StaffPost post) {
+    final captionController = TextEditingController(text: post.caption);
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('投稿を編集'),
+          content: TextField(
+            controller: captionController,
+            maxLines: 5,
+            maxLength: 500,
+            decoration: const InputDecoration(
+              labelText: 'キャプション',
+              border: OutlineInputBorder(),
+              hintText: '投稿の説明を入力してください',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                captionController.dispose();
+                Navigator.pop(context);
+              },
+              child: const Text('キャンセル'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  final index = _posts.indexOf(post);
+                  if (index >= 0) {
+                    _posts[index] = StaffPost(
+                      id: post.id,
+                      imageUrl: post.imageUrl,
+                      caption: captionController.text,
+                      likeCount: post.likeCount,
+                      commentCount: post.commentCount,
+                      postDate: post.postDate,
+                    );
+                  }
+                });
+                captionController.dispose();
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('投稿を更新しました')),
+                );
+              },
+              child: const Text('保存'),
+            ),
+          ],
+        );
+      },
     );
   }
 

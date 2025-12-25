@@ -13,7 +13,7 @@ class AppNotification {
   final String body;
   final String? imageUrl;
   final DateTime timestamp;
-  bool isRead;  // 変更可能にする
+  final bool isRead;
   final Map<String, dynamic>? data;
 
   AppNotification({

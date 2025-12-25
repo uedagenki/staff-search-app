@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:html' as html;
+import 'dart:convert';
+import '../../widgets/store_search_dialog.dart';
 
 class StaffProfileEditScreen extends StatefulWidget {
   const StaffProfileEditScreen({super.key});
@@ -9,429 +11,423 @@ class StaffProfileEditScreen extends StatefulWidget {
 }
 
 class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
-  final TextEditingController _nameController = TextEditingController(text: '田中 美咲');
-  final TextEditingController _jobTitleController = TextEditingController(text: '美容師');
-  final TextEditingController _bioController = TextEditingController(
-    text: '10年以上の経験を持つベテラン美容師です。お客様一人ひとりに合わせたスタイリングをご提案いたします。',
-  );
-  final TextEditingController _experienceController = TextEditingController(text: '10');
-  final TextEditingController _locationController = TextEditingController(text: '東京都渋谷区');
-  final TextEditingController _storeNameController = TextEditingController(text: 'Salon de Beaute 新宿');
-  final TextEditingController _companyNameController = TextEditingController(text: 'ビューティーサロングループ');
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _storeNameController = TextEditingController();
+  final TextEditingController _companyNameController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _storeAddressController = TextEditingController(); // 店舗住所
   
-  // 店舗/会社の位置情報（緯度・経度の文字列）
-  String? _storeLatitude;
-  String? _storeLongitude;
-
-  List<String> _profileImages = [
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-  ];
+  String _selectedGender = 'male';
+  String _selectedJobTitle = 'beautician';
+  int _experienceYears = 1;
+  int _age = 20;
+  double? _storeLatitude; // 店舗緯度
+  double? _storeLongitude; // 店舗経度
+  
+  List<Map<String, dynamic>> _profileImages = [];
   bool _isSaving = false;
   final int _maxImages = 5;
 
-  // サンプル画像リスト
-  final List<String> _sampleImages = [
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
-    'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
-    'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400',
-    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
-    'https://i.pravatar.cc/400?img=45',
-    'https://i.pravatar.cc/400?img=23',
-    'https://i.pravatar.cc/400?img=47',
+  final List<String> _jobTitles = [
+    '美容師',
+    'コンサルタント',
+    'トレーナー',
+    '弁護士・士業',
+    'デザイナー',
+    'エンジニア',
+    '講師・教師',
+    '医療従事者',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
+  // 店舗検索ダイアログを表示
+  void _showStoreSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => StoreSearchDialog(
+        onSelect: (storeData) {
+          setState(() {
+            _storeNameController.text = storeData['storeName'] ?? '';
+            _storeAddressController.text = storeData['storeAddress'] ?? '';
+            _storeLatitude = storeData['storeLatitude'];
+            _storeLongitude = storeData['storeLongitude'];
+          });
+        },
+      ),
+    );
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _jobTitleController.dispose();
-    _bioController.dispose();
-    _experienceController.dispose();
-    _locationController.dispose();
     _storeNameController.dispose();
     _companyNameController.dispose();
+    _bioController.dispose();
+    _addressController.dispose();
+    _emailController.dispose();
+    _storeAddressController.dispose();
     super.dispose();
   }
 
-  void _showImagePickerDialog() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          minChildSize: 0.5,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) {
-            return Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'プロフィール画像を選択',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: GridView.builder(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemCount: _sampleImages.length + 2,
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        // カメラボタン
-                        return _buildImageOption(
-                          icon: Icons.camera_alt,
-                          label: 'カメラ',
-                          color: Colors.blue,
-                          onTap: () {
-                            Navigator.pop(context);
-                            _showCameraFeatureDialog();
-                          },
-                        );
-                      } else if (index == 1) {
-                        // ギャラリーボタン
-                        return _buildImageOption(
-                          icon: Icons.photo_library,
-                          label: 'ギャラリー',
-                          color: Colors.green,
-                          onTap: () {
-                            Navigator.pop(context);
-                            _showGalleryFeatureDialog();
-                          },
-                        );
-                      } else {
-                        // サンプル画像
-                        final imageUrl = _sampleImages[index - 2];
-                        final isSelected = _profileImages.contains(imageUrl);
-                        return GestureDetector(
-                          onTap: () {
-                            if (isSelected) {
-                              // 選択解除（最低1枚は必要）
-                              if (_profileImages.length > 1) {
-                                setState(() {
-                                  _profileImages.remove(imageUrl);
-                                });
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('最低1枚の画像が必要です'),
-                                    duration: Duration(seconds: 1),
-                                  ),
-                                );
-                              }
-                            } else {
-                              // 選択追加（最大5枚まで）
-                              if (_profileImages.length < _maxImages) {
-                                setState(() {
-                                  _profileImages.add(imageUrl);
-                                });
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('画像は最大$_maxImages枚までです'),
-                                    duration: const Duration(seconds: 1),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          child: Stack(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Colors.grey[300]!,
-                                    width: isSelected ? 3 : 1,
-                                  ),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: CachedNetworkImage(
-                                    imageUrl: imageUrl,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              if (isSelected)
-                                Positioned(
-                                  top: 4,
-                                  right: 4,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.primary,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Text(
-                                      '${_profileImages.indexOf(imageUrl) + 1}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+  void _loadProfileData() {
+    try {
+      final profileJson = html.window.localStorage['staff_profile'];
+      debugPrint('===== プロフィールデータロード開始 =====');
+      debugPrint('LocalStorage staff_profile: $profileJson');
+      
+      if (profileJson != null) {
+        final profile = json.decode(profileJson) as Map<String, dynamic>;
+        debugPrint('デコードされたプロフィール: ${profile.keys}');
+        debugPrint('Email: ${profile['email']}');
+        
+        setState(() {
+          _nameController.text = profile['name'] ?? '';
+          _storeNameController.text = profile['storeName'] ?? '';
+          _companyNameController.text = profile['companyName'] ?? '';
+          _bioController.text = profile['bio'] ?? '';
+          _addressController.text = profile['address'] ?? profile['location'] ?? '';
+          _emailController.text = profile['email'] ?? '';
+          _storeAddressController.text = profile['storeAddress'] ?? '';
+          _storeLatitude = profile['storeLatitude']?.toDouble();
+          _storeLongitude = profile['storeLongitude']?.toDouble();
+          
+          // 経験年数を抽出
+          final expStr = profile['experience']?.toString() ?? '1';
+          _experienceYears = int.tryParse(expStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 1;
+          
+          _age = profile['age'] ?? 20;
+          _selectedGender = profile['gender'] ?? 'male';
+          
+          // 職種
+          final jobTitle = profile['jobTitle'] ?? '';
+          _selectedJobTitle = _getJobTitleCode(jobTitle);
+          
+          // プロフィール画像
+          if (profile['profileImages'] != null) {
+            final images = profile['profileImages'] as List;
+            _profileImages = images.map((img) {
+              if (img is Map) {
+                return Map<String, dynamic>.from(img);
+              } else if (img is String) {
+                return {'data': img, 'name': 'profile.png'};
+              }
+              return {'data': '', 'name': ''};
+            }).toList();
+          }
+        });
+        
+        debugPrint('ロード完了 - Name: ${_nameController.text}, Email: ${_emailController.text}');
+        debugPrint('画像数: ${_profileImages.length}');
+      } else {
+        debugPrint('⚠️ staff_profile がLocalStorageに存在しません');
+      }
+    } catch (e) {
+      debugPrint('❌ プロフィールデータロードエラー: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('プロフィールデータの読み込みに失敗しました: $e'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
   }
 
-  Widget _buildImageOption({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color, width: 2),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: color),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: color,
+  String _getJobTitleCode(String jobTitle) {
+    if (jobTitle.contains('美容師')) return 'beautician';
+    if (jobTitle.contains('コンサルタント')) return 'consultant';
+    if (jobTitle.contains('トレーナー')) return 'trainer';
+    if (jobTitle.contains('弁護士') || jobTitle.contains('士業')) return 'lawyer';
+    if (jobTitle.contains('デザイナー')) return 'designer';
+    if (jobTitle.contains('エンジニア')) return 'engineer';
+    if (jobTitle.contains('講師') || jobTitle.contains('教師')) return 'teacher';
+    if (jobTitle.contains('医療')) return 'medical';
+    return 'beautician';
+  }
+
+  String _getJobTitleName(String code) {
+    switch (code) {
+      case 'beautician': return '美容師';
+      case 'consultant': return 'コンサルタント';
+      case 'trainer': return 'トレーナー';
+      case 'lawyer': return '弁護士・士業';
+      case 'designer': return 'デザイナー';
+      case 'engineer': return 'エンジニア';
+      case 'teacher': return '講師・教師';
+      case 'medical': return '医療従事者';
+      default: return '美容師';
+    }
+  }
+
+  void _pickImages() {
+    debugPrint('===== 画像選択開始 =====');
+    debugPrint('現在の画像数: ${_profileImages.length}/$_maxImages');
+    
+    final input = html.FileUploadInputElement()..accept = 'image/*';
+    input.multiple = true;
+    
+    input.onChange.listen((e) {
+      final files = input.files;
+      debugPrint('選択されたファイル数: ${files?.length ?? 0}');
+      
+      if (files != null && files.isNotEmpty) {
+        int addedCount = 0;
+        
+        for (var file in files) {
+          if (_profileImages.length >= _maxImages) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('写真は最大$_maxImages枚までです'),
+                backgroundColor: Colors.orange,
               ),
-            ),
-          ],
-        ),
-      ),
-    );
+            );
+            break;
+          }
+          
+          debugPrint('ファイル読み込み中: ${file.name}');
+          final reader = html.FileReader();
+          reader.onLoadEnd.listen((e) {
+            setState(() {
+              _profileImages.add({
+                'name': file.name,
+                'data': reader.result as String,
+              });
+              addedCount++;
+            });
+            
+            debugPrint('✅ 画像追加完了: ${file.name}');
+            debugPrint('現在の画像数: ${_profileImages.length}');
+            
+            if (addedCount == files.length || _profileImages.length >= _maxImages) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('写真を${addedCount}枚追加しました (合計: ${_profileImages.length}枚)'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          });
+          
+          reader.onError.listen((error) {
+            debugPrint('❌ 画像読み込みエラー: $error');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('画像の読み込みに失敗しました: ${file.name}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          });
+          
+          reader.readAsDataUrl(file);
+        }
+      } else {
+        debugPrint('⚠️ ファイルが選択されませんでした');
+      }
+    });
+    
+    input.click();
+    debugPrint('ファイル選択ダイアログを開きました');
   }
 
-  void _showCameraFeatureDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.camera_alt, color: Colors.blue),
-            SizedBox(width: 8),
-            Text('カメラで撮影'),
-          ],
-        ),
-        content: const Text('カメラ機能は実装済みです。\n\n実際のアプリでは、デバイスのカメラを起動して写真を撮影できます。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('閉じる'),
-          ),
-        ],
-      ),
-    );
+  void _removeImage(int index) {
+    setState(() {
+      _profileImages.removeAt(index);
+    });
   }
 
-  void _showGalleryFeatureDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.photo_library, color: Colors.green),
-            SizedBox(width: 8),
-            Text('ギャラリーから選択'),
-          ],
-        ),
-        content: const Text('ギャラリー機能は実装済みです。\n\n実際のアプリでは、デバイスのギャラリーから写真を選択できます。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('閉じる'),
-          ),
-        ],
-      ),
-    );
+  Future<void> _getCurrentLocation() async {
+    try {
+      html.window.navigator.geolocation?.getCurrentPosition().then((position) {
+        final lat = position.coords?.latitude;
+        final lon = position.coords?.longitude;
+        
+        if (lat != null && lon != null) {
+          // OpenStreetMapのNominatim APIで住所を取得
+          html.HttpRequest.request(
+            'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=16&accept-language=ja',
+            requestHeaders: {'User-Agent': 'StaffSearchApp/1.0'},
+          ).then((response) {
+            final data = json.decode(response.responseText!);
+            final address = data['address'];
+            
+            String formattedAddress = '';
+            if (address['state'] != null) formattedAddress += address['state'];
+            if (address['city'] != null) formattedAddress += address['city'];
+            if (address['town'] != null) formattedAddress += address['town'];
+            if (address['village'] != null) formattedAddress += address['village'];
+            
+            setState(() {
+              _addressController.text = formattedAddress;
+            });
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('現在地を取得しました')),
+            );
+          });
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('位置情報の取得に失敗しました')),
+      );
+    }
   }
 
   Future<void> _saveProfile() async {
+    debugPrint('===== プロフィール保存開始 =====');
+    
+    if (_nameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('名前を入力してください')),
+      );
+      return;
+    }
+    
+    if (_emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('メールアドレスが設定されていません。\n再度ログインしてください。'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isSaving = true;
     });
+    
+    debugPrint('保存データ準備中...');
+    debugPrint('Name: ${_nameController.text}');
+    debugPrint('Email: ${_emailController.text}');
+    debugPrint('Images: ${_profileImages.length}');
 
-    // 保存処理のシミュレーション
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final profileData = {
+        'name': _nameController.text,
+        'storeName': _storeNameController.text,
+        'storeAddress': _storeAddressController.text,
+        'storeLatitude': _storeLatitude,
+        'storeLongitude': _storeLongitude,
+        'companyName': _companyNameController.text,
+        'age': _age,
+        'address': _addressController.text,
+        'location': _addressController.text,
+        'gender': _selectedGender,
+        'jobTitle': _getJobTitleName(_selectedJobTitle),
+        'experience': '${_experienceYears}年',
+        'bio': _bioController.text,
+        'email': _emailController.text,
+        'profileImages': _profileImages,
+        'updatedAt': DateTime.now().toIso8601String(),
+        'registeredAt': _getRegisteredAt(),
+      };
 
-    if (mounted) {
-      setState(() {
-        _isSaving = false;
-      });
+      final profileJson = json.encode(profileData);
+      html.window.localStorage['staff_profile'] = profileJson;
+      debugPrint('✅ staff_profile 保存完了');
+      debugPrint('保存データサイズ: ${profileJson.length} bytes');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _storeLatitude != null && _storeLongitude != null
-                ? 'プロフィールと店舗位置を保存しました'
-                : 'プロフィールを保存しました',
+      // ユーザーアプリ用のスタッフリストにも反映
+      try {
+        String? staffListStr = html.window.localStorage['all_staff_list'];
+        List<dynamic> staffList = [];
+        
+        if (staffListStr != null && staffListStr.isNotEmpty) {
+          staffList = json.decode(staffListStr);
+        }
+        
+        final email = _emailController.text;
+        final existingIndex = staffList.indexWhere((s) => s['email'] == email);
+        
+        final staffListItem = {
+          'id': existingIndex >= 0 ? staffList[existingIndex]['id'] : 'staff_${DateTime.now().millisecondsSinceEpoch}',
+          'name': _nameController.text,
+          'storeName': _storeNameController.text,
+          'storeAddress': _storeAddressController.text,
+          'storeLatitude': _storeLatitude,
+          'storeLongitude': _storeLongitude,
+          'companyName': _companyNameController.text,
+          'jobTitle': _getJobTitleName(_selectedJobTitle),
+          'category': _getJobTitleName(_selectedJobTitle),
+          'rating': 5.0,
+          'reviews': 0,
+          'hourlyRate': 5000,
+          'experience': '${_experienceYears}年',
+          'bio': _bioController.text,
+          'location': _addressController.text,
+          'distance': '0.0km',
+          'imageUrl': _profileImages.isNotEmpty ? _profileImages[0]['data'] : 'https://via.placeholder.com/150',
+          'isOnline': false,
+          'tags': [_getJobTitleName(_selectedJobTitle)],
+          'email': email,
+          'registeredAt': profileData['registeredAt'],
+        };
+        
+        if (existingIndex >= 0) {
+          staffList[existingIndex] = staffListItem;
+        } else {
+          staffList.insert(0, staffListItem);
+        }
+        
+        final staffListJson = json.encode(staffList);
+        html.window.localStorage['all_staff_list'] = staffListJson;
+        debugPrint('✅ all_staff_list 更新完了 (${staffList.length}件)');
+      } catch (e) {
+        debugPrint('❌ スタッフリスト更新エラー: $e');
+      }
+
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('プロフィールを保存しました\n画像: ${_profileImages.length}枚'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
           ),
-          backgroundColor: Colors.green,
-        ),
-      );
+        );
+        
+        debugPrint('✅ プロフィール保存完了');
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
 
-      Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('プロフィールの保存に失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
-  
-  Future<void> _pickStoreLocation() async {
-    // 簡易的な位置入力ダイアログ
-    final latController = TextEditingController(text: _storeLatitude ?? '35.6895');
-    final lngController = TextEditingController(text: _storeLongitude ?? '139.6917');
-    
-    final result = await showDialog<Map<String, String>>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.map, color: Colors.blue),
-            SizedBox(width: 8),
-            Text('店舗位置を設定'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              '店舗の緯度・経度を入力してください',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: latController,
-              decoration: const InputDecoration(
-                labelText: '緯度',
-                hintText: '例: 35.6895',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.public),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: lngController,
-              decoration: const InputDecoration(
-                labelText: '経度',
-                hintText: '例: 139.6917',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.public),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '💡 位置の調べ方:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '1. Google Mapsで店舗を検索\n2. 右クリックして座標をコピー\n3. ここに貼り付け',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('キャンセル'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context, {
-                'latitude': latController.text,
-                'longitude': lngController.text,
-              });
-            },
-            child: const Text('設定'),
-          ),
-        ],
-      ),
-    );
-    
-    if (result != null && mounted) {
-      setState(() {
-        _storeLatitude = result['latitude'];
-        _storeLongitude = result['longitude'];
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('店舗位置を設定しました'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
+
+  String _getRegisteredAt() {
+    try {
+      final profileJson = html.window.localStorage['staff_profile'];
+      if (profileJson != null) {
+        final profile = json.decode(profileJson);
+        return profile['registeredAt'] ?? DateTime.now().toIso8601String();
+      }
+    } catch (e) {
+      // ignore
     }
-    
-    latController.dispose();
-    lngController.dispose();
+    return DateTime.now().toIso8601String();
   }
 
   @override
@@ -439,309 +435,339 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('プロフィール編集'),
-        elevation: 0,
+        actions: [
+          if (_isSaving)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.check),
+              onPressed: _saveProfile,
+              tooltip: '保存',
+            ),
+        ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // プロフィール画像
-              const Text(
-                'プロフィール画像（最大5枚）',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 100,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _profileImages.length + (_profileImages.length < _maxImages ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index < _profileImages.length) {
-                      // 既存の画像
-                      return Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        child: Stack(
-                          children: [
-                            Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  width: 2,
-                                ),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: CachedNetworkImage(
-                                  imageUrl: _profileImages[index],
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            // 順番表示
-                            Positioned(
-                              top: 4,
-                              left: 4,
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  '${index + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // 削除ボタン（最低1枚は残す）
-                            if (_profileImages.length > 1)
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _profileImages.removeAt(index);
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.close,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    } else {
-                      // 追加ボタン
-                      return GestureDetector(
-                        onTap: _showImagePickerDialog,
-                        child: Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.grey[400]!,
-                              width: 2,
-                              style: BorderStyle.solid,
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_photo_alternate,
-                                size: 32,
-                                color: Colors.grey[600],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '追加',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // プロフィール写真（最大5枚）
+            const Text(
+              'プロフィール写真（最大5枚）',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                ..._profileImages.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final image = entry.value;
+                  return Stack(
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          image: DecorationImage(
+                            image: NetworkImage(image['data']),
+                            fit: BoxFit.cover,
                           ),
                         ),
-                      );
-                    }
-                  },
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: InkWell(
+                          onTap: () => _removeImage(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+                if (_profileImages.length < _maxImages)
+                  InkWell(
+                    onTap: _pickImages,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[400]!),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_photo_alternate, color: Colors.grey[600], size: 32),
+                          const SizedBox(height: 4),
+                          Text(
+                            '写真追加',
+                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            
+            const SizedBox(height: 24),
+
+            // 基本情報
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: '名前 *',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+
+            // 店舗名（検索機能付き）
+            TextField(
+              controller: _storeNameController,
+              decoration: InputDecoration(
+                labelText: '店舗名',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.store),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: _showStoreSearchDialog,
+                  tooltip: '地図から検索',
                 ),
               ),
-              const SizedBox(height: 32),
+            ),
+            
+            const SizedBox(height: 16),
 
-              // 基本情報
-              const Text(
-                '基本情報',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-
+            // 店舗住所
+            if (_storeAddressController.text.isNotEmpty) ...[
               TextField(
-                controller: _nameController,
+                controller: _storeAddressController,
                 decoration: const InputDecoration(
-                  labelText: '名前',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              TextField(
-                controller: _jobTitleController,
-                decoration: const InputDecoration(
-                  labelText: '職種',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.work),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              TextField(
-                controller: _experienceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: '経験年数',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.stars),
-                  suffixText: '年',
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              TextField(
-                controller: _locationController,
-                decoration: const InputDecoration(
-                  labelText: '勤務地',
+                  labelText: '店舗住所',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.location_on),
                 ),
+                readOnly: true,
               ),
               const SizedBox(height: 16),
-
-              TextField(
-                controller: _storeNameController,
-                decoration: InputDecoration(
-                  labelText: '店舗名',
-                  hintText: '所属店舗名を入力',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.store),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _storeLatitude != null && _storeLongitude != null 
-                          ? Icons.map 
-                          : Icons.add_location,
-                      color: _storeLatitude != null && _storeLongitude != null 
-                          ? Colors.green 
-                          : Colors.grey,
-                    ),
-                    onPressed: _pickStoreLocation,
-                    tooltip: '位置を設定',
-                  ),
-                ),
-              ),
-              if (_storeLatitude != null && _storeLongitude != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8, left: 12),
-                  child: Text(
-                    '📍 位置設定済み (緯度: $_storeLatitude, 経度: $_storeLongitude)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.green[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 16),
-
-              TextField(
-                controller: _companyNameController,
-                decoration: const InputDecoration(
-                  labelText: '会社名',
-                  hintText: '所属会社名を入力',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.business),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // 自己紹介
-              const Text(
-                '自己紹介',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              TextField(
-                controller: _bioController,
-                maxLines: 5,
-                decoration: const InputDecoration(
-                  labelText: '自己紹介文',
-                  hintText: 'あなたの経験やスキル、得意なことなどを記入してください',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // 保存ボタン
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : _saveProfile,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: _isSaving
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text(
-                          '保存',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // キャンセルボタン
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    'キャンセル',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
             ],
-          ),
+
+            TextField(
+              controller: _companyNameController,
+              decoration: const InputDecoration(
+                labelText: '会社名',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.business),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+
+            // 年齢
+            Row(
+              children: [
+                const Icon(Icons.cake, color: Colors.grey),
+                const SizedBox(width: 12),
+                const Text('年齢:', style: TextStyle(fontSize: 16)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Slider(
+                    value: _age.toDouble(),
+                    min: 18,
+                    max: 70,
+                    divisions: 52,
+                    label: '$_age歳',
+                    onChanged: (value) {
+                      setState(() {
+                        _age = value.toInt();
+                      });
+                    },
+                  ),
+                ),
+                Text('$_age歳', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+
+            // 性別
+            DropdownButtonFormField<String>(
+              value: _selectedGender,
+              decoration: const InputDecoration(
+                labelText: '性別',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.wc),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'male', child: Text('男性')),
+                DropdownMenuItem(value: 'female', child: Text('女性')),
+                DropdownMenuItem(value: 'other', child: Text('その他')),
+                DropdownMenuItem(value: 'no-answer', child: Text('回答しない')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedGender = value!;
+                });
+              },
+            ),
+            
+            const SizedBox(height: 16),
+
+            // 住所
+            TextField(
+              controller: _addressController,
+              decoration: InputDecoration(
+                labelText: '住所',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.location_on),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.my_location),
+                  onPressed: _getCurrentLocation,
+                  tooltip: '現在地取得',
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+
+            // 職種
+            DropdownButtonFormField<String>(
+              value: _selectedJobTitle,
+              decoration: const InputDecoration(
+                labelText: '職種',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.work),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'beautician', child: Text('美容師')),
+                DropdownMenuItem(value: 'consultant', child: Text('コンサルタント')),
+                DropdownMenuItem(value: 'trainer', child: Text('トレーナー')),
+                DropdownMenuItem(value: 'lawyer', child: Text('弁護士・士業')),
+                DropdownMenuItem(value: 'designer', child: Text('デザイナー')),
+                DropdownMenuItem(value: 'engineer', child: Text('エンジニア')),
+                DropdownMenuItem(value: 'teacher', child: Text('講師・教師')),
+                DropdownMenuItem(value: 'medical', child: Text('医療従事者')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedJobTitle = value!;
+                });
+              },
+            ),
+            
+            const SizedBox(height: 16),
+
+            // 経験年数
+            Row(
+              children: [
+                const Icon(Icons.military_tech, color: Colors.grey),
+                const SizedBox(width: 12),
+                const Text('経験年数:', style: TextStyle(fontSize: 16)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Slider(
+                    value: _experienceYears.toDouble(),
+                    min: 1,
+                    max: 30,
+                    divisions: 29,
+                    label: '$_experienceYears年',
+                    onChanged: (value) {
+                      setState(() {
+                        _experienceYears = value.toInt();
+                      });
+                    },
+                  ),
+                ),
+                Text('$_experienceYears年', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+
+            // 自己紹介
+            TextField(
+              controller: _bioController,
+              maxLines: 5,
+              maxLength: 500,
+              decoration: const InputDecoration(
+                labelText: '自己紹介',
+                border: OutlineInputBorder(),
+                hintText: 'あなたの経験やスキル、アピールポイントを記入してください',
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+
+            // メールアドレス
+            TextField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'メールアドレス',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email),
+              ),
+              enabled: false, // メールアドレスは変更不可
+            ),
+            
+            const SizedBox(height: 24),
+
+            // 保存ボタン
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isSaving ? null : _saveProfile,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text('保存', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
