@@ -370,6 +370,12 @@ class _StaffCardState extends State<StaffCard> {
                     const SizedBox(height: 12),
                   ],
                   
+                  // クーポン情報
+                  if (widget.staff.coupons != null && widget.staff.coupons!.isNotEmpty) ...[
+                    _buildCouponInfo(),
+                    const SizedBox(height: 12),
+                  ],
+                  
                   // 場所とオンラインステータス
                   Row(
                     children: [
@@ -723,5 +729,239 @@ class _StaffCardState extends State<StaffCard> {
     }
 
     return const SizedBox.shrink();
+  }
+
+  // クーポン情報表示
+  Widget _buildCouponInfo() {
+    if (widget.staff.coupons == null || widget.staff.coupons!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // 有効なクーポンのみをフィルター
+    final activeCoupons = widget.staff.coupons!.where((coupon) {
+      final isActive = coupon['isActive'] ?? true;
+      final expiryDate = coupon['expiryDate'];
+      final isExpired = expiryDate != null && DateTime.parse(expiryDate).isBefore(DateTime.now());
+      return isActive && !isExpired;
+    }).toList();
+
+    if (activeCoupons.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // 最もお得なクーポンを1つ表示
+    final bestCoupon = activeCoupons.first;
+    final discountType = bestCoupon['discountType'] ?? 'percentage';
+    final discountValue = bestCoupon['discountValue'] ?? 0;
+    
+    String discountText;
+    if (discountType == 'percentage') {
+      discountText = '$discountValue%OFF';
+    } else {
+      discountText = '¥${discountValue}OFF';
+    }
+
+    return GestureDetector(
+      onTap: () {
+        // クーポン一覧ダイアログを表示
+        _showCouponsDialog();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.local_offer, color: Colors.white, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              discountText,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (activeCoupons.length > 1) ...[
+              const SizedBox(width: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '+${activeCoupons.length - 1}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // クーポン一覧ダイアログ
+  void _showCouponsDialog() {
+    final activeCoupons = widget.staff.coupons!.where((coupon) {
+      final isActive = coupon['isActive'] ?? true;
+      final expiryDate = coupon['expiryDate'];
+      final isExpired = expiryDate != null && DateTime.parse(expiryDate).isBefore(DateTime.now());
+      return isActive && !isExpired;
+    }).toList();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.local_offer, color: Colors.orange),
+            const SizedBox(width: 8),
+            Text('${widget.staff.name}のクーポン'),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: activeCoupons.length,
+            itemBuilder: (context, index) {
+              final coupon = activeCoupons[index];
+              final discountType = coupon['discountType'] ?? 'percentage';
+              final discountValue = coupon['discountValue'] ?? 0;
+              final title = coupon['title'] ?? '無題のクーポン';
+              final description = coupon['description'] ?? '';
+              final minPurchase = coupon['minPurchase'] ?? 0;
+              final expiryDate = coupon['expiryDate'];
+              
+              String discountText;
+              if (discountType == 'percentage') {
+                discountText = '$discountValue%OFF';
+              } else {
+                discountText = '¥${discountValue}OFF';
+              }
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              discountText,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      if (description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          description,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                      if (minPurchase > 0) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            '最低利用金額: ¥$minPurchase',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (expiryDate != null) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.event, size: 14, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Text(
+                              '有効期限: ${_formatCouponDate(expiryDate)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('閉じる'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatCouponDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return '${date.year}/${date.month}/${date.day}';
+    } catch (e) {
+      return dateStr;
+    }
   }
 }

@@ -131,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
             storeName: data['storeName'] ?? '',
             companyName: data['companyName'] ?? '',
             pricing: data['pricing'] as Map<String, dynamic>?,
+            coupons: data['coupons'] as List<dynamic>?,
           );
         }).toList();
         
