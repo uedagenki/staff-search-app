@@ -492,6 +492,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
             
             const SizedBox(height: 20),
             
+            // パスワード変更ボタン
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    _showPasswordChangeDialog(context);
+                  },
+                  icon: const Icon(Icons.lock),
+                  label: const Text(
+                    'パスワード変更',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.blue[50],
+                    foregroundColor: Colors.blue,
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 12),
+            
             // ログアウトボタン
             Padding(
               padding: const EdgeInsets.all(16),
@@ -809,6 +837,178 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: const Text('閉じる'),
           ),
         ],
+      ),
+    );
+  }
+
+  // パスワード変更ダイアログ
+  void _showPasswordChangeDialog(BuildContext context) {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool obscureCurrentPassword = true;
+    bool obscureNewPassword = true;
+    bool obscureConfirmPassword = true;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.lock, color: Colors.blue),
+              SizedBox(width: 8),
+              Text('パスワード変更'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: currentPasswordController,
+                  obscureText: obscureCurrentPassword,
+                  decoration: InputDecoration(
+                    labelText: '現在のパスワード',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        obscureCurrentPassword ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          obscureCurrentPassword = !obscureCurrentPassword;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: newPasswordController,
+                  obscureText: obscureNewPassword,
+                  decoration: InputDecoration(
+                    labelText: '新しいパスワード',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        obscureNewPassword ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          obscureNewPassword = !obscureNewPassword;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: confirmPasswordController,
+                  obscureText: obscureConfirmPassword,
+                  decoration: InputDecoration(
+                    labelText: '新しいパスワード（確認）',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          obscureConfirmPassword = !obscureConfirmPassword;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'パスワードは8文字以上で設定してください',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final currentPassword = currentPasswordController.text;
+                final newPassword = newPasswordController.text;
+                final confirmPassword = confirmPasswordController.text;
+
+                // 入力チェック
+                if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('すべての項目を入力してください')),
+                  );
+                  return;
+                }
+
+                if (newPassword.length < 8) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('新しいパスワードは8文字以上で設定してください')),
+                  );
+                  return;
+                }
+
+                if (newPassword != confirmPassword) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('新しいパスワードが一致しません')),
+                  );
+                  return;
+                }
+
+                // LocalStorageから現在の情報を取得
+                final userProfileJson = html.window.localStorage['user_profile'];
+                if (userProfileJson != null) {
+                  try {
+                    final userProfile = json.decode(userProfileJson);
+                    final storedPassword = userProfile['password'] ?? '';
+
+                    // 現在のパスワードを確認
+                    if (currentPassword != storedPassword) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('現在のパスワードが正しくありません')),
+                      );
+                      return;
+                    }
+
+                    // パスワードを更新
+                    userProfile['password'] = newPassword;
+                    html.window.localStorage['user_profile'] = json.encode(userProfile);
+
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('パスワードが変更されました'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+
+                    // TODO: メール送信機能が実装されたら、パスワード変更通知メールを送信
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('エラーが発生しました: $e')),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('ユーザー情報が見つかりません')),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('変更'),
+            ),
+          ],
+        ),
       ),
     );
   }
