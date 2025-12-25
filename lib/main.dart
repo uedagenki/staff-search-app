@@ -39,11 +39,25 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
         useMaterial3: true,
+        // スワイプで戻る機能を全プラットフォームで有効化
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+            TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+          },
+        ),
         appBarTheme: const AppBarTheme(
           centerTitle: true,
           elevation: 0,
           backgroundColor: Colors.white,
-          foregroundColor: Color(0xFF1976D2),
+          foregroundColor: Color(0xFF1976D2), // 見やすい青色
+          iconTheme: IconThemeData(
+            color: Color(0xFF1976D2), // 戻るボタンの色を明確な青に設定
+            size: 24,
+          ),
         ),
         cardTheme: CardThemeData(
           elevation: 2,
