@@ -19,7 +19,13 @@ class Staff {
   double? distance; // 現在地からの距離（km）
   final String? storeId; // 所属店舗ID
   final String? storeName; // 所属店舗名
+  final String? storeAddress; // 店舗住所
+  final double? storeLatitude; // 店舗緯度
+  final double? storeLongitude; // 店舗経度
   final String? companyName; // 会社名
+  final String? companyAddress; // 会社住所
+  final double? companyLatitude; // 会社緯度
+  final double? companyLongitude; // 会社経度
   final int followersCount; // フォロワー数
   final double giftAmount; // 受け取ったギフト総額（円）
   final int categoryRank; // カテゴリー内ランキング
@@ -48,7 +54,13 @@ class Staff {
     this.distance,
     this.storeId,
     this.storeName,
+    this.storeAddress,
+    this.storeLatitude,
+    this.storeLongitude,
     this.companyName,
+    this.companyAddress,
+    this.companyLatitude,
+    this.companyLongitude,
     this.followersCount = 0,
     this.giftAmount = 0.0,
     this.categoryRank = 1,

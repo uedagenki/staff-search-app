@@ -495,8 +495,8 @@ class _StaffCardState extends State<StaffCard> {
                           ],
                         ),
                       ),
-                      if (widget.staff.storeName != null) ...[
-                        const SizedBox(width: 16),
+                      if (widget.staff.storeName != null && widget.staff.storeName!.isNotEmpty) ...[
+                        const SizedBox(width: 12),
                         const Icon(
                           Icons.store,
                           color: Colors.white,
@@ -508,7 +508,33 @@ class _StaffCardState extends State<StaffCard> {
                             widget.staff.storeName!,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 14,
+                              fontSize: 13,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 8.0,
+                                  color: Colors.black,
+                                  offset: Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      if (widget.staff.companyName != null && widget.staff.companyName!.isNotEmpty) ...[
+                        const SizedBox(width: 12),
+                        const Icon(
+                          Icons.business,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            widget.staff.companyName!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
                               shadows: [
                                 Shadow(
                                   blurRadius: 8.0,

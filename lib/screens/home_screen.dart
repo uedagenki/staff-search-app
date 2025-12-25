@@ -130,7 +130,15 @@ class _HomeScreenState extends State<HomeScreen> {
             experience: experienceYears,
             qrCode: 'QR_${data['id'] ?? ''}',
             storeName: data['storeName'] ?? '',
+            storeAddress: data['storeAddress'] ?? '',
             companyName: data['companyName'] ?? '',
+            companyAddress: data['companyAddress'] ?? '',
+            latitude: data['latitude']?.toDouble(),
+            longitude: data['longitude']?.toDouble(),
+            storeLatitude: data['storeLatitude']?.toDouble(),
+            storeLongitude: data['storeLongitude']?.toDouble(),
+            companyLatitude: data['companyLatitude']?.toDouble(),
+            companyLongitude: data['companyLongitude']?.toDouble(),
             // pricing: data['pricing'] as Map<String, dynamic>?,
             coupons: data['coupons'] as List<dynamic>?,
           );
@@ -209,14 +217,29 @@ class _HomeScreenState extends State<HomeScreen> {
           return false;
         }
 
-        // 距離フィルター
+        // 距離フィルター（店舗・会社・個人の位置情報を優先順位で使用）
         if (_maxDistance < 100 && _currentPosition != null) {
-          if (staff.latitude != null && staff.longitude != null) {
+          double? targetLat;
+          double? targetLon;
+          
+          // 優先順位: 店舗 > 会社 > 個人
+          if (staff.storeLatitude != null && staff.storeLongitude != null) {
+            targetLat = staff.storeLatitude;
+            targetLon = staff.storeLongitude;
+          } else if (staff.companyLatitude != null && staff.companyLongitude != null) {
+            targetLat = staff.companyLatitude;
+            targetLon = staff.companyLongitude;
+          } else if (staff.latitude != null && staff.longitude != null) {
+            targetLat = staff.latitude;
+            targetLon = staff.longitude;
+          }
+          
+          if (targetLat != null && targetLon != null) {
             final distance = _locationService.calculateDistance(
               _currentPosition!.latitude,
               _currentPosition!.longitude,
-              staff.latitude!,
-              staff.longitude!,
+              targetLat,
+              targetLon,
             );
             staff.distance = distance;
             if (distance > _maxDistance) {
@@ -228,12 +251,27 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         } else if (_currentPosition != null) {
           // 距離制限なしの場合でも距離を計算
-          if (staff.latitude != null && staff.longitude != null) {
+          double? targetLat;
+          double? targetLon;
+          
+          // 優先順位: 店舗 > 会社 > 個人
+          if (staff.storeLatitude != null && staff.storeLongitude != null) {
+            targetLat = staff.storeLatitude;
+            targetLon = staff.storeLongitude;
+          } else if (staff.companyLatitude != null && staff.companyLongitude != null) {
+            targetLat = staff.companyLatitude;
+            targetLon = staff.companyLongitude;
+          } else if (staff.latitude != null && staff.longitude != null) {
+            targetLat = staff.latitude;
+            targetLon = staff.longitude;
+          }
+          
+          if (targetLat != null && targetLon != null) {
             staff.distance = _locationService.calculateDistance(
               _currentPosition!.latitude,
               _currentPosition!.longitude,
-              staff.latitude!,
-              staff.longitude!,
+              targetLat,
+              targetLon,
             );
           }
         }
