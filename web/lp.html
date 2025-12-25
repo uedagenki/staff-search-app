@@ -854,21 +854,38 @@
         }
 
         @media (max-width: 768px) {
+            .hero {
+                padding-top: 80px;
+            }
+        }
+
+        @media (max-width: 768px) {
             .navbar {
-                padding: 12px 20px;
+                padding: 10px 12px;
+                flex-wrap: nowrap;
+                gap: 8px;
             }
 
             .navbar-logo {
-                font-size: 16px;
+                font-size: 12px;
+                gap: 4px !important;
+            }
+
+            .navbar-logo img {
+                width: 22px !important;
+                height: 22px !important;
             }
 
             .navbar-tabs {
-                gap: 6px;
+                gap: 4px;
+                padding: 3px;
+                flex-shrink: 0;
             }
 
             .navbar-tab {
-                padding: 5px 10px;
-                font-size: 10px;
+                padding: 4px 8px;
+                font-size: 9px;
+                white-space: nowrap;
             }
         }
 
