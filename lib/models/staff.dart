@@ -24,6 +24,8 @@ class Staff {
   final double giftAmount; // 受け取ったギフト総額（円）
   final int categoryRank; // カテゴリー内ランキング
   final int totalStaffInCategory; // カテゴリー内の総スタッフ数
+  final Map<String, dynamic>? pricing; // 料金情報
+  final List<dynamic>? coupons; // クーポン情報
 
   Staff({
     required this.id,
@@ -51,6 +53,8 @@ class Staff {
     this.giftAmount = 0.0,
     this.categoryRank = 1,
     this.totalStaffInCategory = 100,
+    this.pricing,
+    this.coupons,
   }) : profileImages = profileImages ?? [profileImage];
 
   factory Staff.fromJson(Map<String, dynamic> json) {

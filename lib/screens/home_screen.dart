@@ -9,9 +9,8 @@ import '../models/staff.dart';
 import '../models/staff_story.dart';
 import '../data/mock_data.dart';
 import '../widgets/staff_card.dart';
-import '../widgets/mode_switcher.dart';
+import '../widgets/simple_mode_switcher.dart';
 import '../services/location_service.dart';
-import '../services/app_mode_service.dart';
 import 'search_screen.dart';
 import 'profile_screen.dart';
 import 'messages_screen.dart';
@@ -32,7 +31,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final PageController _pageController = PageController();
   final LocationService _locationService = LocationService();
-  final AppModeService _modeService = AppModeService();
   List<Staff> _staffList = MockData.getStaffList();
   int _notificationCount = 0;
   List<Staff> _filteredStaffList = [];
@@ -359,14 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 12),
               // モード切り替えドロップダウン
-              ModeDropdown(
-                modeService: _modeService,
-                onModeChanged: () {
-                  setState(() {
-                    // モード変更時に画面を更新
-                  });
-                },
-              ),
+              const SimpleModeDropdown(),
             ],
           ),
           // 右側のアイコン

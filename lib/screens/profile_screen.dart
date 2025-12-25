@@ -10,7 +10,7 @@ import 'bookings_screen.dart';
 import 'tip_history_screen.dart';
 import 'my_reviews_screen.dart';
 import 'profile_settings_screen.dart';
-import 'staff/staff_dashboard_screen.dart';
+// import 'staff/staff_dashboard_screen.dart';
 import 'ranking_screen.dart';
 import 'headhunt_screen.dart';
 import 'help_support_screen.dart';
@@ -416,10 +416,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               title: 'スタッフ管理画面',
               color: Colors.purple,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const StaffDashboardScreen()),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => const StaffDashboardScreen()),
+                // );
               },
             ),
             
