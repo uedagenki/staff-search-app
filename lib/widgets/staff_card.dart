@@ -364,6 +364,12 @@ class _StaffCardState extends State<StaffCard> {
                   ),
                   const SizedBox(height: 12),
                   
+                  // 料金情報
+                  if (widget.staff.pricing != null && widget.staff.pricing!.isNotEmpty) ...[
+                    _buildPricingInfo(),
+                    const SizedBox(height: 12),
+                  ],
+                  
                   // 場所とオンラインステータス
                   Row(
                     children: [
@@ -646,5 +652,76 @@ class _StaffCardState extends State<StaffCard> {
         ),
       ),
     );
+  }
+
+  // 料金情報表示
+  Widget _buildPricingInfo() {
+    if (widget.staff.pricing == null || widget.staff.pricing!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final pricing = widget.staff.pricing!;
+    final pricingType = pricing['type'] ?? 'hourly';
+
+    if (pricingType == 'hourly') {
+      final hourlyRate = pricing['hourlyRate'] ?? 0;
+      if (hourlyRate > 0) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.blue.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.access_time, color: Colors.white, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                '¥${hourlyRate.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} / 時間',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    } else if (pricingType == 'menu') {
+      final menuItems = pricing['menuItems'] as List?;
+      if (menuItems != null && menuItems.isNotEmpty) {
+        final firstMenu = menuItems.first;
+        final price = firstMenu['price'] ?? 0;
+        final menuName = firstMenu['name'] ?? 'メニュー';
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.green.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.restaurant_menu, color: Colors.white, size: 16),
+              const SizedBox(width: 6),
+              Text(
+                '$menuName ¥${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}〜',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        );
+      }
+    }
+
+    return const SizedBox.shrink();
   }
 }

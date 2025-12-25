@@ -130,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
             qrCode: 'QR_${data['id'] ?? ''}',
             storeName: data['storeName'] ?? '',
             companyName: data['companyName'] ?? '',
+            pricing: data['pricing'] as Map<String, dynamic>?,
           );
         }).toList();
         
