@@ -11,6 +11,8 @@ import 'screens/portfolio_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/notification_settings_screen.dart';
 import 'screens/coupon_management_screen.dart';
+import 'widgets/simple_mode_switcher.dart';
+import 'screens/staff/staff_profile_edit_screen.dart';
 
 void main() {
   runApp(const StaffApp());
@@ -90,14 +92,17 @@ class _StaffHomePageState extends State<StaffHomePage> {
           children: [
             Image.network(
               'staff_search_logo.png',
-              width: 28,
-              height: 28,
+              width: 24,
+              height: 24,
               errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.business_center, size: 24);
+                return const Icon(Icons.business_center, size: 20);
               },
             ),
-            const SizedBox(width: 8),
-            const Text('STAFF SEARCH'),
+            const SizedBox(width: 6),
+            const Text('STAFF SEARCH', style: TextStyle(fontSize: 14)),
+            const SizedBox(width: 12),
+            // モード切り替えドロップダウン
+            const StaffModeDropdown(),
           ],
         ),
         actions: [
@@ -1247,7 +1252,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 () async {
                   final result = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ProfileEditPage()),
+                    MaterialPageRoute(builder: (context) => const StaffProfileEditScreen()),
                   );
                   // プロフィール編集から戻ってきたらデータをリロード
                   if (result == true) {
@@ -1435,163 +1440,163 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
-
-// プロフィール編集ページ
-class ProfileEditPage extends StatefulWidget {
-  const ProfileEditPage({super.key});
-
-  @override
-  State<ProfileEditPage> createState() => _ProfileEditPageState();
-}
-
-class _ProfileEditPageState extends State<ProfileEditPage> {
-  final List<String> _photos = List.generate(5, (index) => '');
-  String _selectedGender = '女性';
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('プロフィール編集'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('プロフィールを保存しました')),
-              );
-            },
-            child: const Text(
-              '保存',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 写真セクション
-            const Text(
-              'プロフィール写真（最大5枚）',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 100,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: 5,
-                itemBuilder: (context, index) {
-                  return Container(
-                    width: 100,
-                    margin: const EdgeInsets.only(right: 12),
-                    child: InkWell(
-                      onTap: () {
-                        // 写真追加処理
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[400]!),
-                        ),
-                        child: _photos[index].isEmpty
-                            ? const Icon(Icons.add_a_photo, size: 40, color: Colors.grey)
-                            : null,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 24),
-            // 基本情報
-            const Text(
-              '基本情報',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: '名前',
-                border: OutlineInputBorder(),
-                hintText: '田中 太郎',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: '職種',
-                border: OutlineInputBorder(),
-                hintText: 'カリスマ美容師',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: '年齢',
-                border: OutlineInputBorder(),
-                hintText: '28',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _selectedGender,
-              decoration: const InputDecoration(
-                labelText: '性別',
-                border: OutlineInputBorder(),
-              ),
-              items: ['女性', '男性', 'その他'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedGender = newValue!;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: '住所',
-                border: OutlineInputBorder(),
-                hintText: '東京都渋谷区',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: '自己紹介',
-                border: OutlineInputBorder(),
-                hintText: 'トレンド最先端のヘアスタイルをライブ配信中！',
-              ),
-              maxLines: 4,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: '経験年数',
-                border: OutlineInputBorder(),
-                hintText: '7',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// プロフィールプレビューページ
+// 
+// // プロフィール編集ページ
+// class ProfileEditPage extends StatefulWidget {
+//   const ProfileEditPage({super.key});
+// 
+//   @override
+//   State<ProfileEditPage> createState() => _ProfileEditPageState();
+// }
+// 
+// class _ProfileEditPageState extends State<ProfileEditPage> {
+//   final List<String> _photos = List.generate(5, (index) => '');
+//   String _selectedGender = '女性';
+// 
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text('プロフィール編集'),
+//         actions: [
+//           TextButton(
+//             onPressed: () {
+//               Navigator.pop(context);
+//               ScaffoldMessenger.of(context).showSnackBar(
+//                 const SnackBar(content: Text('プロフィールを保存しました')),
+//               );
+//             },
+//             child: const Text(
+//               '保存',
+//               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+//             ),
+//           ),
+//         ],
+//       ),
+//       body: SingleChildScrollView(
+//         padding: const EdgeInsets.all(16),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             // 写真セクション
+//             const Text(
+//               'プロフィール写真（最大5枚）',
+//               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+//             ),
+//             const SizedBox(height: 12),
+//             SizedBox(
+//               height: 100,
+//               child: ListView.builder(
+//                 scrollDirection: Axis.horizontal,
+//                 itemCount: 5,
+//                 itemBuilder: (context, index) {
+//                   return Container(
+//                     width: 100,
+//                     margin: const EdgeInsets.only(right: 12),
+//                     child: InkWell(
+//                       onTap: () {
+//                         // 写真追加処理
+//                       },
+//                       child: Container(
+//                         decoration: BoxDecoration(
+//                           color: Colors.grey[300],
+//                           borderRadius: BorderRadius.circular(8),
+//                           border: Border.all(color: Colors.grey[400]!),
+//                         ),
+//                         child: _photos[index].isEmpty
+//                             ? const Icon(Icons.add_a_photo, size: 40, color: Colors.grey)
+//                             : null,
+//                       ),
+//                     ),
+//                   );
+//                 },
+//               ),
+//             ),
+//             const SizedBox(height: 24),
+//             // 基本情報
+//             const Text(
+//               '基本情報',
+//               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+//             ),
+//             const SizedBox(height: 12),
+//             TextField(
+//               decoration: const InputDecoration(
+//                 labelText: '名前',
+//                 border: OutlineInputBorder(),
+//                 hintText: '田中 太郎',
+//               ),
+//             ),
+//             const SizedBox(height: 16),
+//             TextField(
+//               decoration: const InputDecoration(
+//                 labelText: '職種',
+//                 border: OutlineInputBorder(),
+//                 hintText: 'カリスマ美容師',
+//               ),
+//             ),
+//             const SizedBox(height: 16),
+//             TextField(
+//               decoration: const InputDecoration(
+//                 labelText: '年齢',
+//                 border: OutlineInputBorder(),
+//                 hintText: '28',
+//               ),
+//               keyboardType: TextInputType.number,
+//             ),
+//             const SizedBox(height: 16),
+//             DropdownButtonFormField<String>(
+//               value: _selectedGender,
+//               decoration: const InputDecoration(
+//                 labelText: '性別',
+//                 border: OutlineInputBorder(),
+//               ),
+//               items: ['女性', '男性', 'その他'].map((String value) {
+//                 return DropdownMenuItem<String>(
+//                   value: value,
+//                   child: Text(value),
+//                 );
+//               }).toList(),
+//               onChanged: (String? newValue) {
+//                 setState(() {
+//                   _selectedGender = newValue!;
+//                 });
+//               },
+//             ),
+//             const SizedBox(height: 16),
+//             TextField(
+//               decoration: const InputDecoration(
+//                 labelText: '住所',
+//                 border: OutlineInputBorder(),
+//                 hintText: '東京都渋谷区',
+//               ),
+//             ),
+//             const SizedBox(height: 16),
+//             TextField(
+//               decoration: const InputDecoration(
+//                 labelText: '自己紹介',
+//                 border: OutlineInputBorder(),
+//                 hintText: 'トレンド最先端のヘアスタイルをライブ配信中！',
+//               ),
+//               maxLines: 4,
+//             ),
+//             const SizedBox(height: 16),
+//             TextField(
+//               decoration: const InputDecoration(
+//                 labelText: '経験年数',
+//                 border: OutlineInputBorder(),
+//                 hintText: '7',
+//               ),
+//               keyboardType: TextInputType.number,
+//             ),
+//             const SizedBox(height: 24),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+// 
+// // プロフィールプレビューページ
 class ProfilePreviewPage extends StatelessWidget {
   final Map<String, dynamic>? staffProfile;
   

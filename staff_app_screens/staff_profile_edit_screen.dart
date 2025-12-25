@@ -253,7 +253,7 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
             'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=16&accept-language=ja',
             requestHeaders: {'User-Agent': 'StaffSearchApp/1.0'},
           ).then((response) {
-            final data = json.decode(response.responseText);
+            final data = json.decode(response.responseText!);
             final address = data['address'];
             
             String formattedAddress = '';
