@@ -10,6 +10,7 @@ import 'screens/business_hours_screen.dart';
 import 'screens/portfolio_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/notification_settings_screen.dart';
+import 'screens/coupon_management_screen.dart';
 
 void main() {
   runApp(const StaffApp());
@@ -1295,6 +1296,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const PricingSettingsScreen()),
+                );
+              }),
+              _buildMenuItem(context, Icons.local_offer, 'クーポン管理', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CouponManagementScreen()),
                 );
               }),
               _buildMenuItem(context, Icons.photo_library, 'ポートフォリオ', () {
