@@ -333,14 +333,21 @@ class _HomeScreenState extends State<HomeScreen> {
           // ロゴ
           Row(
             children: [
-              Icon(
-                Icons.search,
-                color: Theme.of(context).colorScheme.primary,
-                size: 20,
+              Image.network(
+                'staff_search_logo.png',
+                width: 32,
+                height: 32,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.search,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  );
+                },
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Text(
-                'スタッフサーチ',
+                'STAFF SEARCH',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
