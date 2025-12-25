@@ -85,7 +85,21 @@ class _StaffHomePageState extends State<StaffHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('スタッフ管理'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.network(
+              'staff_search_logo.png',
+              width: 28,
+              height: 28,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.business_center, size: 24);
+              },
+            ),
+            const SizedBox(width: 8),
+            const Text('STAFF SEARCH'),
+          ],
+        ),
         actions: [
           // 通知ベル
           StreamBuilder<int>(
