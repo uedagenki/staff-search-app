@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザーログイン - STAFF SEARCH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-section h1 {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            color: #0a0a0a;
+            margin-bottom: 10px;
+        }
+
+        .user-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d2d2d 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .login-method-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .tab-button.active {
+            border-color: #667eea;
+            background: #f8f9ff;
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-otp-button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .send-otp-button:hover {
+            background: #5568d3;
+        }
+
+        .otp-sent-message {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 6px;
+            color: #2e7d32;
+            font-size: 0.85rem;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d2d2d 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .divider span {
+            position: relative;
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .social-login {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .social-button {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+        }
+
+        .social-button:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .signup-link {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        .signup-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-section">
+            <img src="staff_search_logo.png" alt="STAFF SEARCH Logo" style="width: 80px; height: 80px; margin-bottom: 16px;">
+            <h1>STAFF SEARCH</h1>
+            <div class="user-badge">STAFF LOGIN</div>
+        </div>
+
+        <!-- ログイン方法選択タブ -->
+        <div class="login-method-tabs">
+            <button class="tab-button active" onclick="switchTab('password')">
+                パスワード
+            </button>
+            <button class="tab-button" onclick="switchTab('otp')">
+                ワンタイムパスワード
+            </button>
+        </div>
+
+        <!-- パスワードログインフォーム -->
+        <form id="passwordLoginForm">
+            <div class="form-group">
+                <label for="email">メールアドレス</label>
+                <input type="email" id="email" placeholder="example@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">パスワード</label>
+                <input type="password" id="password" placeholder="パスワードを入力" required>
+            </div>
+
+            <button type="submit" class="login-button">ログイン</button>
+        </form>
+
+        <!-- ワンタイムパスワードログインフォーム -->
+        <form id="otpLoginForm" class="hidden">
+            <div class="form-group">
+                <label for="emailOtp">メールアドレス</label>
+                <input type="email" id="emailOtp" placeholder="example@email.com" required>
+                <button type="button" class="send-otp-button" onclick="sendOTP()">
+                    ワンタイムパスワードを送信
+                </button>
+                <div id="otpSentMessage" class="otp-sent-message">
+                    📧 ワンタイムパスワードを送信しました。メールをご確認ください。
+                </div>
+            </div>
+
+            <div class="form-group" id="otpInputGroup" style="display: none;">
+                <label for="otpCode">ワンタイムパスワード（6桁）</label>
+                <input type="text" id="otpCode" placeholder="123456" maxlength="6" pattern="[0-9]{6}" required>
+            </div>
+
+            <button type="submit" class="login-button">ログイン</button>
+        </form>
+
+        <div class="divider">
+            <span>または</span>
+        </div>
+
+        <div class="social-login">
+            <button class="social-button" onclick="socialLogin('google')">🔵</button>
+            <button class="social-button" onclick="socialLogin('apple')">🍎</button>
+            <button class="social-button" onclick="socialLogin('line')">💬</button>
+        </div>
+
+        <div class="signup-link">
+            アカウントをお持ちでない方は <a href="staff_register.html">新規登録</a>
+        </div>
+
+        <div class="back-link">
+            <a href="lp.html">← トップページに戻る</a>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'password';
+        let otpSent = false;
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabs = document.querySelectorAll('.tab-button');
+            const passwordForm = document.getElementById('passwordLoginForm');
+            const otpForm = document.getElementById('otpLoginForm');
+
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (tab === 'password') {
+                passwordForm.classList.remove('hidden');
+                otpForm.classList.add('hidden');
+            } else {
+                passwordForm.classList.add('hidden');
+                otpForm.classList.remove('hidden');
+            }
+        }
+
+        function sendOTP() {
+            const email = document.getElementById('emailOtp').value;
+            if (!email) {
+                alert('メールアドレスを入力してください');
+                return;
+            }
+
+            // OTP送信シミュレーション
+            const otpCode = Math.floor(100000 + Math.random() * 900000);
+            console.log('OTPコード:', otpCode); // デモ用（実際は送信）
+            
+            document.getElementById('otpSentMessage').style.display = 'block';
+            document.getElementById('otpInputGroup').style.display = 'block';
+            otpSent = true;
+
+            alert(`デモ用OTPコード: ${otpCode}\n（実際の運用では、このコードがメールで送信されます）`);
+        }
+
+        function socialLogin(provider) {
+            alert(`${provider}でログイン（実装予定）`);
+        }
+
+        // パスワードログイン
+        document.getElementById('passwordLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (email && password) {
+                // ログイン状態を保存
+                localStorage.setItem('staff_logged_in', 'true');
+                localStorage.setItem('staff_email', email);
+                
+                // staff_profileが存在しない場合、デフォルトデータを作成
+                if (!localStorage.getItem('staff_profile')) {
+                    const defaultStaffData = {
+                        name: 'スタッフ',
+                        email: email,
+                        storeName: '',
+                        companyName: '',
+                        age: null,
+                        location: '東京都',
+                        address: '東京都',
+                        gender: null,
+                        jobTitle: '美容師',
+                        experience: '1年',
+                        bio: 'よろしくお願いします',
+                        profileImages: [],
+                        registeredAt: new Date().toISOString(),
+                        plan: 'free'
+                    };
+                    localStorage.setItem('staff_profile', JSON.stringify(defaultStaffData));
+                }
+                
+                // ユーザーアプリ用のスタッフリストに追加/更新
+                try {
+                    const staffProfileStr = localStorage.getItem('staff_profile');
+                    if (staffProfileStr) {
+                        const staffProfile = JSON.parse(staffProfileStr);
+                        let staffList = [];
+                        
+                        const existingListStr = localStorage.getItem('all_staff_list');
+                        if (existingListStr) {
+                            staffList = JSON.parse(existingListStr);
+                        }
+                        
+                        const existingIndex = staffList.findIndex(s => s.email === email);
+                        const staffListItem = {
+                            id: existingIndex >= 0 ? staffList[existingIndex].id : 'staff_' + Date.now(),
+                            name: staffProfile.name || 'スタッフ',
+                            storeName: staffProfile.storeName || '',
+                            companyName: staffProfile.companyName || '',
+                            jobTitle: staffProfile.jobTitle || '美容師',
+                            category: staffProfile.jobTitle || '美容師',
+                            rating: 5.0,
+                            reviews: 0,
+                            hourlyRate: 5000,
+                            experience: staffProfile.experience || '1年',
+                            bio: staffProfile.bio || '',
+                            location: staffProfile.address || '東京都',
+                            distance: '0.0km',
+                            imageUrl: (staffProfile.profileImages && staffProfile.profileImages.length > 0) 
+                                ? staffProfile.profileImages[0].data 
+                                : 'https://via.placeholder.com/150',
+                            isOnline: false,
+                            tags: [staffProfile.jobTitle || '美容師'],
+                            email: email,
+                            registeredAt: staffProfile.registeredAt || new Date().toISOString()
+                        };
+                        
+                        if (existingIndex >= 0) {
+                            staffList[existingIndex] = staffListItem;
+                        } else {
+                            staffList.unshift(staffListItem);
+                        }
+                        
+                        localStorage.setItem('all_staff_list', JSON.stringify(staffList));
+                    }
+                } catch (e) {
+                    console.error('スタッフリスト更新エラー:', e);
+                }
+                
+                alert('ログイン成功！');
+                window.location.href = 'https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
+            }
+        });
+
+        // OTPログイン
+        document.getElementById('otpLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('emailOtp').value;
+            const otp = document.getElementById('otpCode').value;
+
+            if (!otpSent) {
+                alert('まずワンタイムパスワードを送信してください');
+                return;
+            }
+
+            if (email && otp && otp.length === 6) {
+                // ログイン状態を保存
+                localStorage.setItem('staff_logged_in', 'true');
+                localStorage.setItem('staff_email', email);
+                
+                // staff_profileが存在しない場合、デフォルトデータを作成
+                if (!localStorage.getItem('staff_profile')) {
+                    const defaultStaffData = {
+                        name: 'スタッフ',
+                        email: email,
+                        storeName: '',
+                        companyName: '',
+                        age: null,
+                        location: '東京都',
+                        address: '東京都',
+                        gender: null,
+                        jobTitle: '美容師',
+                        experience: '1年',
+                        bio: 'よろしくお願いします',
+                        profileImages: [],
+                        registeredAt: new Date().toISOString(),
+                        plan: 'free'
+                    };
+                    localStorage.setItem('staff_profile', JSON.stringify(defaultStaffData));
+                }
+                
+                // ユーザーアプリ用のスタッフリストに追加/更新
+                try {
+                    const staffProfileStr = localStorage.getItem('staff_profile');
+                    if (staffProfileStr) {
+                        const staffProfile = JSON.parse(staffProfileStr);
+                        let staffList = [];
+                        
+                        const existingListStr = localStorage.getItem('all_staff_list');
+                        if (existingListStr) {
+                            staffList = JSON.parse(existingListStr);
+                        }
+                        
+                        const existingIndex = staffList.findIndex(s => s.email === email);
+                        const staffListItem = {
+                            id: existingIndex >= 0 ? staffList[existingIndex].id : 'staff_' + Date.now(),
+                            name: staffProfile.name || 'スタッフ',
+                            storeName: staffProfile.storeName || '',
+                            companyName: staffProfile.companyName || '',
+                            jobTitle: staffProfile.jobTitle || '美容師',
+                            category: staffProfile.jobTitle || '美容師',
+                            rating: 5.0,
+                            reviews: 0,
+                            hourlyRate: 5000,
+                            experience: staffProfile.experience || '1年',
+                            bio: staffProfile.bio || '',
+                            location: staffProfile.address || '東京都',
+                            distance: '0.0km',
+                            imageUrl: (staffProfile.profileImages && staffProfile.profileImages.length > 0) 
+                                ? staffProfile.profileImages[0].data 
+                                : 'https://via.placeholder.com/150',
+                            isOnline: false,
+                            tags: [staffProfile.jobTitle || '美容師'],
+                            email: email,
+                            registeredAt: staffProfile.registeredAt || new Date().toISOString()
+                        };
+                        
+                        if (existingIndex >= 0) {
+                            staffList[existingIndex] = staffListItem;
+                        } else {
+                            staffList.unshift(staffListItem);
+                        }
+                        
+                        localStorage.setItem('all_staff_list', JSON.stringify(staffList));
+                    }
+                } catch (e) {
+                    console.error('スタッフリスト更新エラー:', e);
+                }
+                
+                alert('ログイン成功！');
+                window.location.href = 'https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>運営管理者新規登録 - STAFF SEARCH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #e74c3c;
+            margin-left: 4px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .permission-group {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .permission-group h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .permission-group h3::before {
+            content: "🔐";
+            margin-right: 8px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            background: #e8ecfd;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .register-container {
+                padding: 30px 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .logo h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="logo">
+            <h1>STAFF SEARCH</h1>
+            <span class="admin-badge">👑 運営管理者</span>
+            <p class="subtitle">新規アカウント登録</p>
+        </div>
+
+        <form id="registerForm">
+            <!-- 基本情報 -->
+            <div class="form-group">
+                <label>氏名<span class="required">*</span></label>
+                <input type="text" id="fullName" placeholder="山田 太郎" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>部署<span class="required">*</span></label>
+                    <select id="department" required>
+                        <option value="">選択してください</option>
+                        <option value="management">総務管理部</option>
+                        <option value="customer_support">カスタマーサポート部</option>
+                        <option value="operations">運営部</option>
+                        <option value="marketing">マーケティング部</option>
+                        <option value="tech">技術部</option>
+                        <option value="finance">財務部</option>
+                        <option value="hr">人事部</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>役職<span class="required">*</span></label>
+                    <select id="position" required>
+                        <option value="">選択してください</option>
+                        <option value="director">取締役</option>
+                        <option value="manager">マネージャー</option>
+                        <option value="leader">リーダー</option>
+                        <option value="staff">スタッフ</option>
+                        <option value="intern">インターン</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>社員番号<span class="required">*</span></label>
+                <input type="text" id="employeeId" placeholder="例: EMP-2024-001" required>
+            </div>
+
+            <div class="form-group">
+                <label>メールアドレス（会社用）<span class="required">*</span></label>
+                <input type="email" id="email" placeholder="example@company.com" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>電話番号<span class="required">*</span></label>
+                    <input type="tel" id="phone" placeholder="090-1234-5678" required>
+                </div>
+
+                <div class="form-group">
+                    <label>内線番号</label>
+                    <input type="text" id="extension" placeholder="例: 1234">
+                </div>
+            </div>
+
+            <!-- 権限設定 -->
+            <div class="permission-group">
+                <h3>管理権限設定</h3>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="perm_user" name="permission" value="user_management">
+                        <label for="perm_user">ユーザー管理</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="perm_staff" name="permission" value="staff_management">
+                        <label for="perm_staff">スタッフ管理</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="perm_revenue" name="permission" value="revenue_analytics">
+                        <label for="perm_revenue">売上分析</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="perm_support" name="permission" value="support_chat">
+                        <label for="perm_support">サポートチャット</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="perm_content" name="permission" value="content_moderation">
+                        <label for="perm_content">コンテンツ管理</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="perm_system" name="permission" value="system_settings">
+                        <label for="perm_system">システム設定</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>⚠️ 重要なお知らせ</strong>
+                登録後、システム管理者による承認が必要です。承認完了後、登録メールアドレスに初期パスワードが送信されます。
+            </div>
+
+            <!-- パスワード設定 -->
+            <div class="form-group">
+                <label>パスワード<span class="required">*</span></label>
+                <input type="password" id="password" placeholder="8文字以上の英数字記号" required minlength="8">
+            </div>
+
+            <div class="form-group">
+                <label>パスワード（確認）<span class="required">*</span></label>
+                <input type="password" id="passwordConfirm" placeholder="もう一度入力してください" required minlength="8">
+            </div>
+
+            <div class="form-group">
+                <label>備考・申請理由</label>
+                <textarea id="notes" placeholder="アカウント作成の理由や追加情報があれば入力してください"></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">登録申請を送信</button>
+
+            <div class="back-link">
+                <a href="admin_login.html">← ログイン画面に戻る</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('passwordConfirm').value;
+
+            // パスワード一致チェック
+            if (password !== passwordConfirm) {
+                alert('パスワードが一致しません。もう一度確認してください。');
+                return;
+            }
+
+            // 権限チェック
+            const permissions = document.querySelectorAll('input[name="permission"]:checked');
+            if (permissions.length === 0) {
+                alert('少なくとも1つの管理権限を選択してください。');
+                return;
+            }
+
+            // 登録データ収集
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                department: document.getElementById('department').value,
+                position: document.getElementById('position').value,
+                employeeId: document.getElementById('employeeId').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                extension: document.getElementById('extension').value,
+                permissions: Array.from(permissions).map(p => p.value),
+                notes: document.getElementById('notes').value,
+                registeredAt: new Date().toISOString()
+            };
+
+            console.log('運営管理者登録データ:', formData);
+
+            // 成功メッセージ表示
+            alert('✅ 登録申請を送信しました！\n\nシステム管理者による承認後、メールで通知されます。\n承認までお待ちください。');
+
+            // 管理者アプリへ遷移（承認待ち画面）
+            window.location.href = 'admin_login.html';
+        });
+
+        // リアルタイムパスワード強度チェック
+        document.getElementById('password').addEventListener('input', function(e) {
+            const password = e.target.value;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasNumbers = /\d/.test(password);
+            const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            const isLongEnough = password.length >= 8;
+
+            if (isLongEnough && hasUpperCase && hasLowerCase && hasNumbers) {
+                e.target.style.borderColor = '#28a745';
+            } else if (isLongEnough) {
+                e.target.style.borderColor = '#ffc107';
+            } else {
+                e.target.style.borderColor = '#e74c3c';
+            }
+        });
+    </script>
+</body>
+</html>

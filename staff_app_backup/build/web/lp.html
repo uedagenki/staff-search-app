@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAFF SEARCH - プロフェッショナルとつながる</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            line-height: 1.7;
+            color: #1a1a1a;
+            background: #ffffff;
+            font-size: 14px;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ヒーローセクション */
+        .hero {
+            background: linear-gradient(160deg, #0a0a0a 0%, #2d2d2d 100%);
+            color: white;
+            padding: 80px 30px;
+            text-align: center;
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(102, 126, 234, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            margin-bottom: 18px;
+            font-weight: 300;
+            letter-spacing: 6px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            opacity: 0.95;
+            font-weight: 400;
+            letter-spacing: 1.5px;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .hero .hero-description {
+            font-size: 0.95rem;
+            margin-bottom: 35px;
+            opacity: 0.75;
+            font-weight: 300;
+            line-height: 1.8;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 14px 40px;
+            text-decoration: none;
+            border-radius: 2px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 2px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid white;
+        }
+
+        .cta-button.primary {
+            background: white;
+            color: #0a0a0a;
+            border-color: white;
+        }
+
+        .cta-button.primary:hover {
+            background: transparent;
+            color: white;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(255,255,255,0.3);
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            color: white;
+            border-color: white;
+        }
+
+        .cta-button.secondary:hover {
+            background: white;
+            color: #0a0a0a;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(255,255,255,0.3);
+        }
+
+        /* コンテンツセクション */
+        section {
+            padding: 60px 30px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        section h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 50px;
+            color: #0a0a0a;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        /* 動画セクション */
+        .video-section {
+            background: #f8f8f8;
+            padding: 60px 30px;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.12);
+            aspect-ratio: 9 / 16;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .video-label {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.95);
+            padding: 12px 15px;
+            border-radius: 4px;
+            backdrop-filter: blur(10px);
+        }
+
+        .video-label h3 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #0a0a0a;
+            margin-bottom: 4px;
+        }
+
+        .video-label p {
+            font-size: 0.8rem;
+            color: #666;
+            margin: 0;
+        }
+
+        /* アプリ説明図セクション */
+        .app-explanation-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 70px 30px;
+        }
+
+        .app-explanation-section h2 {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2.2rem;
+            color: #0a0a0a;
+        }
+
+        .explanation-image-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .explanation-image-container:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+        }
+
+        .explanation-image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 機能紹介セクション */
+        .features-section {
+            background: white;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            padding: 30px;
+            background: #fafafa;
+            border-radius: 6px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid #e8e8e8;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+            border-color: #667eea;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #0a0a0a;
+            font-weight: 500;
+        }
+
+        .feature-card p {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* カテゴリセクション */
+        .categories-section {
+            background: #f8f8f8;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .category-card {
+            background: white;
+            padding: 25px 20px;
+            border-radius: 6px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #e8e8e8;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .category-icon {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+        }
+
+        .category-name {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #0a0a0a;
+            margin-bottom: 6px;
+        }
+
+        .category-count {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* 利用フローセクション */
+        .flow-section {
+            background: white;
+        }
+
+        .flow-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .flow-step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0 auto 15px;
+        }
+
+        .flow-step h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #0a0a0a;
+            font-weight: 500;
+        }
+
+        .flow-step p {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* スタッフ紹介セクション */
+        .staff-showcase {
+            background: #f8f8f8;
+        }
+
+        .staff-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .staff-card {
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #e8e8e8;
+        }
+
+        .staff-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .staff-image {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+        }
+
+        .staff-info {
+            padding: 20px;
+        }
+
+        .staff-name {
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: #0a0a0a;
+            margin-bottom: 6px;
+        }
+
+        .staff-title {
+            font-size: 0.85rem;
+            color: #667eea;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .staff-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e8e8e8;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0a0a0a;
+            margin-bottom: 2px;
+        }
+
+        .live-badge {
+            display: inline-block;
+            background: #ff3b30;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ユーザーの声セクション */
+        .testimonials-section {
+            background: white;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background: #fafafa;
+            padding: 25px;
+            border-radius: 6px;
+            border: 1px solid #e8e8e8;
+            transition: all 0.3s ease;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .testimonial-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .testimonial-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .testimonial-info h4 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #0a0a0a;
+            margin-bottom: 3px;
+        }
+
+        .testimonial-info p {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .testimonial-text {
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        .testimonial-rating {
+            color: #ffc107;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        /* 料金プランセクション */
+        .pricing-section {
+            background: #f8f8f8;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .plan-card {
+            background: white;
+            border-radius: 12px;
+            padding: 35px 25px;
+            border: 1px solid #e8e8e8;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            min-height: 520px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .plan-card.featured {
+            border: 2px solid #667eea;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2);
+            transform: scale(1.02);
+        }
+
+        .plan-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+            border-color: #667eea;
+        }
+
+        .plan-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .badge-free { background: #e8e8e8; color: #666; }
+        .badge-basic { background: #fff3cd; color: #856404; }
+        .badge-pro { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .badge-premium { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0a0a0a;
+            margin-bottom: 15px;
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 25px;
+        }
+
+        .plan-price span {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: auto;
+            flex-grow: 1;
+        }
+
+        .plan-features li {
+            padding: 10px 0;
+            font-size: 0.85rem;
+            color: #555;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .plan-features li:before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-button {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-top: 20px;
+            letter-spacing: 0.8px;
+            transition: all 0.3s ease;
+        }
+
+        .plan-button:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* フッター */
+        .footer {
+            background: #0a0a0a;
+            color: white;
+            padding: 50px 30px 30px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .footer h3 {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .footer p {
+            opacity: 0.7;
+            margin-bottom: 25px;
+            font-size: 0.85rem;
+        }
+
+        .app-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .app-button {
+            display: inline-block;
+            padding: 10px 25px;
+            background: white;
+            color: #0a0a0a;
+            text-decoration: none;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .app-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255,255,255,0.2);
+        }
+
+        .copyright {
+            margin-top: 40px;
+            opacity: 0.5;
+            font-size: 0.75rem;
+        }
+
+        /* アニメーション */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* レスポンシブデザイン - タブレット */
+        @media (max-width: 1200px) {
+            .pricing-grid {
+                max-width: 1100px;
+                gap: 15px;
+            }
+            
+            .plan-card {
+                padding: 30px 20px;
+                min-height: 500px;
+            }
+            
+            .plan-price {
+                font-size: 2.2rem;
+            }
+            
+            .plan-features li {
+                font-size: 0.8rem;
+                padding: 8px 0;
+            }
+        }
+
+        /* レスポンシブデザイン - モバイル */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+                letter-spacing: 3px;
+            }
+
+            .hero .subtitle {
+                font-size: 0.95rem;
+            }
+
+            section h2 {
+                font-size: 1.6rem;
+            }
+
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .staff-grid,
+            .feature-grid,
+            .category-grid,
+            .flow-steps,
+            .testimonial-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .app-buttons {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .cta-button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* ナビゲーションヘッダー */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
+        .navbar-tabs {
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px;
+            border-radius: 25px;
+        }
+
+        .navbar-tab {
+            padding: 6px 14px;
+            border-radius: 16px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .navbar-tab:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .navbar-tab.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .navbar-tab.staff {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        /* ヒーローセクションにpadding-topを追加 */
+        .hero {
+            padding-top: 120px;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding-top: 80px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 10px 12px;
+                flex-wrap: nowrap;
+                gap: 8px;
+            }
+
+            .navbar-logo {
+                font-size: 12px;
+                gap: 4px !important;
+            }
+
+            .navbar-logo img {
+                width: 22px !important;
+                height: 22px !important;
+            }
+
+            .navbar-tabs {
+                gap: 4px;
+                padding: 3px;
+                flex-shrink: 0;
+            }
+
+            .navbar-tab {
+                padding: 4px 8px;
+                font-size: 9px;
+                white-space: nowrap;
+            }
+        }
+
+        /* スクロールアニメーション */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 0.8s ease-out forwards;
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.8s ease-out forwards;
+        }
+
+        /* 初期状態は非表示 */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* カードのホバー効果強化 */
+        .feature-card, .category-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover, .category-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon, .category-icon {
+            transition: transform 0.4s ease;
+        }
+
+        .feature-card:hover .feature-icon,
+        .category-card:hover .category-icon {
+            transform: scale(1.2) rotate(5deg);
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションヘッダー -->
+    <nav class="navbar">
+        <a href="#" class="navbar-logo" style="display: flex; align-items: center; gap: 8px;">
+            <img src="staff_search_logo.png" alt="STAFF SEARCH Logo" style="width: 32px; height: 32px;">
+            STAFF SEARCH
+        </a>
+        <div class="navbar-tabs">
+            <a href="user_login.html" class="navbar-tab user">ユーザーログイン</a>
+            <a href="https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/staff_login.html" class="navbar-tab staff">スタッフログイン</a>
+        </div>
+    </nav>
+
+    <!-- ヒーローセクション -->
+    <section class="hero">
+        <div class="hero-content">
+            <img src="staff_search_logo.png" alt="STAFF SEARCH Logo" style="width: 100px; height: 100px; margin-bottom: 24px;">
+            <h1>STAFF SEARCH</h1>
+            <p class="subtitle">あなたに寄り添う、理想のスタッフを探そう</p>
+            <p class="hero-description">この便利な時代に、人からサービスや物を買う喜びを。<br>心を込めたおもてなしと、ありがとうの感謝の形が<br>ここスタッフサーチでつながります。</p>
+            <div class="cta-buttons">
+                <a href="user_register.html" class="cta-button primary">今すぐスタッフを探す</a>
+                <a href="https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/staff_register.html" class="cta-button secondary">スタッフ登録はこちら</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 動画セクション -->
+    <section class="video-section">
+        <h2>リアルな体験を</h2>
+        <div class="video-grid">
+            <div class="video-container">
+                <video autoplay muted loop playsinline>
+                    <source src="assets/app_browsing.mp4" type="video/mp4">
+                </video>
+                <div class="video-label">
+                    <h3>簡単スタッフ検索</h3>
+                    <p>あなたにぴったりのプロフェッショナルを見つける</p>
+                </div>
+            </div>
+            <div class="video-container">
+                <video autoplay muted loop playsinline>
+                    <source src="assets/live_streaming.mp4" type="video/mp4">
+                </video>
+                <div class="video-label">
+                    <h3>ライブ配信体験</h3>
+                    <p>リアルタイムでスタッフの様子を確認</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- アプリ説明図セクション -->
+    <section class="app-explanation-section animate-on-scroll">
+        <h2>STAFF SEARCH - アプリ機能説明</h2>
+        <div class="explanation-image-container">
+            <img src="https://www.genspark.ai/api/files/s/YVAu2J8B?cache_control=3600" alt="スタッフサーチアプリ機能説明図" loading="lazy">
+        </div>
+    </section>
+
+    <!-- 機能紹介セクション -->
+    <section class="features-section">
+        <h2>主な機能</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>スマート検索</h3>
+                <p>カテゴリ、評価、距離などで簡単にフィルタリング。あなたにぴったりのスタッフを見つけます。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎥</div>
+                <h3>ライブ配信</h3>
+                <p>スタッフの様子をリアルタイムで視聴。実際の雰囲気を確認できます。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎁</div>
+                <h3>ギフト機能</h3>
+                <p>お気に入りのスタッフにギフトを送って応援できます。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⭐</div>
+                <h3>レビュー機能</h3>
+                <p>実際の利用者の声を確認。安心してスタッフを選べます。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📍</div>
+                <h3>位置情報検索</h3>
+                <p>現在地から近いスタッフを簡単に検索できます。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>メッセージ機能</h3>
+                <p>スタッフと直接やり取りして、詳細を確認できます。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3>予約管理</h3>
+                <p>スケジュール確認から予約確定まで、アプリ内で完結。リマインダー通知も自動送信されます。</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h3>ランキング機能</h3>
+                <p>評価の高いスタッフやカテゴリー別ランキングをチェック。人気のスタッフをすぐに見つけられます。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- カテゴリセクション -->
+    <section class="categories-section">
+        <h2>豊富なカテゴリ</h2>
+        <div class="category-grid">
+            <div class="category-card">
+                <div class="category-icon">💇</div>
+                <div class="category-name">美容・健康</div>
+                <div class="category-count">892名のスタッフ</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">💼</div>
+                <div class="category-name">営業・コンサル</div>
+                <div class="category-count">245名のスタッフ</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">⚖️</div>
+                <div class="category-name">専門職・士業</div>
+                <div class="category-count">423名のスタッフ</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">🎨</div>
+                <div class="category-name">クリエイティブ</div>
+                <div class="category-count">156名のスタッフ</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">🏋️</div>
+                <div class="category-name">フィットネス</div>
+                <div class="category-count">334名のスタッフ</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">📚</div>
+                <div class="category-name">教育・学習</div>
+                <div class="category-count">198名のスタッフ</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">🔧</div>
+                <div class="category-name">技術・エンジニア</div>
+                <div class="category-count">412名のスタッフ</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">🧘</div>
+                <div class="category-name">ウェルネス・セラピー</div>
+                <div class="category-count">189名のスタッフ</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">🏠</div>
+                <div class="category-name">住まい・ライフスタイル</div>
+                <div class="category-count">276名のスタッフ</div>
+            </div>
+            <div class="category-card">
+                <div class="category-icon">🛋️</div>
+                <div class="category-name">家具・家電スタッフ店員</div>
+                <div class="category-count">312名のスタッフ</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 利用フローセクション -->
+    <section class="flow-section">
+        <h2>ご利用の流れ</h2>
+        <div class="flow-steps">
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <h3>スタッフを検索</h3>
+                <p>カテゴリや条件を設定して、あなたにぴったりのプロフェッショナルを探します</p>
+            </div>
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <h3>プロフィール確認</h3>
+                <p>評価やレビュー、ライブ配信で実際の様子を確認できます</p>
+            </div>
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <h3>メッセージ・予約</h3>
+                <p>気になるスタッフにメッセージを送って詳細を確認し、予約します</p>
+            </div>
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <h3>サービス利用</h3>
+                <p>プロフェッショナルなサービスを受けて、レビューで評価を共有</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- スタッフ紹介セクション -->
+    <section class="staff-showcase">
+        <h2>トップスタッフ</h2>
+        <div class="staff-grid">
+            <!-- 小林 さくら -->
+            <div class="staff-card">
+                <img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400" alt="小林 さくら" class="staff-image">
+                <div class="staff-info">
+                    <span class="live-badge">🔴 LIVE</span>
+                    <div class="staff-name">小林 さくら</div>
+                    <div class="staff-title">カリスマ美容師</div>
+                    <div class="staff-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">5.0</div>
+                            <div>評価</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">8.9K</div>
+                            <div>フォロワー</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">¥2.45M</div>
+                            <div>ギフト</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中村 拓也 -->
+            <div class="staff-card">
+                <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400" alt="中村 拓也" class="staff-image">
+                <div class="staff-info">
+                    <span class="live-badge">🔴 LIVE</span>
+                    <div class="staff-name">中村 拓也</div>
+                    <div class="staff-title">ビジネス戦略コンサルタント</div>
+                    <div class="staff-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">4.9</div>
+                            <div>評価</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">12.5K</div>
+                            <div>フォロワー</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">¥3.8M</div>
+                            <div>ギフト</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 山本 あやか -->
+            <div class="staff-card">
+                <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400" alt="山本 あやか" class="staff-image">
+                <div class="staff-info">
+                    <span class="live-badge">🔴 LIVE</span>
+                    <div class="staff-name">山本 あやか</div>
+                    <div class="staff-title">パーソナルトレーナー</div>
+                    <div class="staff-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">4.8</div>
+                            <div>評価</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">6.8K</div>
+                            <div>フォロワー</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">¥1.68M</div>
+                            <div>ギフト</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ユーザーの声セクション -->
+    <section class="testimonials-section">
+        <h2>ユーザーの声</h2>
+        <div class="testimonial-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar">M</div>
+                    <div class="testimonial-info">
+                        <h4>田中 美咲さん</h4>
+                        <p>30代 会社員</p>
+                    </div>
+                </div>
+                <p class="testimonial-text">
+                    「こんな美容師さんを探していました！ライブ配信でスタッフの雰囲気を確認できるので、安心して予約できました。評価も高く、実際のサービスも大満足です。」
+                </p>
+                <div class="testimonial-rating">★★★★★</div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar">K</div>
+                    <div class="testimonial-info">
+                        <h4>佐藤 健太さん</h4>
+                        <p>40代 経営者</p>
+                    </div>
+                </div>
+                <p class="testimonial-text">
+                    「ビジネスコンサルタントを探していて、このアプリで理想の方と出会えました。レビューやフォロワー数で信頼性を確認でき、質の高いアドバイスを受けられました。」
+                </p>
+                <div class="testimonial-rating">★★★★★</div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="testimonial-header">
+                    <div class="testimonial-avatar">Y</div>
+                    <div class="testimonial-info">
+                        <h4>山田 優子さん</h4>
+                        <p>20代 フリーランス</p>
+                    </div>
+                </div>
+                <p class="testimonial-text">
+                    「パーソナルトレーナーを探していましたが、近くで評価の高いトレーナーを簡単に見つけられました。メッセージ機能で事前に相談できたのも良かったです。」
+                </p>
+                <div class="testimonial-rating">★★★★★</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 料金プランセクション -->
+    <section id="pricing" class="pricing-section">
+        <h2>スタッフ登録プラン</h2>
+        <div class="pricing-grid">
+            <!-- フリープラン -->
+            <div class="plan-card">
+                <span class="plan-badge badge-free">FREE</span>
+                <div class="plan-name">フリー</div>
+                <div class="plan-price">¥0<span>/月</span></div>
+                <ul class="plan-features">
+                    <li>基本プロフィール掲載</li>
+                    <li>検索結果表示</li>
+                    <li>メッセージ受信のみ</li>
+                    <li>レビュー表示(最大5件)</li>
+                    <li>月間予約上限: 5件</li>
+                </ul>
+                <a href="#" class="plan-button">無料で始める</a>
+            </div>
+
+            <!-- ベーシックプラン -->
+            <div class="plan-card">
+                <span class="plan-badge badge-basic">BASIC</span>
+                <div class="plan-name">ベーシック</div>
+                <div class="plan-price">¥2,980<span>/月</span></div>
+                <ul class="plan-features">
+                    <li>人気バッジ表示</li>
+                    <li>プロフィール優先掲載</li>
+                    <li>基本検索機能</li>
+                    <li>メッセージ機能</li>
+                    <li>レビュー管理</li>
+                    <li>月間予約上限: 30件</li>
+                </ul>
+                <a href="#" class="plan-button">今すぐ登録</a>
+            </div>
+
+            <!-- プロフェッショナルプラン -->
+            <div class="plan-card featured">
+                <span class="plan-badge badge-pro">PROFESSIONAL</span>
+                <div class="plan-name">プロフェッショナル</div>
+                <div class="plan-price">¥5,980<span>/月</span></div>
+                <ul class="plan-features">
+                    <li>おすすめバッジ表示</li>
+                    <li>プロフィール最優先掲載</li>
+                    <li>上位検索機能</li>
+                    <li>ライブ配信機能</li>
+                    <li>ギフト機能(手数料15%)</li>
+                    <li>詳細分析ダッシュボード</li>
+                    <li>月間予約上限: 100件</li>
+                </ul>
+                <a href="#" class="plan-button">プロになる</a>
+            </div>
+
+            <!-- プレミアムプラン -->
+            <div class="plan-card">
+                <span class="plan-badge badge-premium">PREMIUM</span>
+                <div class="plan-name">プレミアム</div>
+                <div class="plan-price">¥9,980<span>/月</span></div>
+                <ul class="plan-features">
+                    <li>最高級バッジ表示</li>
+                    <li>トップページ掲載</li>
+                    <li>最優先検索表示</li>
+                    <li>ライブ配信(HD画質)</li>
+                    <li>ギフト機能(手数料0%)</li>
+                    <li>専用マーケティング支援</li>
+                    <li>優先サポート対応</li>
+                    <li>月間予約: 無制限</li>
+                </ul>
+                <a href="#" class="plan-button">最上級プランへ</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="footer-content">
+            <h3>STAFF SEARCH</h3>
+            <p>プロフェッショナルとの新しい出会いを</p>
+            <div class="app-buttons">
+                <a href="#" class="app-button">📱 App Store</a>
+                <a href="#" class="app-button">🤖 Google Play</a>
+            </div>
+            <div class="copyright">
+                &copy; 2024 Staff Search. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // スクロールアニメーション
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // アニメーション対象の要素を監視
+        document.addEventListener('DOMContentLoaded', () => {
+            // セクション見出しにアニメーション追加
+            const sections = document.querySelectorAll('section h2');
+            sections.forEach((section, index) => {
+                section.classList.add('animate-on-scroll');
+                observer.observe(section);
+            });
+
+            // 機能カードにアニメーション追加
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.classList.add('animate-on-scroll');
+                card.style.transitionDelay = `${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // カテゴリカードにアニメーション追加
+            const categoryCards = document.querySelectorAll('.category-card');
+            categoryCards.forEach((card, index) => {
+                card.classList.add('animate-on-scroll');
+                card.style.transitionDelay = `${index * 0.1}s`;
+                observer.observe(card);
+            });
+
+            // プランカードにアニメーション追加
+            const planCards = document.querySelectorAll('.plan-card');
+            planCards.forEach((card, index) => {
+                card.classList.add('animate-on-scroll');
+                card.style.transitionDelay = `${index * 0.15}s`;
+                observer.observe(card);
+            });
+
+            // フローステップにアニメーション追加
+            const flowSteps = document.querySelectorAll('.flow-step');
+            flowSteps.forEach((step, index) => {
+                step.classList.add('animate-on-scroll');
+                step.style.transitionDelay = `${index * 0.2}s`;
+                observer.observe(step);
+            });
+        });
+
+        // スムーススクロール
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

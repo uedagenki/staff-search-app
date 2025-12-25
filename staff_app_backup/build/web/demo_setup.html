@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>デモアカウント設定</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .account-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .account-section h2 {
+            color: #667eea;
+            margin-top: 0;
+            font-size: 20px;
+        }
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: 600;
+            width: 150px;
+            color: #555;
+        }
+        .value {
+            color: #333;
+            font-family: monospace;
+            background: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-staff {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-user {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #856404;
+        }
+        .note strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 デモアカウント設定</h1>
+        <p class="subtitle">テスト用のユーザーとスタッフアカウントを設定します</p>
+
+        <div class="account-section">
+            <h2>👤 ユーザーアカウント</h2>
+            <div class="info-row">
+                <span class="label">メールアドレス:</span>
+                <span class="value">user@demo.com</span>
+            </div>
+            <div class="info-row">
+                <span class="label">パスワード:</span>
+                <span class="value">demo123</span>
+            </div>
+            <div class="info-row">
+                <span class="label">名前:</span>
+                <span class="value">山田 太郎</span>
+            </div>
+            <div class="info-row">
+                <span class="label">住所:</span>
+                <span class="value">東京都渋谷区</span>
+            </div>
+        </div>
+
+        <div class="account-section">
+            <h2>💼 スタッフアカウント</h2>
+            <div class="info-row">
+                <span class="label">メールアドレス:</span>
+                <span class="value">staff@demo.com</span>
+            </div>
+            <div class="info-row">
+                <span class="label">パスワード:</span>
+                <span class="value">demo123</span>
+            </div>
+            <div class="info-row">
+                <span class="label">名前:</span>
+                <span class="value">田中 美咲</span>
+            </div>
+            <div class="info-row">
+                <span class="label">店舗名:</span>
+                <span class="value">Salon de Beaute 新宿</span>
+            </div>
+            <div class="info-row">
+                <span class="label">会社名:</span>
+                <span class="value">ビューティーサロングループ</span>
+            </div>
+            <div class="info-row">
+                <span class="label">職種:</span>
+                <span class="value">美容師</span>
+            </div>
+            <div class="info-row">
+                <span class="label">経験年数:</span>
+                <span class="value">8年</span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-staff" onclick="setupStaffDemo()">💼 スタッフアカウントを設定</button>
+            <button class="btn-user" onclick="setupUserDemo()">👤 ユーザーアカウントを設定</button>
+        </div>
+
+        <div id="successMessage" class="success-message"></div>
+
+        <div class="note">
+            <strong>📌 使用方法:</strong>
+            <ol>
+                <li>上記のボタンをクリックしてデモアカウントを設定</li>
+                <li>対応するログインページに移動</li>
+                <li>表示されているメールアドレスとパスワードでログイン</li>
+                <li>メッセージ機能をテスト</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function setupStaffDemo() {
+            // スタッフプロフィールを設定
+            const staffProfile = {
+                name: '田中 美咲',
+                storeName: 'Salon de Beaute 新宿',
+                companyName: 'ビューティーサロングループ',
+                age: 28,
+                address: '東京都新宿区西新宿1-1-1',
+                location: '東京都新宿区西新宿1-1-1',
+                gender: 'female',
+                jobTitle: '美容師',
+                experience: '8年',
+                bio: '10年以上の経験を持つベテラン美容師です。お客様一人ひとりに合わせたスタイリングをご提案いたします。トレンドを押さえつつ、お客様のライフスタイルに寄り添ったヘアデザインを心がけています。',
+                email: 'staff@demo.com',
+                hasPhoto: true,
+                profileImages: [
+                    {
+                        name: 'profile1.jpg',
+                        data: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400'
+                    }
+                ],
+                registeredAt: new Date().toISOString(),
+                plan: 'free'
+            };
+
+            localStorage.setItem('staff_profile', JSON.stringify(staffProfile));
+            localStorage.setItem('staff_logged_in', 'true');
+            localStorage.setItem('staff_email', 'staff@demo.com');
+
+            // all_staff_listにも追加
+            let staffList = [];
+            try {
+                const existingList = localStorage.getItem('all_staff_list');
+                if (existingList) {
+                    staffList = JSON.parse(existingList);
+                }
+            } catch (e) {
+                console.error('Error loading staff list:', e);
+            }
+
+            const existingIndex = staffList.findIndex(s => s.email === 'staff@demo.com');
+            const staffListItem = {
+                id: existingIndex >= 0 ? staffList[existingIndex].id : 'staff_demo_' + Date.now(),
+                name: '田中 美咲',
+                storeName: 'Salon de Beaute 新宿',
+                companyName: 'ビューティーサロングループ',
+                jobTitle: '美容師',
+                category: '美容師',
+                rating: 4.8,
+                reviews: 24,
+                hourlyRate: 5000,
+                experience: '8年',
+                bio: '10年以上の経験を持つベテラン美容師です。',
+                location: '東京都新宿区西新宿1-1-1',
+                distance: '0.5km',
+                imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+                isOnline: true,
+                tags: ['美容師', 'ヘアカット', 'カラーリング'],
+                email: 'staff@demo.com',
+                registeredAt: new Date().toISOString()
+            };
+
+            if (existingIndex >= 0) {
+                staffList[existingIndex] = staffListItem;
+            } else {
+                staffList.unshift(staffListItem);
+            }
+
+            localStorage.setItem('all_staff_list', JSON.stringify(staffList));
+
+            showSuccess('スタッフアカウントが設定されました！', 'https://5061-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/');
+        }
+
+        function setupUserDemo() {
+            // ユーザープロフィールを設定
+            const userProfile = {
+                name: '山田 太郎',
+                email: 'user@demo.com',
+                age: 30,
+                address: '東京都渋谷区道玄坂1-1-1',
+                location: '東京都渋谷区',
+                gender: 'male',
+                categories: ['美容・健康', 'IT・技術'],
+                registeredAt: new Date().toISOString()
+            };
+
+            localStorage.setItem('user_profile', JSON.stringify(userProfile));
+            localStorage.setItem('user_logged_in', 'true');
+            localStorage.setItem('user_email', 'user@demo.com');
+
+            showSuccess('ユーザーアカウントが設定されました！', 'https://5060-ivmmk44rjvkdnze0ep01h-5185f4aa.sandbox.novita.ai/');
+        }
+
+        function showSuccess(message, redirectUrl) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message + ' 3秒後にリダイレクトします...';
+            successDiv.style.display = 'block';
+
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
