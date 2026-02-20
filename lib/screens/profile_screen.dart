@@ -3,15 +3,17 @@ import 'package:flutter/foundation.dart';
 import 'dart:html' as html;
 import 'dart:convert';
 import '../services/tip_service.dart';
+import '../services/gifter_service.dart';
+import '../models/gifter_level.dart';
 import 'following_screen.dart';
 import 'bookings_screen.dart';
 import 'tip_history_screen.dart';
 import 'my_reviews_screen.dart';
 import 'profile_settings_screen.dart';
-import 'staff/staff_dashboard_screen.dart';
 import 'ranking_screen.dart';
 import 'headhunt_screen.dart';
-import 'admin/content_moderation_screen.dart';
+import 'help_support_screen.dart';
+import 'user_block_management_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -22,8 +24,10 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TipService _tipService = TipService();
+  final GifterService _gifterService = GifterService();
   double _totalTips = 0.0;
   bool _isLoading = true;
+  UserGifterInfo? _gifterInfo;
   
   // ユーザー情報
   String _userName = 'ゲストユーザー';
@@ -39,6 +43,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _checkLoginStatus();
     _loadUserProfile();
     _loadTotalTips();
+    _loadGifterInfo();
+  }
+  
+  void _loadGifterInfo() async {
+    final info = await _gifterService.getUserGifterInfo();
+    setState(() {
+      _gifterInfo = info;
+    });
+    
+    // デモデータがない場合はロード
+    if (_gifterInfo == null) {
+      await _gifterService.loadDemoData();
+      final updatedInfo = await _gifterService.getUserGifterInfo();
+      setState(() {
+        _gifterInfo = updatedInfo;
+      });
+    }
   }
 
   void _checkLoginStatus() {
@@ -304,6 +325,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             
             const SizedBox(height: 20),
             
+            // ギフターレベルカード
+            if (_gifterInfo != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildGifterLevelCard(_gifterInfo!),
+              ),
+            
+            const SizedBox(height: 20),
+            
             // メニューリスト
             _buildMenuItem(
               context,
@@ -381,20 +411,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             
             const Divider(height: 32),
             
-            // スタッフ管理画面へのアクセス
-            _buildMenuItem(
-              context,
-              icon: Icons.business_center,
-              title: 'スタッフ管理画面',
-              color: Colors.purple,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const StaffDashboardScreen()),
-                );
-              },
-            ),
-            
             _buildMenuItem(
               context,
               icon: Icons.settings,
@@ -409,12 +425,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             
             _buildMenuItem(
               context,
-              icon: Icons.admin_panel_settings,
-              title: 'コンテンツ管理（管理者）',
+              icon: Icons.block,
+              title: 'ブロック管理',
+              color: Colors.red,
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ContentModerationScreen()),
+                  MaterialPageRoute(builder: (context) => const UserBlockManagementScreen()),
                 );
               },
             ),
@@ -424,8 +441,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.help_outline,
               title: 'ヘルプ・サポート',
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('ヘルプ機能（開発中）')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HelpSupportScreen(),
+                  ),
                 );
               },
             ),
@@ -595,6 +615,189 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+  
+  Widget _buildGifterLevelCard(UserGifterInfo gifterInfo) {
+    final level = gifterInfo.currentLevel;
+    final progress = gifterInfo.levelProgress;
+    final expToNext = gifterInfo.expToNextLevel;
+    
+    // カラーコードをColorに変換
+    Color levelColor = Color(int.parse(level.color.substring(1), radix: 16) + 0xFF000000);
+    
+    return Card(
+      elevation: 4,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              levelColor.withValues(alpha: 0.8),
+              levelColor.withValues(alpha: 0.5),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // レベルバッジとタイトル
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    level.badge,
+                    style: const TextStyle(fontSize: 32),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'ギフターレベル',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        'Lv.${level.level} ${level.title}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // 経験値プログレスバー
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'EXP: ${gifterInfo.totalExp.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                    if (level.level < 6)
+                      Text(
+                        '次のレベルまで: $expToNext',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 10,
+                    backgroundColor: Colors.white.withValues(alpha: 0.3),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // 統計情報
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem(
+                  '総ギフト額',
+                  '¥${gifterInfo.totalGiftAmount.toStringAsFixed(0)}',
+                ),
+                Container(
+                  width: 1,
+                  height: 30,
+                  color: Colors.white.withValues(alpha: 0.3),
+                ),
+                _buildStatItem(
+                  'ギフト回数',
+                  '${gifterInfo.giftCount}回',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // 特典表示
+            const Divider(color: Colors.white),
+            const SizedBox(height: 8),
+            const Text(
+              'レベル特典',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...level.benefits.map((benefit) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    benefit,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+          ),
+        ),
+      ],
     );
   }
 }

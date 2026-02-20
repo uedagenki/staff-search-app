@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../models/staff.dart';
 import '../models/gift_item.dart';
 import '../models/tip_history.dart';
+import '../models/gifter_level.dart';
 import '../services/tip_service.dart';
+import '../services/gifter_service.dart';
 
 class TikTokGiftScreen extends StatefulWidget {
   final Staff staff;
@@ -16,6 +20,7 @@ class TikTokGiftScreen extends StatefulWidget {
 
 class _TikTokGiftScreenState extends State<TikTokGiftScreen> with SingleTickerProviderStateMixin {
   final TipService _tipService = TipService();
+  final GifterService _gifterService = GifterService();
   late TabController _tabController;
   final List<String> _categories = GiftItem.getCategories();
   final List<GiftItem> _allGifts = GiftItem.getAllGifts();
@@ -23,11 +28,20 @@ class _TikTokGiftScreenState extends State<TikTokGiftScreen> with SingleTickerPr
   int _quantity = 1;
   int _balance = 50000; // デモ用の残高
   bool _isSending = false;
+  UserGifterInfo? _gifterInfo;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _categories.length, vsync: this);
+    _loadGifterInfo();
+  }
+
+  Future<void> _loadGifterInfo() async {
+    final info = await _gifterService.getUserGifterInfo();
+    setState(() {
+      _gifterInfo = info;
+    });
   }
 
   @override
@@ -140,8 +154,18 @@ class _TikTokGiftScreenState extends State<TikTokGiftScreen> with SingleTickerPr
 
     await _tipService.sendTip(tip);
 
+    // ギフターレベルを更新
+    final updatedGifterInfo = await _gifterService.addGiftExperience(
+      widget.staff.id,
+      totalPrice,
+    );
+
+    // スタッフアプリへ金額を反映（SharedPreferences経由）
+    await _updateStaffReceivedAmount(widget.staff.id, totalPrice.toDouble());
+
     setState(() {
       _balance -= totalPrice;
+      _gifterInfo = updatedGifterInfo;
       _isSending = false;
     });
 
@@ -161,6 +185,33 @@ class _TikTokGiftScreenState extends State<TikTokGiftScreen> with SingleTickerPr
       if (mounted) {
         Navigator.pop(context);
       }
+    }
+  }
+
+  // スタッフアプリへ受取金額を反映
+  Future<void> _updateStaffReceivedAmount(String staffId, double amount) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'staff_${staffId}_received_amount';
+      final currentAmount = prefs.getDouble(key) ?? 0.0;
+      await prefs.setDouble(key, currentAmount + amount);
+      
+      // スタッフアプリのチップ履歴にも追加
+      final staffTipsKey = 'staff_${staffId}_tips';
+      final tipsJson = prefs.getStringList(staffTipsKey) ?? [];
+      
+      final tipData = {
+        'id': DateTime.now().toString(),
+        'userName': 'ユーザー',
+        'amount': amount,
+        'timestamp': DateTime.now().toIso8601String(),
+        'message': '${_selectedGift!.emoji} ${_selectedGift!.name} x$_quantity',
+      };
+      
+      tipsJson.add(jsonEncode(tipData));
+      await prefs.setStringList(staffTipsKey, tipsJson);
+    } catch (e) {
+      // エラーは無視
     }
   }
 

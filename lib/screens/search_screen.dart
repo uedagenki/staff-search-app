@@ -199,14 +199,19 @@ class _SearchScreenState extends State<SearchScreen> {
                           // GPS位置情報を取得
                           await _loadCurrentLocation();
                           if (mounted && _currentPosition != null) {
+                            final nearestStaff = _filteredList.isNotEmpty && _filteredList.first.distance != null
+                                ? _locationService.formatDistance(_filteredList.first.distance!)
+                                : '';
+                            
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text(
-                                  '現在地を取得しました。近い順で並び替えています。',
-                                  style: TextStyle(fontSize: 14),
+                                content: Text(
+                                  '現在地を取得しました。近い順で並び替えています。${nearestStaff.isNotEmpty ? "\n最寄り: $nearestStaff" : ""}',
+                                  style: const TextStyle(fontSize: 14),
                                 ),
-                                duration: const Duration(seconds: 2),
+                                duration: const Duration(seconds: 3),
                                 backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
                               ),
                             );
                           }
@@ -427,6 +432,39 @@ class _SearchScreenState extends State<SearchScreen> {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
+                        // 距離表示を追加
+                        if (staff.distance != null) ...[
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  size: 14,
+                                  color: Colors.blue[700],
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  _locationService.formatDistance(staff.distance!),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.blue[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(width: 8),
                         Icon(
                           Icons.location_on,

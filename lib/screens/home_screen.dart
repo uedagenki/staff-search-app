@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../models/staff.dart';
 import '../models/staff_story.dart';
 import '../data/mock_data.dart';
 import '../widgets/staff_card.dart';
+import '../widgets/simple_mode_switcher.dart';
 import '../services/location_service.dart';
+import '../services/story_service.dart';
 import 'search_screen.dart';
 import 'profile_screen.dart';
 import 'messages_screen.dart';
@@ -26,10 +30,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final PageController _pageController = PageController();
   final LocationService _locationService = LocationService();
+  final StoryService _storyService = StoryService();
   List<Staff> _staffList = MockData.getStaffList();
   List<Staff> _filteredStaffList = [];
-  final List<StaffStory> _stories = _getMockStories();
+  List<StaffStory> _stories = [];
   Position? _currentPosition;
+  bool _isLoadingStories = true;
   
   // フィルター設定
   double _maxDistance = 50.0;
@@ -38,58 +44,113 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedCategory = 'すべて';
   bool _hasActiveFilters = false;
 
-  static List<StaffStory> _getMockStories() {
-    return [
-      StaffStory(
-        id: '1',
-        staffId: '2',
-        staffName: '田中 美咲',
-        staffImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-        items: [
-          StoryItem(
-            id: '1',
-            imageUrl: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400',
-            timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-          ),
-        ],
-        lastUpdated: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      StaffStory(
-        id: '2',
-        staffId: '1',
-        staffName: '佐藤 健',
-        staffImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-        items: [
-          StoryItem(
-            id: '1',
-            imageUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400',
-            timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-          ),
-        ],
-        lastUpdated: DateTime.now().subtract(const Duration(hours: 5)),
-      ),
-      StaffStory(
-        id: '3',
-        staffId: '7',
-        staffName: '中村 大輔',
-        staffImage: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
-        items: [
-          StoryItem(
-            id: '1',
-            imageUrl: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400',
-            timestamp: DateTime.now().subtract(const Duration(hours: 8)),
-          ),
-        ],
-        lastUpdated: DateTime.now().subtract(const Duration(hours: 8)),
-      ),
-    ];
-  }
-
   @override
   void initState() {
     super.initState();
+    _loadStaffFromLocalStorage();
     _loadFilterSettings();
     _loadLocation();
+    _loadStories();
+  }
+
+  Future<void> _loadStories() async {
+    final stories = await _storyService.getStaffStories();
+    final activeStories = _storyService.filterActiveStories(stories);
+    setState(() {
+      _stories = activeStories;
+      _isLoadingStories = false;
+    });
+  }
+
+  void _loadStaffFromLocalStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // SharedPreferencesからスタッフリストを読み込み
+      final staffListJson = prefs.getString('staff_list');
+      
+      if (staffListJson != null) {
+        final List<dynamic> staffData = jsonDecode(staffListJson);
+        
+        // JSONからStaffオブジェクトに変換
+        final registeredStaff = staffData.map((data) {
+          // カテゴリーから最初の1つを取得
+          final categories = data['categories'] != null
+              ? List<String>.from(data['categories'])
+              : ['beauty_health'];
+          final categoryMap = {
+            'beauty_health': '美容・健康',
+            'sales_consulting': '営業・接客',
+            'professional': '専門職',
+            'creative': 'クリエイティブ',
+            'it_tech': 'IT・技術',
+            'education': '教育',
+            'medical_care': '医療・介護',
+            'other': 'その他',
+          };
+          final category = categoryMap[categories.first] ?? '美容・健康';
+          
+          return Staff(
+            id: data['id'] ?? '',
+            name: data['name'] ?? '',
+            jobTitle: data['jobTitle'] ?? '',
+            category: category,
+            profileImage: (data['profileImages'] as List?)?.isNotEmpty == true
+                ? data['profileImages'][0]
+                : 'https://via.placeholder.com/400',
+            profileImages: data['profileImages'] != null
+                ? List<String>.from(data['profileImages'])
+                : null,
+            rating: (data['rating'] ?? 4.8).toDouble(),
+            reviewCount: data['reviewCount'] ?? 0,
+            location: data['location'] ?? '',
+            experience: int.tryParse(data['experience']?.toString() ?? '0') ?? 0,
+            bio: data['bio'] ?? '',
+            skills: (data['bio'] as String?)?.isNotEmpty == true
+                ? [data['jobTitle'] ?? '']
+                : ['スキル'],
+            latitude: data['storeLatitude'] != null
+                ? double.tryParse(data['storeLatitude'].toString())
+                : null,
+            longitude: data['storeLongitude'] != null
+                ? double.tryParse(data['storeLongitude'].toString())
+                : null,
+            isOnline: true,
+            isLive: false,
+            qrCode: 'qr_${data['id']}',
+            storeName: data['storeName'],
+            companyName: data['companyName'],
+          );
+        }).toList();
+
+        if (kDebugMode) {
+          debugPrint('✅ LocalStorageからスタッフを読み込みました: ${registeredStaff.length}件');
+        }
+
+        // MockDataのスタッフリストと統合
+        setState(() {
+          _staffList = [
+            ...registeredStaff,
+            ...MockData.getStaffList(),
+          ];
+          _applyFilters();
+        });
+      } else {
+        // LocalStorageにデータがない場合はMockDataのみ使用
+        setState(() {
+          _staffList = MockData.getStaffList();
+          _applyFilters();
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ スタッフ読み込みエラー: $e');
+      }
+      // エラー時はMockDataのみ使用
+      setState(() {
+        _staffList = MockData.getStaffList();
+        _applyFilters();
+      });
+    }
   }
 
   Future<void> _loadLocation() async {
@@ -276,6 +337,9 @@ class _HomeScreenState extends State<HomeScreen> {
           // 右側のアイコン
           Row(
             children: [
+              // モード切り替えボタン
+              const SimpleModeDropdown(),
+              const SizedBox(width: 8),
               // 通知ボタン（バッジ付き）
               Stack(
                 children: [
@@ -361,8 +425,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildStories() {
+    if (_isLoadingStories) {
+      return Container(
+        height: 70,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_stories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
-      height: 70,
+      height: 100,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -375,48 +460,54 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         itemCount: _stories.length,
         itemBuilder: (context, index) {
           final story = _stories[index];
           if (story.isExpired) return const SizedBox.shrink();
           
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    // プロフィール画像タップでスタッフ詳細画面に遷移
-                    // staffIdに一致するスタッフを検索
-                    final staff = _staffList.firstWhere(
-                      (s) => s.id == story.staffId,
-                      orElse: () => _staffList.first, // 見つからない場合は最初のスタッフ
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => StaffDetailScreen(staff: staff),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    padding: const EdgeInsets.all(2),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: GestureDetector(
+              onTap: () {
+                // ストーリービューアを開く
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => StoryViewerScreen(
+                      stories: _stories,
+                      initialIndex: index,
+                    ),
+                  ),
+                ).then((_) {
+                  // ストーリーから戻ってきたらリロード
+                  _loadStories();
+                });
+              },
+              child: Column(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    padding: const EdgeInsets.all(2.5),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.primary,
-                          Colors.purple,
-                        ],
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        colors: story.hasUnviewedStory
+                            ? [
+                                Colors.purple,
+                                Colors.pink,
+                                Colors.orange,
+                              ]
+                            : [Colors.grey, Colors.grey],
                       ),
                     ),
                     child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: Colors.white, width: 3),
                       ),
                       child: ClipOval(
                         child: CachedNetworkImage(
@@ -426,19 +517,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                SizedBox(
-                  width: 48,
-                  child: Text(
-                    story.staffName.split(' ')[0],
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 10),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: 60,
+                    child: Text(
+                      story.staffName.split(' ')[0],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },

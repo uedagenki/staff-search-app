@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/notification.dart';
+import 'user_chat_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -19,6 +20,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
       timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
       isRead: false,
+      data: {
+        'staffId': 'staff_001',
+        'staffName': '佐藤 健',
+      },
     ),
     AppNotification(
       id: '2',
@@ -63,6 +68,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
       timestamp: DateTime.now().subtract(const Duration(days: 1)),
       isRead: true,
+      data: {
+        'staffId': 'staff_002',
+        'staffName': '伊藤 麻衣',
+      },
     ),
   ];
 
@@ -231,36 +240,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _markAsRead(AppNotification notification) {
     if (!notification.isRead) {
       setState(() {
-        final index = _notifications.indexOf(notification);
-        _notifications[index] = AppNotification(
-          id: notification.id,
-          type: notification.type,
-          title: notification.title,
-          body: notification.body,
-          imageUrl: notification.imageUrl,
-          timestamp: notification.timestamp,
-          isRead: true,
-          data: notification.data,
-        );
+        notification.isRead = true;
       });
     }
   }
 
   void _markAllAsRead() {
     setState(() {
-      for (int i = 0; i < _notifications.length; i++) {
-        if (!_notifications[i].isRead) {
-          _notifications[i] = AppNotification(
-            id: _notifications[i].id,
-            type: _notifications[i].type,
-            title: _notifications[i].title,
-            body: _notifications[i].body,
-            imageUrl: _notifications[i].imageUrl,
-            timestamp: _notifications[i].timestamp,
-            isRead: true,
-            data: _notifications[i].data,
-          );
-        }
+      for (var notification in _notifications) {
+        notification.isRead = true;
       }
     });
     ScaffoldMessenger.of(context).showSnackBar(
@@ -274,9 +262,42 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _handleNotificationTap(AppNotification notification) {
     switch (notification.type) {
       case NotificationType.message:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('メッセージ画面へ移動（実装済み）')),
-        );
+        // メッセージ通知の場合、チャット画面に遷移
+        if (notification.data != null && 
+            notification.data!.containsKey('staffId') &&
+            notification.data!.containsKey('staffName')) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => UserChatScreen(
+                staffId: notification.data!['staffId'] as String,
+                staffName: notification.data!['staffName'] as String,
+                staffImage: notification.imageUrl ?? 'https://via.placeholder.com/400',
+              ),
+            ),
+          );
+        } else {
+          // データがない場合はデフォルトのスタッフ情報を使用
+          String staffName = '佐藤 健';
+          String staffId = 'staff_001';
+          String staffImage = notification.imageUrl ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400';
+          
+          // 通知タイトルからスタッフ名を抽出
+          if (notification.title.contains('さんからメッセージ')) {
+            staffName = notification.title.replaceAll('さんからメッセージ', '');
+          }
+          
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => UserChatScreen(
+                staffId: staffId,
+                staffName: staffName,
+                staffImage: staffImage,
+              ),
+            ),
+          );
+        }
         break;
       case NotificationType.booking:
         ScaffoldMessenger.of(context).showSnackBar(

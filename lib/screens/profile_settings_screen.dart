@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:html' as html;
 import 'dart:convert';
+import 'notification_settings_screen.dart';
+import 'password_change_screen.dart';
+import 'privacy_settings_screen.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -401,8 +404,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       title: const Text('パスワード変更'),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('パスワード変更機能（開発中）')),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PasswordChangeScreen(),
+                          ),
                         );
                       },
                     ),
@@ -412,8 +418,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       title: const Text('通知設定'),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('通知設定機能（開発中）')),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationSettingsScreen(),
+                          ),
                         );
                       },
                     ),
@@ -423,8 +432,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       title: const Text('プライバシー設定'),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('プライバシー設定機能（開発中）')),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PrivacySettingsScreen(),
+                          ),
                         );
                       },
                     ),

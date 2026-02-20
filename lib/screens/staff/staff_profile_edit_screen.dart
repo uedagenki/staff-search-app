@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:html' as html;
+import 'dart:convert';
 
 class StaffProfileEditScreen extends StatefulWidget {
   const StaffProfileEditScreen({super.key});
@@ -22,6 +25,9 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
   // 店舗/会社の位置情報（緯度・経度の文字列）
   String? _storeLatitude;
   String? _storeLongitude;
+
+  // スタッフID（固定）
+  String? _staffId;
 
   List<String> _profileImages = [
     'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
@@ -300,26 +306,104 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
       _isSaving = true;
     });
 
-    // 保存処理のシミュレーション
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      // スタッフIDを使用（既存のIDまたは新規ID）
+      final staffId = _staffId ?? 'staff_${DateTime.now().millisecondsSinceEpoch}';
+      
+      // スタッフプロフィールデータを作成
+      final staffProfile = {
+        'id': staffId,
+        'name': _nameController.text,
+        'jobTitle': _jobTitleController.text,
+        'bio': _bioController.text,
+        'experience': _experienceController.text,
+        'location': _locationController.text,
+        'storeName': _storeNameController.text,
+        'companyName': _companyNameController.text,
+        'storeLatitude': _storeLatitude,
+        'storeLongitude': _storeLongitude,
+        'profileImages': _profileImages,
+        'rating': 4.8,
+        'reviewCount': 120,
+        'categories': ['beauty_health'], // デフォルトカテゴリー
+        'isVerified': true,
+        'createdAt': DateTime.now().toIso8601String(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
 
-    if (mounted) {
+      // LocalStorageに現在のスタッフプロフィールを保存
+      html.window.localStorage['current_staff_profile'] = jsonEncode(staffProfile);
+
+      // ユーザーアプリで検索可能なスタッフリストに追加
+      final staffListJson = html.window.localStorage['staff_list'];
+      List<dynamic> staffList = [];
+      
+      if (staffListJson != null) {
+        staffList = jsonDecode(staffListJson);
+      }
+
+      // 既存のスタッフを更新または新規追加
+      final existingIndex = staffList.indexWhere(
+        (s) => s['id'] == staffId
+      );
+
+      if (existingIndex != -1) {
+        staffList[existingIndex] = staffProfile;
+        if (kDebugMode) {
+          debugPrint('🔄 既存スタッフプロフィールを更新: ${staffProfile['name']}');
+        }
+      } else {
+        staffList.add(staffProfile);
+        if (kDebugMode) {
+          debugPrint('✨ 新規スタッフプロフィールを追加: ${staffProfile['name']}');
+        }
+      }
+
+      // スタッフリストを保存
+      html.window.localStorage['staff_list'] = jsonEncode(staffList);
+
+      if (kDebugMode) {
+        debugPrint('✅ スタッフプロフィール保存完了: ${staffProfile['name']}');
+        debugPrint('📷 保存された写真数: ${_profileImages.length}');
+        debugPrint('📋 スタッフリスト件数: ${staffList.length}');
+      }
+
       setState(() {
         _isSaving = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _storeLatitude != null && _storeLongitude != null
-                ? 'プロフィールと店舗位置を保存しました'
-                : 'プロフィールを保存しました',
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _storeLatitude != null && _storeLongitude != null
+                  ? 'プロフィールと店舗位置を保存しました\nユーザーアプリで検索可能になりました'
+                  : 'プロフィールを保存しました\nユーザーアプリで検索可能になりました',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
           ),
-          backgroundColor: Colors.green,
-        ),
-      );
+        );
 
-      Navigator.pop(context);
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ プロフィール保存エラー: $e');
+      }
+      
+      setState(() {
+        _isSaving = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('保存に失敗しました'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
   
@@ -703,6 +787,51 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
                   onPressed: _isSaving ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          '保存',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // キャンセルボタン
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text(
+                    'キャンセル',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+       padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Colors.white,
                   ),

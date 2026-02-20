@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import '../../models/staff.dart';
+import '../staff_detail_screen.dart';
 import 'staff_posts_management_screen.dart';
 import 'staff_bookings_screen.dart';
 import 'staff_tips_screen.dart';
@@ -256,6 +260,16 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
           const SizedBox(height: 12),
 
           _buildActionButton(
+            'スタッフプレビュー確認',
+            Icons.visibility,
+            Colors.purple,
+            () {
+              _showStaffPreview();
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
             '予約確認',
             Icons.event_available,
             Colors.green,
@@ -341,5 +355,101 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
         ),
       ),
     );
+  }
+
+  void _showStaffPreview() {
+    try {
+      // LocalStorageから現在のスタッフプロフィールを読み込み
+      final staffProfileJson = html.window.localStorage['current_staff_profile'];
+      
+      if (staffProfileJson == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('プロフィールが保存されていません。先にプロフィール編集から保存してください。'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      final profileData = jsonDecode(staffProfileJson);
+      
+      // カテゴリーマッピング
+      final categories = profileData['categories'] != null
+          ? List<String>.from(profileData['categories'])
+          : ['beauty_health'];
+      final categoryMap = {
+        'beauty_health': '美容・健康',
+        'sales_consulting': '営業・接客',
+        'professional': '専門職',
+        'creative': 'クリエイティブ',
+        'it_tech': 'IT・技術',
+        'education': '教育',
+        'medical_care': '医療・介護',
+        'other': 'その他',
+      };
+      final category = categoryMap[categories.first] ?? '美容・健康';
+
+      // Staffオブジェクトを作成
+      final staff = Staff(
+        id: profileData['id'] ?? 'preview_staff',
+        name: profileData['name'] ?? 'スタッフ',
+        jobTitle: profileData['jobTitle'] ?? '',
+        category: category,
+        profileImage: (profileData['profileImages'] as List?)?.isNotEmpty == true
+            ? profileData['profileImages'][0]
+            : 'https://via.placeholder.com/400',
+        profileImages: profileData['profileImages'] != null
+            ? List<String>.from(profileData['profileImages'])
+            : null,
+        rating: (profileData['rating'] ?? 4.8).toDouble(),
+        reviewCount: profileData['reviewCount'] ?? 0,
+        location: profileData['location'] ?? '',
+        experience: int.tryParse(profileData['experience']?.toString() ?? '0') ?? 0,
+        bio: profileData['bio'] ?? '',
+        skills: (profileData['bio'] as String?)?.isNotEmpty == true
+            ? [profileData['jobTitle'] ?? '']
+            : ['スキル'],
+        latitude: profileData['storeLatitude'] != null
+            ? double.tryParse(profileData['storeLatitude'].toString())
+            : null,
+        longitude: profileData['storeLongitude'] != null
+            ? double.tryParse(profileData['storeLongitude'].toString())
+            : null,
+        isOnline: _isOnline,
+        isLive: false,
+        qrCode: profileData['qrCode'] ?? 'qr_preview',
+        storeName: profileData['storeName'],
+        companyName: profileData['companyName'],
+        followersCount: profileData['followersCount'] ?? 0,
+        giftAmount: (profileData['giftAmount'] ?? 0.0).toDouble(),
+        categoryRank: profileData['categoryRank'] ?? 1,
+        totalStaffInCategory: profileData['totalStaffInCategory'] ?? 100,
+      );
+
+      if (kDebugMode) {
+        debugPrint('✅ スタッフプレビュー表示: ${staff.name}');
+        debugPrint('📷 写真数: ${staff.profileImages.length}');
+      }
+
+      // ユーザーアプリと同じStaffDetailScreenで表示
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StaffDetailScreen(staff: staff),
+        ),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ プレビュー表示エラー: $e');
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('プレビュー表示に失敗しました'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
