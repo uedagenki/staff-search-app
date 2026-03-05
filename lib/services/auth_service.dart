@@ -1,6 +1,7 @@
+import '../utils/storage_helper.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:html' as html;
 import 'dart:convert';
+import 'dart:html' as html show window;
 import '../models/user.dart';
 
 class AuthService {

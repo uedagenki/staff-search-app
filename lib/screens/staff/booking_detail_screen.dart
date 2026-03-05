@@ -1,5 +1,5 @@
+import '../../utils/storage_helper.dart';
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
 import 'dart:convert';
 
 class BookingDetailScreen extends StatefulWidget {
@@ -30,7 +30,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     });
 
     // LocalStorageから予約データを取得
-    final bookingsJson = html.window.localStorage['staff_bookings'];
+    final bookingsJson = await StorageHelper.getString('staff_bookings');
     List<dynamic> bookings = [];
     
     if (bookingsJson != null) {
@@ -47,7 +47,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       bookings[index]['updatedAt'] = DateTime.now().toIso8601String();
       
       // LocalStorageに保存
-      html.window.localStorage['staff_bookings'] = jsonEncode(bookings);
+      await StorageHelper.setString('staff_bookings', jsonEncode(bookings));
       
       setState(() {
         _status = newStatus;

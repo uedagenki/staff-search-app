@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
 import 'dart:convert';
+import '../utils/storage_helper.dart';
 
 class UserBlockManagementScreen extends StatefulWidget {
   const UserBlockManagementScreen({super.key});
@@ -26,9 +26,9 @@ class _UserBlockManagementScreenState extends State<UserBlockManagementScreen> {
     super.dispose();
   }
 
-  void _loadBlockedData() {
+  Future<void> _loadBlockedData() async {
     // ブロックしたスタッフリストを読み込み
-    final blockedJson = html.window.localStorage['blocked_staff'];
+    final blockedJson = await StorageHelper.getString('blocked_staff');
     if (blockedJson != null) {
       try {
         final List<dynamic> data = jsonDecode(blockedJson);
@@ -41,7 +41,7 @@ class _UserBlockManagementScreenState extends State<UserBlockManagementScreen> {
     }
 
     // NGワードリストを読み込み
-    final ngWordsJson = html.window.localStorage['ng_words'];
+    final ngWordsJson = await StorageHelper.getString('ng_words');
     if (ngWordsJson != null) {
       try {
         final List<dynamic> data = jsonDecode(ngWordsJson);
@@ -54,12 +54,12 @@ class _UserBlockManagementScreenState extends State<UserBlockManagementScreen> {
     }
   }
 
-  void _saveBlockedStaff() {
-    html.window.localStorage['blocked_staff'] = jsonEncode(_blockedStaff);
+  Future<void> _saveBlockedStaff() async {
+    await StorageHelper.setString('blocked_staff', jsonEncode(_blockedStaff));
   }
 
-  void _saveNGWords() {
-    html.window.localStorage['ng_words'] = jsonEncode(_ngWords);
+  Future<void> _saveNGWords() async {
+    await StorageHelper.setString('ng_words', jsonEncode(_ngWords));
   }
 
   void _unblockStaff(int index) {

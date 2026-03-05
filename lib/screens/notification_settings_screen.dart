@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
 import 'dart:convert';
+import '../utils/storage_helper.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -26,8 +26,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     _loadSettings();
   }
 
-  void _loadSettings() {
-    final settingsJson = html.window.localStorage['notification_settings'];
+  Future<void> _loadSettings() async {
+    final settingsJson = await StorageHelper.getString('notification_settings');
     if (settingsJson != null) {
       try {
         final settings = jsonDecode(settingsJson);
@@ -47,7 +47,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     }
   }
 
-  void _saveSettings() {
+  Future<void> _saveSettings() async {
     final settings = {
       'enableNotifications': _enableNotifications,
       'enableBookingNotifications': _enableBookingNotifications,
@@ -58,10 +58,12 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       'enableReviewNotifications': _enableReviewNotifications,
       'enablePromotionNotifications': _enablePromotionNotifications,
     };
-    html.window.localStorage['notification_settings'] = jsonEncode(settings);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('通知設定を保存しました')),
-    );
+    await StorageHelper.setString('notification_settings', jsonEncode(settings));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('通知設定を保存しました')),
+      );
+    }
   }
 
   @override

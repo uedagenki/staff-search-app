@@ -1,5 +1,5 @@
+import '../utils/storage_helper.dart';
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
 import 'dart:convert';
 import '../services/chat_service.dart';
 
@@ -36,9 +36,9 @@ class _UserChatScreenState extends State<UserChatScreen> {
     _initializeChat();
   }
 
-  void _loadUserInfo() {
+  Future<void> _loadUserInfo() async {
     try {
-      final profileData = html.window.localStorage['user_profile'];
+      final profileData = await StorageHelper.getString('user_profile');
       if (profileData != null) {
         final profile = json.decode(profileData);
         _userId = profile['email'] ?? 'user_${DateTime.now().millisecondsSinceEpoch}';
@@ -72,9 +72,10 @@ class _UserChatScreenState extends State<UserChatScreen> {
     });
   }
 
-  void _loadMessages() {
+  Future<void> _loadMessages() async {
+    final messages = await _chatService.getMessages(_chatRoomId);
     setState(() {
-      _messages = _chatService.getMessages(_chatRoomId);
+      _messages = messages;
     });
     _scrollToBottom();
   }

@@ -1,7 +1,7 @@
+import '../../utils/storage_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'dart:html' as html;
 import 'dart:convert';
 
 class StaffProfileEditScreen extends StatefulWidget {
@@ -332,10 +332,10 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
       };
 
       // LocalStorageに現在のスタッフプロフィールを保存
-      html.window.localStorage['current_staff_profile'] = jsonEncode(staffProfile);
+      await StorageHelper.setString('current_staff_profile', jsonEncode(staffProfile));
 
       // ユーザーアプリで検索可能なスタッフリストに追加
-      final staffListJson = html.window.localStorage['staff_list'];
+      final staffListJson = await StorageHelper.getString('staff_list');
       List<dynamic> staffList = [];
       
       if (staffListJson != null) {
@@ -360,7 +360,7 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
       }
 
       // スタッフリストを保存
-      html.window.localStorage['staff_list'] = jsonEncode(staffList);
+      await StorageHelper.setString('staff_list', jsonEncode(staffList));
 
       if (kDebugMode) {
         debugPrint('✅ スタッフプロフィール保存完了: ${staffProfile['name']}');
@@ -787,51 +787,6 @@ class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
                   onPressed: _isSaving ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: _isSaving
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text(
-                          '保存',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // キャンセルボタン
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    'キャンセル',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-       padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Colors.white,
                   ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
 import 'dart:convert';
+import '../utils/storage_helper.dart';
 
 class PrivacySettingsScreen extends StatefulWidget {
   const PrivacySettingsScreen({super.key});
@@ -27,8 +27,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     _loadSettings();
   }
 
-  void _loadSettings() {
-    final settingsJson = html.window.localStorage['privacy_settings'];
+  Future<void> _loadSettings() async {
+    final settingsJson = await StorageHelper.getString('privacy_settings');
     if (settingsJson != null) {
       try {
         final settings = jsonDecode(settingsJson);
@@ -49,7 +49,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     }
   }
 
-  void _saveSettings() {
+  Future<void> _saveSettings() async {
     final settings = {
       'profilePublic': _profilePublic,
       'showAge': _showAge,
@@ -61,10 +61,12 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
       'allowSearch': _allowSearch,
       'messagePermission': _messagePermission,
     };
-    html.window.localStorage['privacy_settings'] = jsonEncode(settings);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('プライバシー設定を保存しました')),
-    );
+    await StorageHelper.setString('privacy_settings', jsonEncode(settings));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('プライバシー設定を保存しました')),
+      );
+    }
   }
 
   @override

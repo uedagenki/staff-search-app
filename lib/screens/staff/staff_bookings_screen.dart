@@ -1,5 +1,5 @@
+import '../../utils/storage_helper.dart';
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
 import 'dart:convert';
 import 'booking_detail_screen.dart';
 
@@ -20,9 +20,9 @@ class _StaffBookingsScreenState extends State<StaffBookingsScreen> {
     _loadBookings();
   }
 
-  void _loadBookings() {
+  Future<void> _loadBookings() async {
     // LocalStorageからスタッフの予約データを取得
-    final bookingsJson = html.window.localStorage['staff_bookings'];
+    final bookingsJson = await StorageHelper.getString('staff_bookings');
     
     if (bookingsJson != null) {
       try {
@@ -39,7 +39,7 @@ class _StaffBookingsScreenState extends State<StaffBookingsScreen> {
     }
   }
 
-  void _initializeSampleBookings() {
+  Future<void> _initializeSampleBookings() async {
     // サンプル予約データを作成
     _bookings = [
       {
@@ -81,7 +81,7 @@ class _StaffBookingsScreenState extends State<StaffBookingsScreen> {
     ];
 
     // LocalStorageに保存
-    html.window.localStorage['staff_bookings'] = jsonEncode(_bookings);
+    await StorageHelper.setString('staff_bookings', jsonEncode(_bookings));
     
     setState(() {
       _isLoading = false;

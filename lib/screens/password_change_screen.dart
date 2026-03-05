@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
+import '../utils/storage_helper.dart';
 
 class PasswordChangeScreen extends StatefulWidget {
   const PasswordChangeScreen({super.key});
@@ -36,23 +36,25 @@ class _PasswordChangeScreenState extends State<PasswordChangeScreen> {
     });
 
     // 現在のパスワードを確認
-    final storedPassword = html.window.localStorage['user_password'];
+    final storedPassword = await StorageHelper.getString('user_password');
     if (storedPassword != _currentPasswordController.text) {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('現在のパスワードが正しくありません'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('現在のパスワードが正しくありません'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       return;
     }
 
     // 新しいパスワードを保存
     await Future.delayed(const Duration(seconds: 1)); // API呼び出しシミュレーション
-    html.window.localStorage['user_password'] = _newPasswordController.text;
+    await StorageHelper.setString('user_password', _newPasswordController.text);
 
     setState(() {
       _isLoading = false;

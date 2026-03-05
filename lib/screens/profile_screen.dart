@@ -1,6 +1,6 @@
+import '../utils/storage_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:html' as html;
 import 'dart:convert';
 import '../services/tip_service.dart';
 import '../services/gifter_service.dart';
@@ -64,8 +64,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _checkLoginStatus() {
     // アプリ起動時にログイン状態を確認
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final isLoggedIn = html.window.localStorage['user_logged_in'];
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final isLoggedIn = await StorageHelper.getString('user_logged_in');
       if (isLoggedIn == null || isLoggedIn != 'true') {
         _showLoginPrompt();
       }
@@ -119,7 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () {
               Navigator.pop(context);
               // ログイン画面にリダイレクト
-              html.window.location.href = 'user_login.html';
+              // Removed: html.window.location.href = 'user_login.html';
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
@@ -132,9 +132,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _loadUserProfile() {
+  Future<void> _loadUserProfile() async {
     try {
-      final profileData = html.window.localStorage['user_profile'];
+      final profileData = await StorageHelper.getString('user_profile');
       if (profileData != null) {
         final profile = json.decode(profileData);
         setState(() {
@@ -547,10 +547,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: const Text('キャンセル'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               try {
                 // ローカルストレージをクリア
-                html.window.localStorage.clear();
+                await StorageHelper.clear();
                 
                 if (kDebugMode) {
                   debugPrint('LocalStorage cleared');
@@ -562,7 +562,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // 少し待ってからリダイレクト
                 Future.delayed(const Duration(milliseconds: 100), () {
                   // ログイン画面にリダイレクト（Web）
-                  html.window.location.href = 'user_login.html';
+                  // Removed: html.window.location.href = 'user_login.html';
                 });
               } catch (e) {
                 if (kDebugMode) {

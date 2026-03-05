@@ -1,6 +1,6 @@
+import '../utils/storage_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:html' as html;
 import 'dart:convert';
 import 'notification_settings_screen.dart';
 import 'password_change_screen.dart';
@@ -51,7 +51,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   Future<void> _loadProfile() async {
     try {
-      final profileData = html.window.localStorage['user_profile'];
+      final profileData = await StorageHelper.getString('user_profile');
       if (profileData != null) {
         final profile = json.decode(profileData);
         setState(() {
@@ -108,7 +108,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         'updatedAt': DateTime.now().toIso8601String(),
       };
 
-      html.window.localStorage['user_profile'] = json.encode(userData);
+      await StorageHelper.setString('user_profile', json.encode(userData));
 
       setState(() {
         _isSaving = false;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:html' as html show window;
 import '../../models/staff.dart';
 import '../staff_detail_screen.dart';
 import 'staff_posts_management_screen.dart';

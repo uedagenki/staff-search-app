@@ -1,5 +1,5 @@
+import '../utils/storage_helper.dart';
 import 'dart:async';
-import 'dart:html' as html;
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
@@ -74,8 +74,8 @@ class ChatService {
     _pollingTimer?.cancel();
   }
 
-  void _checkForNewMessages(String chatRoomId) {
-    final messages = getMessages(chatRoomId);
+  Future<void> _checkForNewMessages(String chatRoomId) async {
+    final messages = await getMessages(chatRoomId);
     _messageStreamController.add(messages);
   }
 
@@ -98,9 +98,9 @@ class ChatService {
       isRead: false,
     );
 
-    final messages = getMessages(chatRoomId);
+    final messages = await getMessages(chatRoomId);
     messages.add(newMessage);
-    _saveMessages(chatRoomId, messages);
+    await _saveMessages(chatRoomId, messages);
 
     // 通知を送信
     _sendNotification(chatRoomId, senderType, senderName, message);
@@ -110,9 +110,9 @@ class ChatService {
   }
 
   // メッセージ取得
-  List<ChatMessage> getMessages(String chatRoomId) {
+  Future<List<ChatMessage>> getMessages(String chatRoomId) async {
     try {
-      final messagesJson = html.window.localStorage['chat_messages_$chatRoomId'];
+      final messagesJson = await StorageHelper.getString('chat_messages_$chatRoomId');
       if (messagesJson != null) {
         final List<dynamic> messagesList = json.decode(messagesJson);
         return messagesList.map((m) => ChatMessage.fromJson(m)).toList();
@@ -126,10 +126,10 @@ class ChatService {
   }
 
   // メッセージ保存
-  void _saveMessages(String chatRoomId, List<ChatMessage> messages) {
+  Future<void> _saveMessages(String chatRoomId, List<ChatMessage> messages) async {
     try {
       final messagesJson = json.encode(messages.map((m) => m.toJson()).toList());
-      html.window.localStorage['chat_messages_$chatRoomId'] = messagesJson;
+      await StorageHelper.setString('chat_messages_$chatRoomId', messagesJson);
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Error saving messages: $e');
@@ -138,14 +138,14 @@ class ChatService {
   }
 
   // 未読メッセージ数取得
-  int getUnreadCount(String chatRoomId, String userType) {
-    final messages = getMessages(chatRoomId);
+  Future<int> getUnreadCount(String chatRoomId, String userType) async {
+    final messages = await getMessages(chatRoomId);
     return messages.where((m) => !m.isRead && m.senderType != userType).length;
   }
 
   // メッセージを既読にする
-  void markAsRead(String chatRoomId, String userType) {
-    final messages = getMessages(chatRoomId);
+  Future<void> markAsRead(String chatRoomId, String userType) async {
+    final messages = await getMessages(chatRoomId);
     bool hasChanges = false;
     
     for (var message in messages) {
@@ -171,12 +171,12 @@ class ChatService {
         return m;
       }).toList();
       
-      _saveMessages(chatRoomId, updatedMessages);
+      await _saveMessages(chatRoomId, updatedMessages);
     }
   }
 
   // 通知送信
-  void _sendNotification(String chatRoomId, String senderType, String senderName, String message) {
+  Future<void> _sendNotification(String chatRoomId, String senderType, String senderName, String message) async {
     try {
       final notification = {
         'chatRoomId': chatRoomId,
@@ -190,7 +190,7 @@ class ChatService {
       final recipientType = senderType == 'user' ? 'staff' : 'user';
       
       // 通知リストを取得
-      final notificationsJson = html.window.localStorage['chat_notifications_$recipientType'] ?? '[]';
+      final notificationsJson = await StorageHelper.getString('chat_notifications_$recipientType') ?? '[]';
       final List<dynamic> notifications = json.decode(notificationsJson);
       
       notifications.add(notification);
@@ -200,7 +200,7 @@ class ChatService {
         notifications.removeRange(0, notifications.length - 50);
       }
       
-      html.window.localStorage['chat_notifications_$recipientType'] = json.encode(notifications);
+      await StorageHelper.setString('chat_notifications_$recipientType', json.encode(notifications));
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Error sending notification: $e');
@@ -209,9 +209,9 @@ class ChatService {
   }
 
   // 通知取得
-  List<Map<String, dynamic>> getNotifications(String userType) {
+  Future<List<Map<String, dynamic>>> getNotifications(String userType) async {
     try {
-      final notificationsJson = html.window.localStorage['chat_notifications_$userType'] ?? '[]';
+      final notificationsJson = await StorageHelper.getString('chat_notifications_$userType') ?? '[]';
       final List<dynamic> notifications = json.decode(notificationsJson);
       return notifications.cast<Map<String, dynamic>>();
     } catch (e) {
@@ -223,11 +223,11 @@ class ChatService {
   }
 
   // 通知クリア
-  void clearNotifications(String userType, String chatRoomId) {
+  Future<void> clearNotifications(String userType, String chatRoomId) async {
     try {
-      final notifications = getNotifications(userType);
+      final notifications = await getNotifications(userType);
       final filtered = notifications.where((n) => n['chatRoomId'] != chatRoomId).toList();
-      html.window.localStorage['chat_notifications_$userType'] = json.encode(filtered);
+      await StorageHelper.setString('chat_notifications_$userType', json.encode(filtered));
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Error clearing notifications: $e');

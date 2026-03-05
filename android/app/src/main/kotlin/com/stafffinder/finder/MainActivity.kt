@@ -1,5 +1,6 @@
-package com.example.flutter_app
+package com.stafffinder.finder
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+
