@@ -1,7 +1,6 @@
 import '../utils/storage_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
-import 'dart:html' as html show window;
 import '../models/user.dart';
 
 class AuthService {
@@ -9,9 +8,9 @@ class AuthService {
   static const String _usersKey = 'registered_users';
 
   // 現在のログインユーザーを取得
-  User? getCurrentUser() {
+  Future<User?> getCurrentUser() async {
     try {
-      final userJson = html.window.localStorage[_currentUserKey];
+      final userJson = await StorageHelper.getString(_currentUserKey);
       if (userJson != null && userJson.isNotEmpty) {
         return User.fromJsonString(userJson);
       }
@@ -24,8 +23,9 @@ class AuthService {
   }
 
   // ログイン状態をチェック
-  bool isLoggedIn() {
-    return getCurrentUser() != null;
+  Future<bool> isLoggedIn() async {
+    final user = await getCurrentUser();
+    return user != null;
   }
 
   // ユーザー登録
@@ -87,7 +87,7 @@ class AuthService {
   }) async {
     try {
       // 登録済みユーザーを取得
-      final users = _getRegisteredUsers();
+      final users = await _getRegisteredUsers();
       
       // メールアドレスで検索
       final userEntry = users.entries.firstWhere(
@@ -136,13 +136,13 @@ class AuthService {
 
   // ログアウト
   Future<void> logout() async {
-    html.window.localStorage.remove(_currentUserKey);
+    await StorageHelper.remove(_currentUserKey);
   }
 
   // ユーザー情報を更新
   Future<bool> updateUser(User user) async {
     try {
-      final currentPassword = _getCurrentUserPassword(user.id);
+      final currentPassword = await _getCurrentUserPassword(user.id);
       if (currentPassword != null) {
         await _saveUser(user, currentPassword);
         await _setCurrentUser(user);
@@ -167,9 +167,9 @@ class AuthService {
     });
   }
 
-  Map<String, dynamic> _getRegisteredUsers() {
+  Future<Map<String, dynamic>> _getRegisteredUsers() async {
     try {
-      final usersJson = html.window.localStorage[_usersKey];
+      final usersJson = await StorageHelper.getString(_usersKey);
       if (usersJson != null && usersJson.isNotEmpty) {
         return jsonDecode(usersJson) as Map<String, dynamic>;
       }
@@ -182,20 +182,20 @@ class AuthService {
   }
 
   Future<void> _saveUser(User user, String password) async {
-    final users = _getRegisteredUsers();
+    final users = await _getRegisteredUsers();
     users[user.id] = {
       'userData': user.toJsonString(),
       'password': password, // 実際の本番環境ではハッシュ化が必要
     };
-    html.window.localStorage[_usersKey] = jsonEncode(users);
+    await StorageHelper.setString(_usersKey, jsonEncode(users));
   }
 
   Future<void> _setCurrentUser(User user) async {
-    html.window.localStorage[_currentUserKey] = user.toJsonString();
+    await StorageHelper.setString(_currentUserKey, user.toJsonString());
   }
 
-  String? _getCurrentUserPassword(String userId) {
-    final users = _getRegisteredUsers();
+  Future<String?> _getCurrentUserPassword(String userId) async {
+    final users = await _getRegisteredUsers();
     final userData = users[userId];
     return userData?['password'] as String?;
   }

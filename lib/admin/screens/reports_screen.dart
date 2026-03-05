@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../utils/storage_helper.dart';
+import '../../services/export_service.dart';
 import 'dart:convert';
 
 class ReportsScreen extends StatefulWidget {
@@ -11,6 +12,7 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
+  final _exportService = ExportService();
   bool _isLoading = true;
   Map<String, dynamic> _stats = {};
 
@@ -18,6 +20,68 @@ class _ReportsScreenState extends State<ReportsScreen> {
   void initState() {
     super.initState();
     _loadStatistics();
+  }
+
+  Future<void> _handleExport(String type) async {
+    try {
+      String? result;
+      
+      switch (type) {
+        case 'users':
+          result = await _exportService.exportUsersToCSV();
+          break;
+        case 'staff':
+          result = await _exportService.exportStaffToCSV();
+          break;
+        case 'bookings':
+          result = await _exportService.exportBookingsToCSV();
+          break;
+        case 'pdf':
+          await _exportService.exportStatsToPDF(
+            stats: _stats,
+            title: 'Staff Finder 統計レポート',
+          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('PDFレポートを生成しました'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+          return;
+      }
+
+      if (mounted) {
+        if (result != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('エクスポートしました${!kIsWeb ? ": $result" : ""}'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('エクスポートに失敗しました'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Export error: $e');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('エラー: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _loadStatistics() async {
@@ -94,11 +158,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
             icon: const Icon(Icons.download),
             tooltip: 'エクスポート',
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('レポートをエクスポートしました'),
-                  backgroundColor: Colors.green,
-                ),
+              ExportService.showExportMenu(
+                context: context,
+                onExportUsers: () => _handleExport('users'),
+                onExportStaff: () => _handleExport('staff'),
+                onExportBookings: () => _handleExport('bookings'),
+                onExportPDF: () => _handleExport('pdf'),
               );
             },
           ),
