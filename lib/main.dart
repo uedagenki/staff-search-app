@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'screens/home_screen.dart';
+import 'admin/screens/admin_login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,15 +26,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'スタッフサーチ',
       debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        // モバイル画面サイズに制限（最大幅450px）
-        return Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 450),
-            child: child,
-          ),
-        );
+      routes: {
+        '/': (context) => const HomeScreen(),
+        '/admin': (context) => const AdminLoginScreen(),
       },
+      initialRoute: '/',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1976D2), // ビジネスブルー
@@ -52,7 +50,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const HomeScreen(),
     );
   }
 }
