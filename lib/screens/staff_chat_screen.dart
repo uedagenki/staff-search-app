@@ -36,8 +36,7 @@ class _StaffChatScreenState extends State<StaffChatScreen> {
       _messages.addAll([
         ChatMessage(
           id: 'msg_001',
-          senderId: widget.chatRoom.userId,
-          senderName: widget.chatRoom.userName,
+          sender: widget.chatRoom.userId,
           senderImage: widget.chatRoom.userImage,
           message: 'こんにちは！サービスについて教えてください',
           timestamp: DateTime.now().subtract(const Duration(hours: 2)),
@@ -45,8 +44,7 @@ class _StaffChatScreenState extends State<StaffChatScreen> {
         ),
         ChatMessage(
           id: 'msg_002',
-          senderId: 'staff_001',
-          senderName: 'スタッフ',
+          sender: 'staff_001',
           senderImage: 'https://i.pravatar.cc/150?img=60',
           message: 'こんにちは！ご質問ありがとうございます。どのようなサービスをお探しでしょうか？',
           timestamp: DateTime.now().subtract(const Duration(hours: 2, minutes: -5)),
@@ -54,8 +52,7 @@ class _StaffChatScreenState extends State<StaffChatScreen> {
         ),
         ChatMessage(
           id: 'msg_003',
-          senderId: widget.chatRoom.userId,
-          senderName: widget.chatRoom.userName,
+          sender: widget.chatRoom.userId,
           senderImage: widget.chatRoom.userImage,
           message: '料金プランと利用可能な時間帯について知りたいです',
           timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 50)),
@@ -63,8 +60,7 @@ class _StaffChatScreenState extends State<StaffChatScreen> {
         ),
         ChatMessage(
           id: 'msg_004',
-          senderId: 'staff_001',
-          senderName: 'スタッフ',
+          sender: 'staff_001',
           senderImage: 'https://i.pravatar.cc/150?img=60',
           message: '料金プランは以下の通りです：\n\n・ベーシックプラン: ¥5,000/月\n・スタンダードプラン: ¥8,000/月\n・プレミアムプラン: ¥12,000/月\n\n営業時間は平日10:00-20:00、土日9:00-19:00となっております。',
           timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 45)),
@@ -72,8 +68,7 @@ class _StaffChatScreenState extends State<StaffChatScreen> {
         ),
         ChatMessage(
           id: 'msg_005',
-          senderId: widget.chatRoom.userId,
-          senderName: widget.chatRoom.userName,
+          sender: widget.chatRoom.userId,
           senderImage: widget.chatRoom.userImage,
           message: 'ありがとうございます！',
           timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
@@ -81,8 +76,7 @@ class _StaffChatScreenState extends State<StaffChatScreen> {
         ),
         ChatMessage(
           id: 'msg_006',
-          senderId: widget.chatRoom.userId,
-          senderName: widget.chatRoom.userName,
+          sender: widget.chatRoom.userId,
           senderImage: widget.chatRoom.userImage,
           message: 'スタンダードプランで申し込みたいのですが、どうすればよいでしょうか？',
           timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
@@ -117,8 +111,7 @@ class _StaffChatScreenState extends State<StaffChatScreen> {
         _messages.add(
           ChatMessage(
             id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-            senderId: 'staff_001',
-            senderName: 'スタッフ',
+            sender: 'staff_001',
             senderImage: 'https://i.pravatar.cc/150?img=60',
             message: messageText,
             timestamp: DateTime.now(),

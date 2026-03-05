@@ -15,8 +15,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   final List<Message> _latestMessages = [
     Message(
       id: '1',
-      senderId: '1',
-      senderName: '佐藤 健',
+      sender: '佐藤 健',
       senderImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
       content: '了解しました。明日の10時でお願いします。',
       timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
@@ -24,8 +23,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     ),
     Message(
       id: '2',
-      senderId: '2',
-      senderName: '田中 美咲',
+      sender: '田中 美咲',
       senderImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
       content: 'ありがとうございます！また次回もよろしくお願いします。',
       timestamp: DateTime.now().subtract(const Duration(hours: 2)),
@@ -33,8 +31,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     ),
     Message(
       id: '3',
-      senderId: '3',
-      senderName: '山田 太郎',
+      sender: '山田 太郎',
       senderImage: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
       content: '物件の内覧日程について相談させてください。',
       timestamp: DateTime.now().subtract(const Duration(hours: 5)),
@@ -42,8 +39,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     ),
     Message(
       id: '4',
-      senderId: '6',
-      senderName: '伊藤 麻衣',
+      sender: '伊藤 麻衣',
       senderImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
       content: '次回のご予約はいかがでしょうか？',
       timestamp: DateTime.now().subtract(const Duration(days: 1)),
@@ -144,7 +140,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           children: [
             Expanded(
               child: Text(
-                message.senderName,
+                message.sender,
                 style: TextStyle(
                   fontWeight: message.isRead ? FontWeight.normal : FontWeight.bold,
                   fontSize: 16,
@@ -181,8 +177,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => ChatScreen(
-                staffId: message.senderId,
-                staffName: message.senderName,
+                staffId: 'staff_001', // TODO: 実際のstaffIdを使用
+                staffName: message.sender,
                 staffImage: message.senderImage,
               ),
             ),

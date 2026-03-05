@@ -1,16 +1,14 @@
 class Message {
   final String id;
-  final String senderId;
-  final String senderName;
+  final String sender;
   final String senderImage;
   final String content;
   final DateTime timestamp;
-  bool isRead;
+  final bool isRead;
 
   Message({
     required this.id,
-    required this.senderId,
-    required this.senderName,
+    required this.sender,
     required this.senderImage,
     required this.content,
     required this.timestamp,
@@ -20,8 +18,7 @@ class Message {
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
       id: json['id'] as String,
-      senderId: json['senderId'] as String,
-      senderName: json['senderName'] as String,
+      sender: json['sender'] as String,
       senderImage: json['senderImage'] as String,
       content: json['content'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
@@ -32,8 +29,7 @@ class Message {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'senderId': senderId,
-      'senderName': senderName,
+      'sender': sender,
       'senderImage': senderImage,
       'content': content,
       'timestamp': timestamp.toIso8601String(),

@@ -6,7 +6,7 @@ import '../services/tip_service.dart';
 import '../services/gifter_service.dart';
 import '../models/gifter_level.dart';
 import 'following_screen.dart';
-import 'bookings_screen.dart';
+
 import 'tip_history_screen.dart';
 import 'my_reviews_screen.dart';
 import 'profile_settings_screen.dart';
@@ -373,6 +373,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
             
+            /* TODO: 予約履歴画面を再実装
             _buildMenuItem(
               context,
               icon: Icons.calendar_today,
@@ -384,6 +385,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
+            */
             
             _buildMenuItem(
               context,

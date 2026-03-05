@@ -42,8 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _messages.addAll([
         Message(
           id: '1',
-          senderId: widget.staffId,
-          senderName: widget.staffName,
+          sender: widget.staffId,
           senderImage: 'https://i.pravatar.cc/150?img=12',
           content: 'こんにちは！お問い合わせありがとうございます。',
           timestamp: DateTime.now().subtract(const Duration(hours: 2)),
@@ -51,8 +50,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         Message(
           id: '2',
-          senderId: 'current_user',
-          senderName: 'あなた',
+          sender: 'current_user',
           senderImage: 'https://i.pravatar.cc/150?img=45',
           content: '明日の予約について相談したいのですが。',
           timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 50)),
@@ -60,8 +58,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         Message(
           id: '3',
-          senderId: widget.staffId,
-          senderName: widget.staffName,
+          sender: widget.staffId,
           senderImage: 'https://i.pravatar.cc/150?img=12',
           content: 'はい、承知しました。何時頃がよろしいでしょうか？',
           timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 45)),
@@ -69,8 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         Message(
           id: '4',
-          senderId: 'current_user',
-          senderName: 'あなた',
+          sender: 'current_user',
           senderImage: 'https://i.pravatar.cc/150?img=45',
           content: '10時からでお願いできますか？',
           timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 40)),
@@ -78,8 +74,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         Message(
           id: '5',
-          senderId: widget.staffId,
-          senderName: widget.staffName,
+          sender: widget.staffId,
           senderImage: 'https://i.pravatar.cc/150?img=12',
           content: '了解しました。明日の10時でお願いします。',
           timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
@@ -103,8 +98,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _messages.add(
         Message(
           id: DateTime.now().toString(),
-          senderId: 'current_user',
-          senderName: 'あなた',
+          sender: 'current_user',
           senderImage: 'https://i.pravatar.cc/150?img=45',
           content: _messageController.text.trim(),
           timestamp: DateTime.now(),
@@ -251,7 +245,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageBubble(Message message) {
-    final isMe = message.senderId == 'current_user';
+    final isMe = message.sender == 'current_user'; // TODO: 実際のユーザーIDを使用
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),

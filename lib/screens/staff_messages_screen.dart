@@ -13,8 +13,7 @@ class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
   final List<Message> _messages = [
     Message(
       id: '1',
-      senderId: 'user_001',
-      senderName: '山田 太郎',
+      sender: 'user_001',
       senderImage: 'https://i.pravatar.cc/150?img=12',
       content: 'こんにちは!明日の予約について相談したいことがあります。',
       timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
@@ -22,8 +21,7 @@ class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
     ),
     Message(
       id: '2',
-      senderId: 'user_002',
-      senderName: '佐藤 花子',
+      sender: 'user_002',
       senderImage: 'https://i.pravatar.cc/150?img=45',
       content: '先日はありがとうございました!とても良かったです。',
       timestamp: DateTime.now().subtract(const Duration(hours: 2)),
@@ -31,8 +29,7 @@ class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
     ),
     Message(
       id: '3',
-      senderId: 'user_003',
-      senderName: '鈴木 一郎',
+      sender: 'user_003',
       senderImage: 'https://i.pravatar.cc/150?img=33',
       content: '予約のキャンセルをお願いします。',
       timestamp: DateTime.now().subtract(const Duration(hours: 5)),
@@ -40,8 +37,7 @@ class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
     ),
     Message(
       id: '4',
-      senderId: 'user_004',
-      senderName: '田中 美咲',
+      sender: 'user_004',
       senderImage: 'https://i.pravatar.cc/150?img=47',
       content: 'ギフトを送りました!喜んでいただけると嬉しいです。',
       timestamp: DateTime.now().subtract(const Duration(days: 1)),

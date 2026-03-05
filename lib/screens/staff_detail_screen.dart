@@ -5,7 +5,7 @@ import '../models/staff.dart';
 import 'write_review_screen.dart';
 import 'staff_posts_screen.dart';
 import 'tiktok_gift_screen.dart';
-import 'booking_calendar_screen.dart';
+import 'booking/user_booking_screen.dart';
 import 'create_message_screen.dart';
 import '../widgets/qr_code_dialog.dart';
 
@@ -857,7 +857,7 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTicker
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => BookingCalendarScreen(staff: widget.staff),
+                          builder: (context) => UserBookingScreen(staff: widget.staff),
                         ),
                       );
                     },
