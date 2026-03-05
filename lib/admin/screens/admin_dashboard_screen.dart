@@ -6,6 +6,7 @@ import 'users_management_screen.dart';
 import 'staff_management_screen.dart';
 import 'content_moderation_screen.dart';
 import 'reports_screen.dart';
+import 'admin_support_chat_screen.dart';
 import 'admin_login_screen.dart';
 import '../../utils/storage_helper.dart';
 import 'dart:convert';
@@ -351,6 +352,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const ReportsScreen(),
+                      ),
+                    );
+                  },
+                  isWide ? constraints.maxWidth / 2 - 8 : constraints.maxWidth,
+                ),
+                _buildMenuCard(
+                  'ユーザーサポート',
+                  '問い合わせチャット・サポート',
+                  Icons.support_agent,
+                  Colors.teal,
+                  () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AdminSupportChatScreen(),
                       ),
                     );
                   },
