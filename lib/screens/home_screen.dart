@@ -18,6 +18,7 @@ import 'notifications_screen.dart';
 import 'story_viewer_screen.dart';
 import 'filter_settings_screen.dart';
 import 'live_feed_screen.dart';
+import 'live_stream_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -574,11 +575,20 @@ class _HomeScreenState extends State<HomeScreen> {
             MaterialPageRoute(builder: (context) => const SearchScreen()),
           );
         } else if (index == 2) {
-          // TikTok風縦スライド式ライブ配信画面に遷移
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const LiveFeedScreen()),
-          );
+          // ライブ配信一覧画面に遷移 (モバイルのみ)
+          if (kIsWeb) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('ライブ配信機能はモバイルアプリでのみ利用できます'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LiveStreamListScreen()),
+            );
+          }
         } else if (index == 3) {
           Navigator.push(
             context,
