@@ -1,84 +1,78 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import '../models/point_transaction.dart';
-import '../services/point_service.dart';
-import '../services/auth_service.dart';
+import 'package:intl/intl.dart';
+import '../models/payment_models.dart';
+import '../services/payment_service.dart';
+import '../services/local_auth_service.dart';
 
+/// コイン購入画面（TikTok形式）
 class PointPurchaseScreen extends StatefulWidget {
-  const PointPurchaseScreen({super.key});
+  final UserPointBalance? currentBalance;
+  
+  const PointPurchaseScreen({super.key, this.currentBalance});
 
   @override
   State<PointPurchaseScreen> createState() => _PointPurchaseScreenState();
 }
 
 class _PointPurchaseScreenState extends State<PointPurchaseScreen> {
-  final PointService _pointService = PointService();
-  final AuthService _authService = AuthService();
-  
-  int _currentPoints = 0;
+  final _paymentService = PaymentService();
+  final _authService = LocalAuthService();
+
+  UserPointBalance? _balance;
+  List<PointPackage> _packages = [];
   bool _isLoading = true;
-  PointPackage? _selectedPackage;
 
   @override
   void initState() {
     super.initState();
-    _loadUserPoints();
+    _loadData();
   }
 
-  Future<void> _loadUserPoints() async {
-    final user = await _authService.getCurrentUser();
-    if (user != null) {
-      final points = await _pointService.getUserPoints(user.id);
-      setState(() {
-        _currentPoints = points;
-        _isLoading = false;
-      });
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user != null) {
+        // currentBalanceが渡されていればそれを使用、なければ取得
+        final balance = widget.currentBalance ?? await _paymentService.getUserPointBalance(user.id);
+        final packages = _paymentService.getPointPackages();
+
+        setState(() {
+          _balance = balance;
+          _packages = packages;
+        });
+      }
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
   Future<void> _purchasePoints(PointPackage package) async {
-    setState(() {
-      _selectedPackage = package;
-    });
-
-    // Stripe決済シミュレーション（実際の環境ではStripe SDKを使用）
+    // デモ用：実際のStripe決済をシミュレート
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('購入確認'),
+        title: const Text('コイン購入'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${package.displayPoints}を購入しますか?'),
+            Text('${package.name}を購入しますか？'),
+            const SizedBox(height: 16),
+            Text(
+              '金額: ¥${NumberFormat('#,###').format(package.price)}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            Text('コイン: ${NumberFormat('#,###').format(package.totalPoints)}'),
             const SizedBox(height: 8),
             Text(
-              '金額: ${package.displayPrice}',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            if (package.bonusPoints != null && package.bonusPoints! > 0) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      'ボーナス: +${package.bonusPoints}ポイント',
-                      style: const TextStyle(
-                        color: Colors.amber,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+              '💰 ${package.platform == 'web' ? 'Web版（お得な価格）' : 'アプリ版価格'}',
+              style: TextStyle(
+                color: package.platform == 'web' ? Colors.green : Colors.orange,
+                fontSize: 12,
               ),
-            ],
+            ),
           ],
         ),
         actions: [
@@ -89,329 +83,392 @@ class _PointPurchaseScreenState extends State<PointPurchaseScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: Colors.purple,
               foregroundColor: Colors.white,
             ),
-            child: const Text('購入する'),
+            child: const Text('購入'),
           ),
         ],
       ),
     );
 
-    if (confirmed == true && mounted) {
-      final user = await _authService.getCurrentUser();
-      if (user != null) {
-        final success = await _pointService.addPoints(
-          user.id,
-          package.totalPoints,
-          package.price,
-          description: '${package.displayPoints}の購入',
-        );
-
-        if (success && mounted) {
-          await _loadUserPoints();
-          
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('${package.totalPoints}ポイントを購入しました!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          }
-        }
-      }
+    if (confirmed == true) {
+      await _processPurchase(package);
     }
+  }
 
-    setState(() {
-      _selectedPackage = null;
-    });
+  Future<void> _processPurchase(PointPackage package) async {
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user == null) return;
+
+      // ポイント追加
+      await _paymentService.addPoints(
+        user.id,
+        package.totalPoints,
+        isPurchased: true,
+      );
+
+      // 決済履歴を追加
+      final payment = PaymentHistory(
+        id: 'payment_${DateTime.now().millisecondsSinceEpoch}',
+        userId: user.id,
+        type: 'point_purchase',
+        amount: package.price,
+        points: package.totalPoints,
+        status: 'completed',
+        createdAt: DateTime.now(),
+        completedAt: DateTime.now(),
+      );
+      await _paymentService.addPaymentHistory(payment);
+
+      // データ再読み込み
+      await _loadData();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${NumberFormat('#,###').format(package.totalPoints)}コインを購入しました',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('購入に失敗しました: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ポイント購入'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        title: const Text('💰 コイン購入'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // 現在のポイント表示
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blue.shade700, Colors.blue.shade400],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        '現在のポイント',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.stars,
-                            color: Colors.amber,
-                            size: 32,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '$_currentPoints',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'P',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 24,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // ポイントパッケージ一覧
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: PointService.packages.length,
-                    itemBuilder: (context, index) {
-                      final package = PointService.packages[index];
-                      return _buildPackageCard(package);
-                    },
-                  ),
-                ),
-
-                // 注意事項
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  color: Colors.grey.shade100,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.info_outline, size: 16, color: Colors.grey.shade700),
-                          const SizedBox(width: 8),
-                          Text(
-                            'ポイントについて',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '• 1ポイント = ¥1相当として使用できます\n'
-                        '• ポイントの有効期限は購入日から180日間です\n'
-                        '• ボーナスポイントも同じ有効期限が適用されます',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildBalanceCard(),
+                  const SizedBox(height: 24),
+                  _buildPackageList(),
+                  const SizedBox(height: 16),
+                  _buildInfoSection(),
+                ],
+              ),
             ),
     );
   }
 
+  Widget _buildBalanceCard() {
+    if (_balance == null) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.purple.shade400, Colors.purple.shade600],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.shade200,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const Text(
+            '現在の残高',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.card_giftcard,
+                color: Colors.white,
+                size: 32,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                NumberFormat('#,###').format(_balance!.availablePoints),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text(
+                ' コイン',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildBalanceDetail(
+                '購入',
+                _balance!.purchasedPoints,
+                Icons.shopping_cart,
+              ),
+              _buildBalanceDetail(
+                'ボーナス',
+                _balance!.bonusPoints,
+                Icons.stars,
+              ),
+              _buildBalanceDetail(
+                '使用済み',
+                _balance!.usedPoints,
+                Icons.check_circle,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBalanceDetail(String label, int value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white70, size: 20),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+          ),
+        ),
+        Text(
+          NumberFormat('#,###').format(value),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPackageList() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '💰 コインパッケージ（Web版 - お得）',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _packages.length,
+            itemBuilder: (context, index) {
+              return _buildPackageCard(_packages[index]);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPackageCard(PointPackage package) {
-    final isSelected = _selectedPackage?.id == package.id;
-    
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: package.isPopular ? 4 : 2,
+      elevation: package.isPopular ? 6 : 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: package.isPopular
-            ? const BorderSide(color: Colors.amber, width: 2)
+            ? const BorderSide(color: Colors.purple, width: 2)
             : BorderSide.none,
       ),
       child: InkWell(
-        onTap: isSelected ? null : () => _purchasePoints(package),
+        onTap: () => _purchasePoints(package),
         borderRadius: BorderRadius.circular(12),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  // ポイント数表示
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue.shade400, Colors.blue.shade600],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${package.points}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Text(
-                          'P',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // アイコン
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: package.isPopular
+                        ? [Colors.purple.shade300, Colors.purple.shade500]
+                        : [Colors.grey.shade300, Colors.grey.shade400],
                   ),
-                  const SizedBox(width: 16),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.card_giftcard,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: 16),
 
-                  // パッケージ情報
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              // 詳細
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
                         Text(
-                          package.displayPoints,
+                          package.name,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        if (package.bonusPoints != null && package.bonusPoints! > 0)
+                        if (package.isPopular) ...[
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
-                              vertical: 4,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.amber.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4),
+                              color: Colors.purple,
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.star,
-                                  color: Colors.amber,
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '+${package.bonusPoints}ボーナス',
-                                  style: const TextStyle(
-                                    color: Colors.amber,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                            child: const Text(
+                              '人気',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
+                        ],
                       ],
                     ),
-                  ),
-
-                  // 価格表示
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        package.displayPrice,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${NumberFormat('#,###').format(package.totalPoints)}コイン',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
                       ),
-                      if (package.bonusPoints != null && package.bonusPoints! > 0)
-                        Text(
-                          '${(package.price / package.totalPoints).toStringAsFixed(2)}円/P',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
+              ),
 
-                  const SizedBox(width: 8),
-                  Icon(
-                    isSelected ? Icons.hourglass_empty : Icons.arrow_forward_ios,
-                    color: Colors.grey.shade400,
+              // 価格
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '¥${NumberFormat('#,###').format(package.price)}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple,
+                    ),
+                  ),
+                  Text(
+                    '${package.pricePerCoin.toStringAsFixed(2)}円/コイン',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                    ),
                   ),
                 ],
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-            // 人気マーク
-            if (package.isPopular)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(12),
-                      bottomLeft: Radius.circular(12),
-                    ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.local_fire_department, color: Colors.white, size: 14),
-                      SizedBox(width: 4),
-                      Text(
-                        '人気',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+  Widget _buildInfoSection() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info, color: Colors.blue.shade700),
+              const SizedBox(width: 8),
+              Text(
+                'コインについて',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade700,
                 ),
               ),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildInfoItem('💰 Web版価格で最大約20%お得に購入できます'),
+          _buildInfoItem('1コイン = 約1.8円〜で投げ銭に使用できます'),
+          _buildInfoItem('ボーナスコインは広告視聴やチェックインで獲得'),
+          _buildInfoItem('コインに有効期限はありません'),
+          _buildInfoItem('払い戻しはできません'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('• ', style: TextStyle(fontSize: 16)),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+        ],
       ),
     );
   }

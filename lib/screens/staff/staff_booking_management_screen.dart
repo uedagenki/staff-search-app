@@ -3,31 +3,35 @@ import 'package:intl/intl.dart';
 import '../../models/booking.dart';
 import '../../services/local_booking_service.dart';
 import '../../services/local_auth_service.dart';
+import 'staff_create_booking_screen.dart';
 
-/// ユーザー側：予約一覧画面
-class UserBookingScreen extends StatefulWidget {
-  const UserBookingScreen({super.key});
+/// スタッフ側：予約管理画面
+class StaffBookingManagementScreen extends StatefulWidget {
+  const StaffBookingManagementScreen({super.key});
 
   @override
-  State<UserBookingScreen> createState() => _UserBookingScreenState();
+  State<StaffBookingManagementScreen> createState() =>
+      _StaffBookingManagementScreenState();
 }
 
-class _UserBookingScreenState extends State<UserBookingScreen>
-    with SingleTickerProviderStateMixin {
+class _StaffBookingManagementScreenState
+    extends State<StaffBookingManagementScreen> with SingleTickerProviderStateMixin {
   final _bookingService = LocalBookingService();
   final _authService = LocalAuthService();
-
+  
   late TabController _tabController;
   List<Booking> _allBookings = [];
-  List<Booking> _upcomingBookings = [];
+  List<Booking> _pendingBookings = [];
+  List<Booking> _confirmedBookings = [];
   List<Booking> _completedBookings = [];
   List<Booking> _cancelledBookings = [];
   bool _isLoading = true;
+  String? _staffId;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _loadBookings();
   }
 
@@ -44,13 +48,15 @@ class _UserBookingScreenState extends State<UserBookingScreen>
       final user = await _authService.getCurrentUser();
       if (user == null) return;
 
-      _allBookings = await _bookingService.getUserBookings(user.id);
+      _staffId = user.id;
+      _allBookings = await _bookingService.getStaffBookings(user.id);
 
       setState(() {
-        _upcomingBookings = _allBookings
-            .where((b) =>
-                b.status == BookingStatus.pending ||
-                b.status == BookingStatus.confirmed)
+        _pendingBookings = _allBookings
+            .where((b) => b.status == BookingStatus.pending)
+            .toList();
+        _confirmedBookings = _allBookings
+            .where((b) => b.status == BookingStatus.confirmed)
             .toList();
         _completedBookings = _allBookings
             .where((b) => b.status == BookingStatus.completed)
@@ -66,31 +72,40 @@ class _UserBookingScreenState extends State<UserBookingScreen>
     }
   }
 
+  Future<void> _confirmBooking(Booking booking) async {
+    await _bookingService.confirmBooking(booking.id);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('予約を確定しました'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _loadBookings();
+    }
+  }
+
+  Future<void> _completeBooking(Booking booking) async {
+    await _bookingService.completeBooking(booking.id);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('予約を完了しました'),
+          backgroundColor: Colors.blue,
+        ),
+      );
+      _loadBookings();
+    }
+  }
+
   Future<void> _cancelBooking(Booking booking) async {
-    final confirmed = await showDialog<bool>(
+    final reason = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('予約キャンセル'),
-        content: const Text('この予約をキャンセルしますか？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('戻る'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('キャンセル'),
-          ),
-        ],
-      ),
+      builder: (context) => _CancelReasonDialog(),
     );
 
-    if (confirmed == true) {
-      await _bookingService.cancelBooking(booking.id, 'お客様都合によるキャンセル');
+    if (reason != null && reason.isNotEmpty) {
+      await _bookingService.cancelBooking(booking.id, reason);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -103,15 +118,59 @@ class _UserBookingScreenState extends State<UserBookingScreen>
     }
   }
 
+  Future<void> _createBooking() async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const StaffCreateBookingScreen(),
+      ),
+    ).then((_) => _loadBookings());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('予約履歴'),
+        title: const Text('予約管理'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _createBooking,
+            tooltip: '予約作成',
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(text: '予約中 (${_upcomingBookings.length})'),
+            Tab(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('確認待ち'),
+                  if (_pendingBookings.isNotEmpty) ...[
+                    const SizedBox(width: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${_pendingBookings.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Tab(text: '確定 (${_confirmedBookings.length})'),
             Tab(text: '完了 (${_completedBookings.length})'),
             Tab(text: 'キャンセル (${_cancelledBookings.length})'),
           ],
@@ -122,7 +181,8 @@ class _UserBookingScreenState extends State<UserBookingScreen>
           : TabBarView(
               controller: _tabController,
               children: [
-                _buildBookingList(_upcomingBookings, showCancelButton: true),
+                _buildBookingList(_pendingBookings, showActions: true),
+                _buildBookingList(_confirmedBookings, showCompleteAction: true),
                 _buildBookingList(_completedBookings),
                 _buildBookingList(_cancelledBookings),
               ],
@@ -132,7 +192,8 @@ class _UserBookingScreenState extends State<UserBookingScreen>
 
   Widget _buildBookingList(
     List<Booking> bookings, {
-    bool showCancelButton = false,
+    bool showActions = false,
+    bool showCompleteAction = false,
   }) {
     if (bookings.isEmpty) {
       return Center(
@@ -163,18 +224,24 @@ class _UserBookingScreenState extends State<UserBookingScreen>
         padding: const EdgeInsets.all(16),
         itemCount: bookings.length,
         itemBuilder: (context, index) {
+          final booking = bookings[index];
           return _buildBookingCard(
-            bookings[index],
-            showCancelButton: showCancelButton,
+            booking,
+            showActions: showActions,
+            showCompleteAction: showCompleteAction,
           );
         },
       ),
     );
   }
 
-  Widget _buildBookingCard(Booking booking, {bool showCancelButton = false}) {
+  Widget _buildBookingCard(
+    Booking booking, {
+    bool showActions = false,
+    bool showCompleteAction = false,
+  }) {
     final dateFormat = DateFormat('yyyy/MM/dd (E)', 'ja_JP');
-
+    
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -229,45 +296,35 @@ class _UserBookingScreenState extends State<UserBookingScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // スタッフ情報
+                // 予約者情報
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 25,
-                      backgroundColor: Colors.blue.shade100,
-                      child: Text(
-                        booking.staffName[0],
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
+                    const Icon(Icons.person, size: 20, color: Colors.blue),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            booking.staffName,
+                            booking.userName,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
-                            booking.staffJobTitle,
+                            booking.userEmail,
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
                             ),
                           ),
-                          if (booking.storeName != null)
+                          if (booking.userPhone != null)
                             Text(
-                              booking.storeName!,
+                              booking.userPhone!,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[500],
+                                color: Colors.grey[600],
                               ),
                             ),
                         ],
@@ -281,8 +338,7 @@ class _UserBookingScreenState extends State<UserBookingScreen>
                 // 予約日時
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today,
-                        size: 20, color: Colors.orange),
+                    const Icon(Icons.calendar_today, size: 20, color: Colors.orange),
                     const SizedBox(width: 8),
                     Text(
                       '${dateFormat.format(booking.bookingDate)} ${booking.bookingTime}',
@@ -298,7 +354,7 @@ class _UserBookingScreenState extends State<UserBookingScreen>
 
                 // メニュー
                 const Text(
-                  '予約内容',
+                  '選択メニュー',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -368,7 +424,7 @@ class _UserBookingScreenState extends State<UserBookingScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'お支払い金額',
+                      '最終金額',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -402,19 +458,96 @@ class _UserBookingScreenState extends State<UserBookingScreen>
                   ),
                 ],
 
-                // キャンセルボタン
-                if (showCancelButton &&
-                    booking.status != BookingStatus.cancelled) ...[
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () => _cancelBooking(booking),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                      ),
-                      child: const Text('予約をキャンセル'),
+                // キャンセル理由
+                if (booking.status == BookingStatus.cancelled &&
+                    booking.cancellationReason != null) ...[
+                  const Divider(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
                     ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.info, color: Colors.red, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'キャンセル理由',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                booking.cancellationReason!,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // アクションボタン
+                if (showActions || showCompleteAction) ...[
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      if (showActions) ...[
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _confirmBooking(booking),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('予約確定'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => _cancelBooking(booking),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                            child: const Text('キャンセル'),
+                          ),
+                        ),
+                      ],
+                      if (showCompleteAction) ...[
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => _completeBooking(booking),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('完了にする'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => _cancelBooking(booking),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                            child: const Text('キャンセル'),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ],
@@ -436,5 +569,50 @@ class _UserBookingScreenState extends State<UserBookingScreen>
       case BookingStatus.cancelled:
         return Colors.red;
     }
+  }
+}
+
+/// キャンセル理由入力ダイアログ
+class _CancelReasonDialog extends StatefulWidget {
+  @override
+  State<_CancelReasonDialog> createState() => _CancelReasonDialogState();
+}
+
+class _CancelReasonDialogState extends State<_CancelReasonDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('キャンセル理由'),
+      content: TextField(
+        controller: _controller,
+        decoration: const InputDecoration(
+          hintText: 'キャンセル理由を入力してください',
+          border: OutlineInputBorder(),
+        ),
+        maxLines: 3,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('戻る'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, _controller.text),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
+          child: const Text('キャンセル'),
+        ),
+      ],
+    );
   }
 }

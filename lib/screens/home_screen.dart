@@ -18,6 +18,7 @@ import 'story_viewer_screen.dart';
 import 'filter_settings_screen.dart';
 import 'live_feed_screen.dart';
 import 'live_stream_list_screen.dart';
+import 'staff_feed_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -542,18 +543,20 @@ class _HomeScreenState extends State<HomeScreen> {
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Theme.of(context).colorScheme.primary,
       unselectedItemColor: Colors.grey,
+      selectedFontSize: 12,
+      unselectedFontSize: 12,
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
           label: 'ホーム',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: '検索',
+          icon: Icon(Icons.video_library),
+          label: 'スタッフ配信',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.video_library),
-          label: 'ライブ',
+          icon: Icon(Icons.search),
+          label: '検索',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.message),
@@ -566,25 +569,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
       onTap: (index) {
         if (index == 1) {
+          // スタッフ配信タブ（TikTok形式のフィード）
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const StaffFeedScreen()),
+          );
+        } else if (index == 2) {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const SearchScreen()),
           );
-        } else if (index == 2) {
-          // ライブ配信一覧画面に遷移 (モバイルのみ)
-          if (kIsWeb) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('ライブ配信機能はモバイルアプリでのみ利用できます'),
-                backgroundColor: Colors.orange,
-              ),
-            );
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LiveStreamListScreen()),
-            );
-          }
         } else if (index == 3) {
           Navigator.push(
             context,

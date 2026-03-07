@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../models/staff.dart';
+import '../models/coupon.dart';
+import '../models/company.dart';
 import 'write_review_screen.dart';
 import 'staff_posts_screen.dart';
 import 'tiktok_gift_screen.dart';
 import 'booking/user_booking_screen.dart';
 import 'create_message_screen.dart';
+import 'company/send_headhunting_offer_screen.dart';
 import '../widgets/qr_code_dialog.dart';
+import '../services/local_booking_service.dart';
 
 class StaffDetailScreen extends StatefulWidget {
   final Staff staff;
@@ -23,6 +27,8 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTicker
   int _currentImageIndex = 0;
   late AnimationController _hintAnimationController;
   late Animation<double> _hintOpacityAnimation;
+  final LocalBookingService _bookingService = LocalBookingService();
+  List<Coupon> _availableCoupons = [];
 
   @override
   void initState() {
@@ -40,6 +46,16 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTicker
     );
     // アニメーションをループ再生
     _hintAnimationController.repeat(reverse: true);
+    // クーポン読み込み
+    _loadCoupons();
+  }
+
+  // クーポンを読み込む
+  Future<void> _loadCoupons() async {
+    final coupons = await _bookingService.getValidCoupons(widget.staff.id);
+    setState(() {
+      _availableCoupons = coupons;
+    });
   }
 
   @override
@@ -763,6 +779,56 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTicker
                     ),
                   ),
                   
+                  // クーポンセクション
+                  if (_availableCoupons.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Divider(),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                '利用可能なクーポン',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.pink[50],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${_availableCoupons.length}件',
+                                  style: TextStyle(
+                                    color: Colors.pink[700],
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          // クーポンリスト
+                          ..._availableCoupons.map((coupon) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildCouponCard(coupon),
+                          )),
+                        ],
+                      ),
+                    ),
+                  
                   const SizedBox(height: 120),
                 ],
               ),
@@ -857,7 +923,7 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTicker
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => UserBookingScreen(staff: widget.staff),
+                          builder: (context) => const UserBookingScreen(),
                         ),
                       );
                     },
@@ -871,6 +937,47 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTicker
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            // ヘッドハンティングボタン
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // ダミーのCompanyデータを作成
+                  final dummyCompany = Company(
+                    id: 'company_001',
+                    name: '求人企業',
+                    industry: 'サービス業',
+                    description: 'ヘッドハンティングオファーを送信します',
+                    address: '東京都渋谷区',
+                    contactEmail: 'contact@company.com',
+                    contactPerson: '採用担当者',
+                    employeeCount: 50,
+                    establishedDate: DateTime(2010, 1, 1),
+                    benefits: ['社会保険完備', '交通費支給'],
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                  );
+                  
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SendHeadhuntingOfferScreen(
+                        company: dummyCompany,
+                        staff: widget.staff,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.business_center),
+                label: const Text('ヘッドハンティング'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.purple[700],
+                  foregroundColor: Colors.white,
+                ),
+              ),
             ),
           ],
         ),
@@ -986,6 +1093,177 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTicker
         ],
       ),
     );
+  }
+
+  // クーポンカードUI
+  Widget _buildCouponCard(Coupon coupon) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.pink[400]!, Colors.pink[600]!],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.pink[300]!.withValues(alpha: 0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // 背景装飾
+          Positioned(
+            top: -20,
+            right: -20,
+            child: Icon(
+              Icons.local_offer,
+              size: 120,
+              color: Colors.white.withValues(alpha: 0.1),
+            ),
+          ),
+          
+          // コンテンツ
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // クーポンアイコン
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.confirmation_number,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    
+                    // クーポン情報
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            coupon.title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            coupon.description,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // 割引額
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.discount,
+                        color: Colors.pink[700],
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        coupon.type.formatDiscount(coupon.discountValue),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.pink[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 12),
+                
+                // 有効期限
+                Row(
+                  children: [
+                    Icon(
+                      Icons.schedule,
+                      size: 16,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '有効期限: ${_formatDate(coupon.validUntil)}まで',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                // 使用条件
+                if (coupon.minPrice != null) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '¥${coupon.minPrice}以上のご利用で適用',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 日付フォーマット
+  String _formatDate(DateTime date) {
+    return '${date.year}/${date.month}/${date.day}';
   }
 }
 

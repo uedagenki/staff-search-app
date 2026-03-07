@@ -17,7 +17,15 @@ import 'profile_settings_screen.dart';
 import 'ranking_screen.dart';
 import 'headhunt_screen.dart';
 import 'help_support_screen.dart';
+import 'saved_posts_screen.dart';
 import 'user_block_management_screen.dart';
+import 'booking/user_booking_list_screen.dart';
+import 'company/company_management_screen.dart';
+import 'company/company_staff_management_screen.dart';
+import '../services/company_service.dart';
+import 'point_purchase_screen.dart';
+import 'point_earn_screen.dart';
+import '../services/payment_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,6 +38,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TipService _tipService = TipService();
   final GifterService _gifterService = GifterService();
   final LocalAuthService _authService = LocalAuthService();
+  final CompanyService _companyService = CompanyService();
+  final PaymentService _paymentService = PaymentService();
   double _totalTips = 0.0;
   bool _isLoading = true;
   UserGifterInfo? _gifterInfo;
@@ -501,6 +511,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // メニューリスト
             _buildMenuItem(
               context,
+              icon: Icons.bookmark,
+              title: '保存済み投稿',
+              color: Colors.pink,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SavedPostsScreen()),
+                );
+              },
+            ),
+            
+            _buildMenuItem(
+              context,
               icon: Icons.people,
               title: 'フォロー中/フォロワー',
               onTap: () {
@@ -533,6 +556,115 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const HeadhuntScreen()),
+                );
+              },
+            ),
+            
+            _buildMenuItem(
+              context,
+              icon: Icons.business_center,
+              title: '企業管理（ヘッドハンティング用）',
+              color: Colors.indigo,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CompanyManagementScreen()),
+                );
+              },
+            ),
+            
+            _buildMenuItem(
+              context,
+              icon: Icons.store,
+              title: '店舗（会社）管理',
+              color: Colors.purple,
+              onTap: () async {
+                // 現在の企業を取得
+                final currentCompany = await _companyService.getCurrentCompany();
+                
+                if (currentCompany == null) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('先に企業を登録してください'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                  }
+                  return;
+                }
+                
+                if (!currentCompany.isStore) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('企業を「店舗として登録」に設定してください'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                  }
+                  return;
+                }
+                
+                if (mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CompanyStaffManagementScreen(
+                        company: currentCompany,
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+            
+            _buildMenuItem(
+              context,
+              icon: Icons.calendar_today,
+              title: '予約履歴',
+              color: Colors.orange,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UserBookingListScreen()),
+                );
+              },
+            ),
+            
+            _buildMenuItem(
+              context,
+              icon: Icons.account_balance_wallet,
+              title: 'ウォレット（コイン残高）',
+              color: Colors.green,
+              onTap: () async {
+                // 現在のポイント残高を取得
+                final user = await _authService.getCurrentUser();
+                if (user != null) {
+                  final balance = await _paymentService.getUserPointBalance(user.id);
+                  if (mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PointPurchaseScreen(
+                          currentBalance: balance,
+                        ),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+            
+            _buildMenuItem(
+              context,
+              icon: Icons.card_giftcard,
+              title: 'コイン獲得（無料）',
+              color: Colors.amber,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PointEarnScreen()),
                 );
               },
             ),

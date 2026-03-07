@@ -3,12 +3,22 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../models/staff.dart';
+import '../../services/local_booking_service.dart';
+import '../../services/local_auth_service.dart';
 import '../staff_detail_screen.dart';
 import 'staff_posts_management_screen.dart';
-import 'staff_bookings_screen.dart';
 import 'staff_tips_screen.dart';
-import 'staff_profile_edit_screen.dart';
+import 'staff_management_profile_screen.dart';
+import 'staff_booking_management_screen.dart';
+import 'staff_coupon_management_screen.dart';
+import 'staff_menu_management_screen.dart';
 import '../staff_messages_screen.dart';
+import '../booking_system_debug_screen.dart';
+import '../staff_received_offers_screen.dart';
+import '../live_league_screen.dart';
+import '../live_shard_screen.dart';
+import '../create_collab_screen.dart';
+import '../../models/live_collab_system.dart';
 
 class StaffDashboardScreen extends StatefulWidget {
   final String? userId; // ユーザーIDを受け取る
@@ -20,6 +30,8 @@ class StaffDashboardScreen extends StatefulWidget {
 }
 
 class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
+  final _bookingService = LocalBookingService();
+  final _authService = LocalAuthService();
   int _currentIndex = 0;
   String _staffName = 'スタッフ';
   bool _isOnline = false;
@@ -28,6 +40,21 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
   void initState() {
     super.initState();
     _loadStaffInfo();
+    _initializeDemoData();
+  }
+
+  Future<void> _initializeDemoData() async {
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user != null && user.role == 'staff') {
+        // デモ予約データを作成
+        await _bookingService.createDemoBookings(user.id, user.name);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('デモデータ作成エラー: $e');
+      }
+    }
   }
 
   Future<void> _loadStaffInfo() async {
@@ -128,11 +155,11 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
       case 1:
         return const StaffPostsManagementScreen();
       case 2:
-        return const StaffBookingsScreen();
+        return const StaffBookingManagementScreen();
       case 3:
         return const StaffTipsScreen();
       case 4:
-        return const StaffProfileEditScreen();
+        return const StaffManagementProfileScreen();
       default:
         return _buildDashboard();
     }
@@ -239,8 +266,14 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
             Icons.videocam,
             Colors.red,
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('ライブ配信機能（開発中）')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateCollabScreen(
+                    initialMode: CollabMode.solo,
+                    autoStartIfSolo: true,
+                  ),
+                ),
               );
             },
           ),
@@ -262,6 +295,21 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
           const SizedBox(height: 12),
 
           _buildActionButton(
+            '🎥 コラボ配信開始',
+            Icons.live_tv,
+            Colors.red,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateCollabScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
             'スタッフプレビュー確認',
             Icons.visibility,
             Colors.purple,
@@ -276,9 +324,114 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
             Icons.event_available,
             Colors.green,
             () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StaffBookingManagementScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
+            'クーポン管理',
+            Icons.local_offer,
+            Colors.orange,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StaffCouponManagementScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
+            '予約管理',
+            Icons.calendar_month,
+            Colors.blue[600]!,
+            () {
               setState(() {
                 _currentIndex = 2;
               });
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
+            'メニュー管理',
+            Icons.menu_book,
+            Colors.teal,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StaffMenuManagementScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
+            '店舗からのオファー',
+            Icons.mail,
+            Colors.purple,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StaffReceivedOffersScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
+            '🏆 ライブリーグ',
+            Icons.emoji_events,
+            Colors.amber,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LiveLeagueScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
+            '✨ かけらコレクション',
+            Icons.star,
+            Colors.pink,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LiveShardScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
+            'データ初期化（デバッグ）',
+            Icons.bug_report,
+            Colors.red,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BookingSystemDebugScreen(),
+                ),
+              );
             },
           ),
         ],

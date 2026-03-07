@@ -10,10 +10,14 @@ class StaffPost {
   final PostType type; // 投稿タイプ
   final String caption;
   final DateTime timestamp;
-  final int likeCount;
-  final int commentCount;
+  int likeCount;
+  int commentCount;
   final String? thumbnailUrl; // 動画のサムネイル（動画の場合のみ）
   final int? duration; // 動画の長さ（秒）
+  
+  // UI状態（ユーザーごとに異なる）
+  bool isLiked;
+  bool isSaved;
 
   StaffPost({
     required this.id,
@@ -26,8 +30,13 @@ class StaffPost {
     required this.commentCount,
     this.thumbnailUrl,
     this.duration,
+    this.isLiked = false,
+    this.isSaved = false,
   });
 
   // 画像URLの後方互換性のためのゲッター
   String get imageUrl => mediaUrl;
+  
+  // 投稿日時（後方互換性）
+  DateTime get createdAt => timestamp;
 }

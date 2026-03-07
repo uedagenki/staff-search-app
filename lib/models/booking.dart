@@ -1,44 +1,55 @@
+/// 予約モデル（ホットペッパービューティー風）
 class Booking {
   final String id;
   final String userId;
   final String userName;
   final String userEmail;
-  final String userPhone;
+  final String? userPhone;
   final String staffId;
   final String staffName;
-  final String staffAvatar;
-  final String serviceId;
-  final String serviceName;
-  final String serviceDescription;
-  final double price;
-  final DateTime dateTime;
-  final int duration; // 分単位
-  final String status; // 'pending' | 'confirmed' | 'completed' | 'cancelled'
-  final String? notes;
+  final String staffJobTitle;
+  final String? storeName;
+  final String? storeAddress;
+  final DateTime bookingDate;
+  final String bookingTime; // "10:00", "14:30" など
+  final List<BookingMenu> menus; // 選択したメニュー
+  final String? couponId; // 使用したクーポンID
+  final int totalPrice; // 合計金額
+  final int discountAmount; // 割引額
+  final int finalPrice; // 最終金額（合計 - 割引）
+  final BookingStatus status;
   final String? cancellationReason;
   final DateTime createdAt;
-  final DateTime? updatedAt;
-
+  final DateTime? confirmedAt;
+  final DateTime? completedAt;
+  final DateTime? cancelledAt;
+  final String? note; // 備考・要望
+  
   Booking({
     required this.id,
     required this.userId,
     required this.userName,
     required this.userEmail,
-    required this.userPhone,
+    this.userPhone,
     required this.staffId,
     required this.staffName,
-    required this.staffAvatar,
-    required this.serviceId,
-    required this.serviceName,
-    required this.serviceDescription,
-    required this.price,
-    required this.dateTime,
-    required this.duration,
-    this.status = 'pending',
-    this.notes,
+    required this.staffJobTitle,
+    this.storeName,
+    this.storeAddress,
+    required this.bookingDate,
+    required this.bookingTime,
+    required this.menus,
+    this.couponId,
+    required this.totalPrice,
+    this.discountAmount = 0,
+    required this.finalPrice,
+    required this.status,
     this.cancellationReason,
     required this.createdAt,
-    this.updatedAt,
+    this.confirmedAt,
+    this.completedAt,
+    this.cancelledAt,
+    this.note,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -47,23 +58,36 @@ class Booking {
       userId: json['userId'] as String,
       userName: json['userName'] as String,
       userEmail: json['userEmail'] as String,
-      userPhone: json['userPhone'] as String,
+      userPhone: json['userPhone'] as String?,
       staffId: json['staffId'] as String,
       staffName: json['staffName'] as String,
-      staffAvatar: json['staffAvatar'] as String,
-      serviceId: json['serviceId'] as String,
-      serviceName: json['serviceName'] as String,
-      serviceDescription: json['serviceDescription'] as String,
-      price: (json['price'] as num).toDouble(),
-      dateTime: DateTime.parse(json['dateTime'] as String),
-      duration: json['duration'] as int,
-      status: json['status'] as String? ?? 'pending',
-      notes: json['notes'] as String?,
+      staffJobTitle: json['staffJobTitle'] as String,
+      storeName: json['storeName'] as String?,
+      storeAddress: json['storeAddress'] as String?,
+      bookingDate: DateTime.parse(json['bookingDate'] as String),
+      bookingTime: json['bookingTime'] as String,
+      menus: (json['menus'] as List)
+          .map((m) => BookingMenu.fromJson(m as Map<String, dynamic>))
+          .toList(),
+      couponId: json['couponId'] as String?,
+      totalPrice: json['totalPrice'] as int,
+      discountAmount: json['discountAmount'] as int? ?? 0,
+      finalPrice: json['finalPrice'] as int,
+      status: BookingStatus.values.firstWhere(
+        (s) => s.toString() == 'BookingStatus.${json['status']}',
+      ),
       cancellationReason: json['cancellationReason'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'] as String)
+      confirmedAt: json['confirmedAt'] != null
+          ? DateTime.parse(json['confirmedAt'] as String)
           : null,
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'] as String)
+          : null,
+      cancelledAt: json['cancelledAt'] != null
+          ? DateTime.parse(json['cancelledAt'] as String)
+          : null,
+      note: json['note'] as String?,
     );
   }
 
@@ -76,142 +100,127 @@ class Booking {
       'userPhone': userPhone,
       'staffId': staffId,
       'staffName': staffName,
-      'staffAvatar': staffAvatar,
-      'serviceId': serviceId,
-      'serviceName': serviceName,
-      'serviceDescription': serviceDescription,
-      'price': price,
-      'dateTime': dateTime.toIso8601String(),
-      'duration': duration,
-      'status': status,
-      'notes': notes,
+      'staffJobTitle': staffJobTitle,
+      'storeName': storeName,
+      'storeAddress': storeAddress,
+      'bookingDate': bookingDate.toIso8601String(),
+      'bookingTime': bookingTime,
+      'menus': menus.map((m) => m.toJson()).toList(),
+      'couponId': couponId,
+      'totalPrice': totalPrice,
+      'discountAmount': discountAmount,
+      'finalPrice': finalPrice,
+      'status': status.toString().split('.').last,
       'cancellationReason': cancellationReason,
       'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
+      'confirmedAt': confirmedAt?.toIso8601String(),
+      'completedAt': completedAt?.toIso8601String(),
+      'cancelledAt': cancelledAt?.toIso8601String(),
+      'note': note,
     };
   }
 
   Booking copyWith({
-    String? id,
-    String? userId,
-    String? userName,
-    String? userEmail,
-    String? userPhone,
-    String? staffId,
-    String? staffName,
-    String? staffAvatar,
-    String? serviceId,
-    String? serviceName,
-    String? serviceDescription,
-    double? price,
-    DateTime? dateTime,
-    int? duration,
-    String? status,
-    String? notes,
+    BookingStatus? status,
+    DateTime? confirmedAt,
+    DateTime? completedAt,
+    DateTime? cancelledAt,
     String? cancellationReason,
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) {
     return Booking(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      userName: userName ?? this.userName,
-      userEmail: userEmail ?? this.userEmail,
-      userPhone: userPhone ?? this.userPhone,
-      staffId: staffId ?? this.staffId,
-      staffName: staffName ?? this.staffName,
-      staffAvatar: staffAvatar ?? this.staffAvatar,
-      serviceId: serviceId ?? this.serviceId,
-      serviceName: serviceName ?? this.serviceName,
-      serviceDescription: serviceDescription ?? this.serviceDescription,
-      price: price ?? this.price,
-      dateTime: dateTime ?? this.dateTime,
-      duration: duration ?? this.duration,
+      id: id,
+      userId: userId,
+      userName: userName,
+      userEmail: userEmail,
+      userPhone: userPhone,
+      staffId: staffId,
+      staffName: staffName,
+      staffJobTitle: staffJobTitle,
+      storeName: storeName,
+      storeAddress: storeAddress,
+      bookingDate: bookingDate,
+      bookingTime: bookingTime,
+      menus: menus,
+      couponId: couponId,
+      totalPrice: totalPrice,
+      discountAmount: discountAmount,
+      finalPrice: finalPrice,
       status: status ?? this.status,
-      notes: notes ?? this.notes,
       cancellationReason: cancellationReason ?? this.cancellationReason,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt,
+      confirmedAt: confirmedAt ?? this.confirmedAt,
+      completedAt: completedAt ?? this.completedAt,
+      cancelledAt: cancelledAt ?? this.cancelledAt,
+      note: note,
     );
-  }
-
-  DateTime get endTime => dateTime.add(Duration(minutes: duration));
-
-  bool get isPending => status == 'pending';
-  bool get isConfirmed => status == 'confirmed';
-  bool get isCompleted => status == 'completed';
-  bool get isCancelled => status == 'cancelled';
-
-  bool get canCancel {
-    return (isPending || isConfirmed) && 
-           dateTime.isAfter(DateTime.now().add(const Duration(hours: 24)));
   }
 }
 
-class Service {
+/// 予約メニュー
+class BookingMenu {
   final String id;
-  final String staffId;
   final String name;
-  final String description;
-  final double price;
-  final int duration; // 分単位
-  final String category;
-  final bool isActive;
-  final List<String> images;
-
-  Service({
+  final int price;
+  final int duration; // 所要時間（分）
+  
+  BookingMenu({
     required this.id,
-    required this.staffId,
     required this.name,
-    required this.description,
     required this.price,
     required this.duration,
-    required this.category,
-    this.isActive = true,
-    this.images = const [],
   });
 
-  factory Service.fromJson(Map<String, dynamic> json) {
-    return Service(
+  factory BookingMenu.fromJson(Map<String, dynamic> json) {
+    return BookingMenu(
       id: json['id'] as String,
-      staffId: json['staffId'] as String,
       name: json['name'] as String,
-      description: json['description'] as String,
-      price: (json['price'] as num).toDouble(),
+      price: json['price'] as int,
       duration: json['duration'] as int,
-      category: json['category'] as String,
-      isActive: json['isActive'] as bool? ?? true,
-      images: (json['images'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'staffId': staffId,
       'name': name,
-      'description': description,
       'price': price,
       'duration': duration,
-      'category': category,
-      'isActive': isActive,
-      'images': images,
     };
   }
 }
 
-class TimeSlot {
-  final DateTime startTime;
-  final DateTime endTime;
-  final bool isAvailable;
-  final String? bookingId;
+/// 予約ステータス
+enum BookingStatus {
+  pending,    // 予約申込（確認待ち）
+  confirmed,  // 予約確定
+  completed,  // 完了
+  cancelled,  // キャンセル
+}
 
-  TimeSlot({
-    required this.startTime,
-    required this.endTime,
-    this.isAvailable = true,
-    this.bookingId,
-  });
+extension BookingStatusExtension on BookingStatus {
+  String get displayName {
+    switch (this) {
+      case BookingStatus.pending:
+        return '確認待ち';
+      case BookingStatus.confirmed:
+        return '予約確定';
+      case BookingStatus.completed:
+        return '完了';
+      case BookingStatus.cancelled:
+        return 'キャンセル';
+    }
+  }
 
-  int get durationMinutes => endTime.difference(startTime).inMinutes;
+  String get emoji {
+    switch (this) {
+      case BookingStatus.pending:
+        return '⏳';
+      case BookingStatus.confirmed:
+        return '✅';
+      case BookingStatus.completed:
+        return '🎉';
+      case BookingStatus.cancelled:
+        return '❌';
+    }
+  }
 }
