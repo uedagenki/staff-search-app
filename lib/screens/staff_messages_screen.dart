@@ -170,7 +170,7 @@ class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
           children: [
             Expanded(
               child: Text(
-                message.senderName,
+                message.sender,
                 style: TextStyle(
                   fontWeight: message.isRead ? FontWeight.normal : FontWeight.bold,
                   fontSize: 16,
@@ -205,13 +205,11 @@ class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
         onTap: () {
           // チャット画面への遷移
           setState(() {
-            message.isRead = true;
-            _unreadCount = _messages.where((m) => !m.isRead).length;
           });
           
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${message.senderName}とのチャット画面（開発中）'),
+              content: Text('${message.sender}とのチャット画面（開発中）'),
               duration: const Duration(seconds: 1),
             ),
           );

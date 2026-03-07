@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ダッシュボード - staffsearch</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <h1>staffsearch</h1>
+                <span class="badge">Web Dashboard</span>
+            </div>
+            <div class="user-menu">
+                <span class="user-email" id="userEmail">Loading...</span>
+                <button class="btn-logout" id="logoutButton">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M3 3C2.44772 3 2 3.44772 2 4V16C2 16.5523 2.44772 17 3 17H9C9.55228 17 10 16.5523 10 16V14H8V15H4V5H8V6H10V4C10 3.44772 9.55228 3 9 3H3Z"/>
+                        <path d="M14.5858 10L12.2929 7.70711L13.7071 6.29289L18.4142 11L13.7071 15.7071L12.2929 14.2929L14.5858 12H7V10H14.5858Z"/>
+                    </svg>
+                    ログアウト
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- メインコンテンツ -->
+    <main class="main-content">
+        <div class="container">
+            <!-- ウェルカムメッセージ -->
+            <div class="welcome-section">
+                <h2>ようこそ、<span id="welcomeName"></span>さん</h2>
+                <p class="login-time">最終ログイン: <span id="loginTime"></span></p>
+            </div>
+            
+            <!-- 統計カード -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e3f2fd;">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="#1976D2">
+                            <path d="M16 4C9.37258 4 4 9.37258 4 16C4 22.6274 9.37258 28 16 28C22.6274 28 28 22.6274 28 16C28 9.37258 22.6274 4 16 4ZM16 8C18.2091 8 20 9.79086 20 12C20 14.2091 18.2091 16 16 16C13.7909 16 12 14.2091 12 12C12 9.79086 13.7909 8 16 8ZM16 25.2C12.8 25.2 10.016 23.464 8.4 20.8C8.436 18.0667 13.3333 16.6 16 16.6C18.6667 16.6 23.564 18.0667 23.6 20.8C22.984 22.064 20.2 25.2 16 25.2Z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="userCount">-</div>
+                        <div class="stat-label">登録ユーザー数</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #f3e5f5;">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="#7B1FA2">
+                            <path d="M16 4C9.37258 4 4 9.37258 4 16C4 22.6274 9.37258 28 16 28C22.6274 28 28 22.6274 28 16C28 9.37258 22.6274 4 16 4ZM21.3333 20H10.6667V17.3333H21.3333V20ZM21.3333 14.6667H10.6667V12H21.3333V14.6667Z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="bookingCount">-</div>
+                        <div class="stat-label">総予約数</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e8f5e9;">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="#2E7D32">
+                            <path d="M6 8V24C6 25.1046 6.89543 26 8 26H24C25.1046 26 26 25.1046 26 24V12L22 8H8C6.89543 8 6 8.89543 6 8ZM16 22C13.7909 22 12 20.2091 12 18C12 15.7909 13.7909 14 16 14C18.2091 14 20 15.7909 20 18C20 20.2091 18.2091 22 16 22Z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="staffCount">-</div>
+                        <div class="stat-label">登録スタッフ数</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fff3e0;">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="#EF6C00">
+                            <path d="M16 4L19.09 13.26L28 16L19.09 18.74L16 28L12.91 18.74L4 16L12.91 13.26L16 4Z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="revenue">-</div>
+                        <div class="stat-label">総売上</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 機能メニュー -->
+            <div class="features-section">
+                <h3>機能メニュー</h3>
+                <div class="features-grid">
+                    <a href="../index.html" class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <div class="feature-title">Flutterアプリ</div>
+                        <div class="feature-desc">メインアプリケーションを開く</div>
+                    </a>
+                    
+                    <a href="#" class="feature-card">
+                        <div class="feature-icon">👥</div>
+                        <div class="feature-title">ユーザー管理</div>
+                        <div class="feature-desc">ユーザー情報の確認・編集</div>
+                    </a>
+                    
+                    <a href="#" class="feature-card">
+                        <div class="feature-icon">📅</div>
+                        <div class="feature-title">予約管理</div>
+                        <div class="feature-desc">予約情報の確認・管理</div>
+                    </a>
+                    
+                    <a href="#" class="feature-card">
+                        <div class="feature-icon">💼</div>
+                        <div class="feature-title">スタッフ管理</div>
+                        <div class="feature-desc">スタッフ情報の管理</div>
+                    </a>
+                    
+                    <a href="#" class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-title">分析レポート</div>
+                        <div class="feature-desc">統計データの確認</div>
+                    </a>
+                    
+                    <a href="#" class="feature-card">
+                        <div class="feature-icon">⚙️</div>
+                        <div class="feature-title">システム設定</div>
+                        <div class="feature-desc">アプリケーション設定</div>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 最近のアクティビティ -->
+            <div class="activity-section">
+                <h3>最近のアクティビティ</h3>
+                <div class="activity-list" id="activityList">
+                    <div class="activity-item">
+                        <div class="activity-icon">🔐</div>
+                        <div class="activity-content">
+                            <div class="activity-title">ログインしました</div>
+                            <div class="activity-time" id="activityTime">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 staffsearch. All Rights Reserved.</p>
+        </div>
+    </footer>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- カスタムスクリプト -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

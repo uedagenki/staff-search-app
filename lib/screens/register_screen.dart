@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/local_auth_service.dart';
+import 'privacy_policy_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -15,7 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _authService = AuthService();
+  final _authService = LocalAuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -37,8 +38,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_agreedToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('利用規約とプライバシーポリシーに同意してください'),
+          content: Text('プライバシーポリシーをお読みいただき、同意してください'),
           backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
         ),
       );
       return;
@@ -53,6 +55,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       phoneNumber: _phoneController.text.trim().isNotEmpty
           ? _phoneController.text.trim()
           : null,
+      privacyPolicyAccepted: _agreedToTerms,
+      privacyPolicyVersion: 'v1.0',
     );
 
     setState(() => _isLoading = false);
@@ -60,14 +64,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (result.success) {
-      // 登録成功 - ログイン画面に戻る
+      // 登録成功 - ホーム画面に遷移し、履歴をクリア
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result.message),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.of(context).pop(true);
+      // 自動的にログインしてホーム画面へ
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/home',
+        (route) => false, // すべての履歴をクリア
+      );
     } else {
       // エラー表示
       ScaffoldMessenger.of(context).showSnackBar(
@@ -222,61 +230,89 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // 利用規約への同意
-                CheckboxListTile(
-                  value: _agreedToTerms,
-                  onChanged: (value) {
-                    setState(() {
-                      _agreedToTerms = value ?? false;
-                    });
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                  title: Row(
+                // プライバシーポリシーへの同意 ✨ NEW
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _agreedToTerms ? Colors.blue : Colors.grey.shade300,
+                      width: 2,
+                    ),
+                  ),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: Wrap(
-                          children: [
-                            const Text('利用規約と'),
-                            TextButton(
-                              onPressed: () {
-                                // 利用規約表示
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('利用規約'),
-                                    content: const SingleChildScrollView(
-                                      child: Text(
-                                        '【利用規約の内容】\n\n'
-                                        '1. サービスの利用について\n'
-                                        '本サービスは、スタッフとユーザーをマッチングするプラットフォームです。\n\n'
-                                        '2. アカウントについて\n'
-                                        'ユーザーは正確な情報を登録する必要があります。\n\n'
-                                        '3. プライバシー保護\n'
-                                        '個人情報は適切に保護されます。',
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Checkbox(
+                            value: _agreedToTerms,
+                            onChanged: (value) {
+                              setState(() {
+                                _agreedToTerms = value ?? false;
+                              });
+                            },
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: Wrap(
+                                children: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const PrivacyPolicyScreen(),
+                                        ),
+                                      );
+                                    },
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: const Text(
+                                      'プライバシーポリシー',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        decoration: TextDecoration.underline,
                                       ),
                                     ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text('閉じる'),
-                                      ),
-                                    ],
                                   ),
-                                );
-                              },
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size.zero,
-                                tapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
+                                  const Text('を読み、内容に同意します'),
+                                ],
                               ),
-                              child: const Text('プライバシーポリシー'),
                             ),
-                            const Text('に同意します'),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
+                      if (!_agreedToTerms)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '個人情報の取り扱いについてご確認ください',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -333,3 +369,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
+

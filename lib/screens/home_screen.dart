@@ -8,7 +8,6 @@ import '../models/staff.dart';
 import '../models/staff_story.dart';
 import '../data/mock_data.dart';
 import '../widgets/staff_card.dart';
-import '../widgets/simple_mode_switcher.dart';
 import '../services/location_service.dart';
 import '../services/story_service.dart';
 import 'search_screen.dart';
@@ -337,9 +336,6 @@ class _HomeScreenState extends State<HomeScreen> {
           // 右側のアイコン
           Row(
             children: [
-              // モード切り替えボタン
-              const SimpleModeDropdown(),
-              const SizedBox(width: 8),
               // 通知ボタン（バッジ付き）
               Stack(
                 children: [

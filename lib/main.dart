@@ -1,25 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:firebase_core/firebase_core.dart';
 import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
 import 'admin/screens/admin_login_screen.dart';
-import 'services/fcm_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Firebase初期化
-  try {
-    await Firebase.initializeApp();
-    
-    // FCMサービス初期化（Web以外）
-    if (!kIsWeb) {
-      await FCMService().initialize();
-    }
-  } catch (e) {
-    debugPrint('Firebase/FCM initialization error: $e');
-  }
   
   // ステータスバーを透明に設定
   SystemChrome.setSystemUIOverlayStyle(
@@ -42,6 +28,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
         '/': (context) => const HomeScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/home': (context) => const HomeScreen(),
         '/admin': (context) => const AdminLoginScreen(),
       },
       initialRoute: '/',

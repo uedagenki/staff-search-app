@@ -4,8 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import '../services/tip_service.dart';
 import '../services/gifter_service.dart';
+import '../services/local_auth_service.dart';
 import '../models/gifter_level.dart';
+import 'login_screen.dart';
 import 'following_screen.dart';
+import 'staff/staff_registration_screen.dart';
+import 'staff/staff_dashboard_screen.dart';
 
 import 'tip_history_screen.dart';
 import 'my_reviews_screen.dart';
@@ -25,6 +29,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final TipService _tipService = TipService();
   final GifterService _gifterService = GifterService();
+  final LocalAuthService _authService = LocalAuthService();
   double _totalTips = 0.0;
   bool _isLoading = true;
   UserGifterInfo? _gifterInfo;
@@ -63,10 +68,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _checkLoginStatus() {
-    // アプリ起動時にログイン状態を確認
+    // アプリ起動時にログイン状態を確認（Firebase Authentication）
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final isLoggedIn = await StorageHelper.getString('user_logged_in');
-      if (isLoggedIn == null || isLoggedIn != 'true') {
+      final isLoggedIn = await _authService.isLoggedIn();
+      if (!isLoggedIn) {
         _showLoginPrompt();
       }
     });
@@ -116,10 +121,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: const Text('後で'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // ログイン画面にリダイレクト
-              // Removed: html.window.location.href = 'user_login.html';
+              // ログイン画面に遷移
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              );
+              
+              // ログインが成功したらプロフィールをリロード
+              if (result == true) {
+                _loadUserProfile();
+                _loadTotalTips();
+                _loadGifterInfo();
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
@@ -134,6 +149,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     try {
+      // まずFirebase Authenticationからユーザー情報を取得
+      final currentUser = await _authService.getCurrentUser();
+      if (currentUser != null) {
+        setState(() {
+          _userName = currentUser.name;
+          _userEmail = currentUser.email;
+          _userAge = currentUser.age;
+          _userAddress = currentUser.address;
+          _userGender = currentUser.gender;
+          _userCategories = currentUser.interests ?? [];
+        });
+        return;
+      }
+      
+      // Firebaseにユーザーがいない場合はローカルストレージから読み込み
       final profileData = await StorageHelper.getString('user_profile');
       if (profileData != null) {
         final profile = json.decode(profileData);
@@ -160,6 +190,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _totalTips = total;
       _isLoading = false;
     });
+  }
+
+  // スタッフモード切り替え処理
+  Future<void> _handleStaffModeSwitch() async {
+    // ログイン確認
+    final isLoggedIn = await _authService.isLoggedIn();
+    if (!isLoggedIn) {
+      _showLoginPrompt();
+      return;
+    }
+
+    // 現在のユーザー情報を取得
+    final user = await _authService.getCurrentUser();
+    if (user == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('ユーザー情報の取得に失敗しました'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (kDebugMode) {
+      debugPrint('🔄 スタッフモード切り替え: role=${user.role}, isStaffRegistered=${user.isStaffRegistered}');
+    }
+
+    // スタッフ登録済みかチェック
+    if (user.isStaffRegistered) {
+      // スタッフダッシュボードに遷移
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StaffDashboardScreen(userId: user.id),
+        ),
+      );
+    } else {
+      // スタッフ登録画面に遷移
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const StaffRegistrationScreen(),
+        ),
+      );
+      
+      // 登録完了後、プロフィールを再読み込み
+      if (result == true) {
+        _loadUserProfile();
+      }
+    }
   }
 
   @override
@@ -331,6 +413,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: _buildGifterLevelCard(_gifterInfo!),
               ),
+            
+            const SizedBox(height: 20),
+            
+            // スタッフモード切り替えボタン（TikTokスタイル）
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.purple[400]!,
+                      Colors.pink[400]!,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.purple.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _handleStaffModeSwitch(),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.work_outline,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'スタッフモードに切り替え',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'スタッフとして収益を得る',
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white.withValues(alpha: 0.9),
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             
             const SizedBox(height: 20),
             
@@ -551,29 +715,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
-                // ローカルストレージをクリア
+                // Firebase Authentication からログアウト
+                await _authService.logout();
+                
+                // ローカルストレージもクリア
                 await StorageHelper.clear();
                 
                 if (kDebugMode) {
-                  debugPrint('LocalStorage cleared');
+                  debugPrint('✅ ログアウト成功: Firebase Auth + LocalStorage cleared');
                 }
                 
                 // ダイアログを閉じる
                 Navigator.pop(dialogContext);
                 
-                // 少し待ってからリダイレクト
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  // ログイン画面にリダイレクト（Web）
-                  // Removed: html.window.location.href = 'user_login.html';
-                });
+                // ログイン画面に遷移し、戻れないようにする
+                if (context.mounted) {
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/login',
+                    (route) => false, // すべての履歴をクリア
+                  );
+                }
               } catch (e) {
                 if (kDebugMode) {
-                  debugPrint('Logout error: $e');
+                  debugPrint('❌ ログアウトエラー: $e');
                 }
                 Navigator.pop(dialogContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('ログアウトに失敗しました: $e')),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('ログアウトに失敗しました: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(

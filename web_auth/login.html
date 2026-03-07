@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - staffsearch</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">
+            <!-- ロゴ -->
+            <div class="logo">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="40" cy="40" r="38" fill="#1976D2" stroke="#1976D2" stroke-width="4"/>
+                    <path d="M40 20C31.7157 20 25 26.7157 25 35C25 43.2843 31.7157 50 40 50C48.2843 50 55 43.2843 55 35C55 26.7157 48.2843 20 40 20ZM40 45C34.4772 45 30 40.5228 30 35C30 29.4772 34.4772 25 40 25C45.5228 25 50 29.4772 50 35C50 40.5228 45.5228 45 40 45Z" fill="white"/>
+                    <path d="M52 55L60 63L57 66L49 58L52 55Z" fill="white"/>
+                </svg>
+            </div>
+            
+            <!-- タイトル -->
+            <h1 class="title">staffsearch</h1>
+            <p class="subtitle">Webダッシュボードにログイン</p>
+            
+            <!-- ログインフォーム -->
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="email">メールアドレス</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="example@email.com" 
+                        required
+                        autocomplete="email"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">パスワード</label>
+                    <div class="password-input">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            placeholder="••••••••" 
+                            required
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="toggle-password" id="togglePassword">
+                            <svg id="eyeIcon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12.5C8.61929 12.5 7.5 11.3807 7.5 10C7.5 8.61929 8.61929 7.5 10 7.5C11.3807 7.5 12.5 8.61929 12.5 10C12.5 11.3807 11.3807 12.5 10 12.5Z"/>
+                                <path d="M10 5C5 5 1.73 8.11 1 10C1.73 11.89 5 15 10 15C15 15 18.27 11.89 19 10C18.27 8.11 15 5 10 5Z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- エラーメッセージ -->
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                
+                <!-- ログインボタン -->
+                <button type="submit" class="btn-login" id="loginButton">
+                    <span id="loginButtonText">ログイン</span>
+                    <span id="loginButtonSpinner" class="spinner" style="display: none;"></span>
+                </button>
+                
+                <!-- パスワードを忘れた場合 -->
+                <div class="forgot-password">
+                    <a href="password-reset.html">パスワードをお忘れですか？</a>
+                </div>
+            </form>
+            
+            <!-- 区切り線 -->
+            <div class="divider">
+                <span>または</span>
+            </div>
+            
+            <!-- 新規登録リンク -->
+            <div class="register-link">
+                <p>アカウントをお持ちでない方</p>
+                <a href="register.html" class="btn-register">新規登録</a>
+            </div>
+            
+            <!-- フッター -->
+            <div class="footer">
+                <p>
+                    <a href="privacy.html">プライバシーポリシー</a> | 
+                    <a href="terms.html">利用規約</a> | 
+                    <a href="help.html">ヘルプ</a>
+                </p>
+                <p class="copyright">&copy; 2025 staffsearch. All Rights Reserved.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <!-- カスタムスクリプト -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

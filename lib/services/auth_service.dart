@@ -1,49 +1,65 @@
-import '../utils/storage_helper.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:convert';
-import '../models/user.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/user.dart' as app_user;
 
 class AuthService {
-  static const String _currentUserKey = 'current_user';
-  static const String _usersKey = 'registered_users';
+  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  
+  static const String _usersCollection = 'users';
 
-  // 現在のログインユーザーを取得
-  Future<User?> getCurrentUser() async {
+  // 現在のログインユーザーを取得（Firebase Auth + Firestore）
+  Future<app_user.User?> getCurrentUser() async {
     try {
-      final userJson = await StorageHelper.getString(_currentUserKey);
-      if (userJson != null && userJson.isNotEmpty) {
-        return User.fromJsonString(userJson);
+      final firebaseUser = _auth.currentUser;
+      if (firebaseUser == null) return null;
+
+      // Firestoreからユーザー詳細情報を取得
+      final docSnapshot = await _firestore
+          .collection(_usersCollection)
+          .doc(firebaseUser.uid)
+          .get();
+
+      if (!docSnapshot.exists) {
+        // Firestoreにデータがない場合は作成
+        final newUser = app_user.User(
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          name: firebaseUser.displayName ?? 'ユーザー',
+          phoneNumber: firebaseUser.phoneNumber,
+          createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
+          lastLoginAt: DateTime.now(),
+          points: 0,
+        );
+        await _firestore.collection(_usersCollection).doc(firebaseUser.uid).set(newUser.toJson());
+        return newUser;
       }
+
+      return app_user.User.fromJson(docSnapshot.data()!, docSnapshot.id);
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Failed to get current user: $e');
       }
+      return null;
     }
-    return null;
   }
 
   // ログイン状態をチェック
   Future<bool> isLoggedIn() async {
-    final user = await getCurrentUser();
-    return user != null;
+    return _auth.currentUser != null;
   }
 
-  // ユーザー登録
+  // ユーザー登録（Firebase Authentication + Firestore）
   Future<AuthResult> register({
     required String email,
     required String password,
     required String name,
     String? phoneNumber,
+    bool privacyPolicyAccepted = false,
+    String privacyPolicyVersion = 'v1.0',
   }) async {
     try {
-      // メールアドレスの重複チェック
-      if (await _isEmailExists(email)) {
-        return AuthResult(
-          success: false,
-          message: 'このメールアドレスは既に登録されています',
-        );
-      }
-
       // パスワードの検証
       if (password.length < 6) {
         return AuthResult(
@@ -52,26 +68,69 @@ class AuthService {
         );
       }
 
-      // 新規ユーザーを作成
-      final user = User(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+      // プライバシーポリシー同意チェック
+      if (!privacyPolicyAccepted) {
+        return AuthResult(
+          success: false,
+          message: 'プライバシーポリシーに同意してください',
+        );
+      }
+
+      // Firebase Authenticationでユーザー作成
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) {
+        return AuthResult(
+          success: false,
+          message: 'ユーザー作成に失敗しました',
+        );
+      }
+
+      // 表示名を設定
+      await firebaseUser.updateDisplayName(name);
+
+      // Firestoreにユーザー詳細情報を保存
+      final now = DateTime.now();
+      final user = app_user.User(
+        id: firebaseUser.uid,
         email: email,
         name: name,
         phoneNumber: phoneNumber,
-        createdAt: DateTime.now(),
-        lastLoginAt: DateTime.now(),
+        createdAt: now,
+        lastLoginAt: now,
         points: 0, // 初回登録ボーナスポイント
+        privacyPolicyAccepted: privacyPolicyAccepted,
+        privacyPolicyAcceptedAt: now,
+        privacyPolicyVersion: privacyPolicyVersion,
       );
 
-      // ユーザーを保存
-      await _saveUser(user, password);
-      await _setCurrentUser(user);
+      await _firestore.collection(_usersCollection).doc(firebaseUser.uid).set(user.toJson());
 
       return AuthResult(
         success: true,
         message: '登録が完了しました',
         user: user,
       );
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'email-already-in-use':
+          message = 'このメールアドレスは既に登録されています';
+          break;
+        case 'invalid-email':
+          message = '無効なメールアドレスです';
+          break;
+        case 'weak-password':
+          message = 'パスワードが弱すぎます';
+          break;
+        default:
+          message = '登録に失敗しました: ${e.message}';
+      }
+      return AuthResult(success: false, message: message);
     } catch (e) {
       return AuthResult(
         success: false,
@@ -80,53 +139,100 @@ class AuthService {
     }
   }
 
-  // ログイン
+  // ログイン（Firebase Authentication）
   Future<AuthResult> login({
     required String email,
     required String password,
   }) async {
     try {
-      // 登録済みユーザーを取得
-      final users = await _getRegisteredUsers();
-      
-      // メールアドレスで検索
-      final userEntry = users.entries.firstWhere(
-        (entry) {
-          final user = User.fromJsonString(entry.value['userData'] as String);
-          return user.email.toLowerCase() == email.toLowerCase();
-        },
-        orElse: () => MapEntry('', {}),
+      if (kDebugMode) {
+        debugPrint('🔐 ログイン試行: $email');
+      }
+
+      // Firebase Authenticationでログイン
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
 
-      if (userEntry.key.isEmpty) {
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) {
         return AuthResult(
           success: false,
-          message: 'メールアドレスまたはパスワードが正しくありません',
+          message: 'ログインに失敗しました',
         );
       }
 
-      // パスワード検証
-      if (userEntry.value['password'] != password) {
-        return AuthResult(
-          success: false,
-          message: 'メールアドレスまたはパスワードが正しくありません',
-        );
+      if (kDebugMode) {
+        debugPrint('✅ Firebase Auth ログイン成功: ${firebaseUser.uid}');
       }
 
-      // ユーザー情報を取得
-      final user = User.fromJsonString(userEntry.value['userData'] as String);
-      
-      // 最終ログイン時刻を更新
-      final updatedUser = user.copyWith(lastLoginAt: DateTime.now());
-      await _saveUser(updatedUser, password);
-      await _setCurrentUser(updatedUser);
+      // Firestoreから詳細情報を取得
+      final docSnapshot = await _firestore
+          .collection(_usersCollection)
+          .doc(firebaseUser.uid)
+          .get();
+
+      app_user.User user;
+      if (!docSnapshot.exists) {
+        // Firestoreにデータがない場合は作成
+        if (kDebugMode) {
+          debugPrint('⚠️ Firestoreにユーザーデータなし、新規作成...');
+        }
+        user = app_user.User(
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? email,
+          name: firebaseUser.displayName ?? 'ユーザー',
+          phoneNumber: firebaseUser.phoneNumber,
+          createdAt: firebaseUser.metadata.creationTime ?? DateTime.now(),
+          lastLoginAt: DateTime.now(),
+          points: 0,
+        );
+        await _firestore.collection(_usersCollection).doc(firebaseUser.uid).set(user.toJson());
+      } else {
+        user = app_user.User.fromJson(docSnapshot.data()!, docSnapshot.id);
+        
+        // 最終ログイン時刻を更新
+        user = user.copyWith(lastLoginAt: DateTime.now());
+        await _firestore.collection(_usersCollection).doc(firebaseUser.uid).update({
+          'lastLoginAt': Timestamp.fromDate(user.lastLoginAt!),
+        });
+      }
+
+      if (kDebugMode) {
+        debugPrint('✅ ログイン完了: ${user.name} (${user.id})');
+      }
 
       return AuthResult(
         success: true,
         message: 'ログインしました',
-        user: updatedUser,
+        user: user,
       );
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'user-not-found':
+        case 'wrong-password':
+        case 'invalid-credential':
+          message = 'メールアドレスまたはパスワードが正しくありません';
+          break;
+        case 'invalid-email':
+          message = '無効なメールアドレスです';
+          break;
+        case 'user-disabled':
+          message = 'このアカウントは無効化されています';
+          break;
+        default:
+          message = 'ログインに失敗しました: ${e.message}';
+      }
+      if (kDebugMode) {
+        debugPrint('❌ ログインエラー: ${e.code} - $message');
+      }
+      return AuthResult(success: false, message: message);
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ ログイン例外: $e');
+      }
       return AuthResult(
         success: false,
         message: 'ログインに失敗しました: $e',
@@ -136,19 +242,24 @@ class AuthService {
 
   // ログアウト
   Future<void> logout() async {
-    await StorageHelper.remove(_currentUserKey);
+    await _auth.signOut();
   }
 
   // ユーザー情報を更新
-  Future<bool> updateUser(User user) async {
+  Future<bool> updateUser(app_user.User user) async {
     try {
-      final currentPassword = await _getCurrentUserPassword(user.id);
-      if (currentPassword != null) {
-        await _saveUser(user, currentPassword);
-        await _setCurrentUser(user);
-        return true;
+      final firebaseUser = _auth.currentUser;
+      if (firebaseUser == null) return false;
+
+      // 表示名を更新
+      if (firebaseUser.displayName != user.name) {
+        await firebaseUser.updateDisplayName(user.name);
       }
-      return false;
+
+      // Firestoreのユーザー情報を更新
+      await _firestore.collection(_usersCollection).doc(user.id).update(user.toJson());
+      
+      return true;
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Failed to update user: $e');
@@ -157,68 +268,161 @@ class AuthService {
     }
   }
 
-  // プライベートメソッド
-
-  Future<bool> _isEmailExists(String email) async {
-    final users = _getRegisteredUsers();
-    return users.values.any((userData) {
-      final user = User.fromJsonString(userData['userData'] as String);
-      return user.email.toLowerCase() == email.toLowerCase();
-    });
+  // パスワードリセットメール送信
+  Future<AuthResult> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return AuthResult(
+        success: true,
+        message: 'パスワードリセットメールを送信しました',
+      );
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'user-not-found':
+          message = 'このメールアドレスは登録されていません';
+          break;
+        case 'invalid-email':
+          message = '無効なメールアドレスです';
+          break;
+        default:
+          message = 'メール送信に失敗しました: ${e.message}';
+      }
+      return AuthResult(success: false, message: message);
+    } catch (e) {
+      return AuthResult(
+        success: false,
+        message: 'メール送信に失敗しました: $e',
+      );
+    }
   }
 
-  Future<Map<String, dynamic>> _getRegisteredUsers() async {
+  // デモ用：テストユーザーを作成（開発環境のみ）
+  Future<void> createDemoUser() async {
     try {
-      final usersJson = await StorageHelper.getString(_usersKey);
-      if (usersJson != null && usersJson.isNotEmpty) {
-        return jsonDecode(usersJson) as Map<String, dynamic>;
+      if (kDebugMode) {
+        debugPrint('🔧 デモユーザー作成開始...');
+      }
+
+      // Firebase Authでテストユーザー作成
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: 'demo@example.com',
+        password: 'demo123',
+      );
+
+      final firebaseUser = userCredential.user;
+      if (firebaseUser != null) {
+        await firebaseUser.updateDisplayName('デモユーザー');
+
+        // Firestoreにデータ保存
+        final demoUser = app_user.User(
+          id: firebaseUser.uid,
+          email: 'demo@example.com',
+          name: 'デモユーザー',
+          phoneNumber: '090-1234-5678',
+          createdAt: DateTime.now(),
+          lastLoginAt: DateTime.now(),
+          points: 1000,
+          bio: 'これはデモユーザーです',
+          privacyPolicyAccepted: true,
+          privacyPolicyAcceptedAt: DateTime.now(),
+          privacyPolicyVersion: 'v1.0',
+          role: 'user',
+          isStaffRegistered: false,
+        );
+        await _firestore.collection(_usersCollection).doc(firebaseUser.uid).set(demoUser.toJson());
+        
+        if (kDebugMode) {
+          debugPrint('✅ デモユーザー作成成功: ${firebaseUser.uid}');
+        }
+      }
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        // デモユーザーが既に存在する場合は無視
+        if (kDebugMode) {
+          debugPrint('ℹ️ デモユーザーは既に存在します');
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint('❌ デモユーザー作成失敗: ${e.code} - ${e.message}');
+        }
+        rethrow; // エラーを再スロー
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('Failed to get registered users: $e');
+        debugPrint('❌ デモユーザー作成エラー: $e');
       }
+      rethrow; // エラーを再スロー
     }
-    return {};
   }
 
-  Future<void> _saveUser(User user, String password) async {
-    final users = await _getRegisteredUsers();
-    users[user.id] = {
-      'userData': user.toJsonString(),
-      'password': password, // 実際の本番環境ではハッシュ化が必要
-    };
-    await StorageHelper.setString(_usersKey, jsonEncode(users));
+  // スタッフデモ用：スタッフテストユーザーを作成（開発環境のみ）
+  Future<void> createStaffDemoUser() async {
+    try {
+      if (kDebugMode) {
+        debugPrint('🔧 スタッフデモユーザー作成開始...');
+      }
+
+      // Firebase Authでテストユーザー作成
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: 'staff-demo@example.com',
+        password: 'demo123',
+      );
+
+      final firebaseUser = userCredential.user;
+      if (firebaseUser != null) {
+        await firebaseUser.updateDisplayName('デモスタッフ');
+
+        // Firestoreにデータ保存（スタッフ登録済み）
+        final demoStaffUser = app_user.User(
+          id: firebaseUser.uid,
+          email: 'staff-demo@example.com',
+          name: 'デモスタッフ',
+          phoneNumber: '090-9876-5432',
+          createdAt: DateTime.now(),
+          lastLoginAt: DateTime.now(),
+          points: 5000,
+          bio: 'これはスタッフデモアカウントです。スタッフ機能を体験できます。',
+          privacyPolicyAccepted: true,
+          privacyPolicyAcceptedAt: DateTime.now(),
+          privacyPolicyVersion: 'v1.0',
+          role: 'staff',
+          isStaffRegistered: true,
+        );
+        await _firestore.collection(_usersCollection).doc(firebaseUser.uid).set(demoStaffUser.toJson());
+        
+        if (kDebugMode) {
+          debugPrint('✅ スタッフデモユーザー作成成功: ${firebaseUser.uid}');
+        }
+      }
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        // スタッフデモユーザーが既に存在する場合は無視
+        if (kDebugMode) {
+          debugPrint('ℹ️ スタッフデモユーザーは既に存在します');
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint('❌ スタッフデモユーザー作成失敗: ${e.code} - ${e.message}');
+        }
+        rethrow; // エラーを再スロー
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('❌ スタッフデモユーザー作成エラー: $e');
+      }
+      rethrow; // エラーを再スロー
+    }
   }
 
-  Future<void> _setCurrentUser(User user) async {
-    await StorageHelper.setString(_currentUserKey, user.toJsonString());
-  }
-
-  Future<String?> _getCurrentUserPassword(String userId) async {
-    final users = await _getRegisteredUsers();
-    final userData = users[userId];
-    return userData?['password'] as String?;
-  }
-
-  // デモ用：テストユーザーを作成
-  Future<void> createDemoUser() async {
-    final demoUser = User(
-      id: 'demo_user_001',
-      email: 'demo@example.com',
-      name: 'デモユーザー',
-      phoneNumber: '090-1234-5678',
-      createdAt: DateTime.now(),
-      points: 1000,
-      bio: 'これはデモユーザーです',
-    );
-    await _saveUser(demoUser, 'demo123');
-  }
+  // Firebase Auth リスナー（リアルタイムでログイン状態を監視）
+  Stream<firebase_auth.User?> get authStateChanges => _auth.authStateChanges();
 }
 
 class AuthResult {
   final bool success;
   final String message;
-  final User? user;
+  final app_user.User? user;
 
   AuthResult({
     required this.success,

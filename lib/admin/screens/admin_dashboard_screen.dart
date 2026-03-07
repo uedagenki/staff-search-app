@@ -8,6 +8,7 @@ import 'content_moderation_screen.dart';
 import 'reports_screen.dart';
 import 'admin_support_chat_screen.dart';
 import 'admin_login_screen.dart';
+import 'sns_management_screen.dart';
 import '../../utils/storage_helper.dart';
 import 'dart:convert';
 
@@ -324,6 +325,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const StaffManagementScreen(),
+                      ),
+                    );
+                  },
+                  isWide ? constraints.maxWidth / 2 - 8 : constraints.maxWidth,
+                ),
+                _buildMenuCard(
+                  'SNS機能管理',
+                  '配信・ストーリーズ・ライブ配信管理',
+                  Icons.video_library,
+                  Colors.red,
+                  () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const SnsManagementScreen(),
                       ),
                     );
                   },

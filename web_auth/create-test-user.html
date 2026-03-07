@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テストユーザー作成 - staffsearch</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #1976D2;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .info-box {
+            background: #e3f2fd;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border-left: 4px solid #1976D2;
+        }
+        .info-box h3 {
+            color: #1976D2;
+            margin-bottom: 8px;
+        }
+        .credentials {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            margin: 8px 0;
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            background: #1976D2;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #1565C0;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+        .link {
+            text-align: center;
+            margin-top: 24px;
+        }
+        .link a {
+            color: #1976D2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 テストユーザー作成</h1>
+        
+        <div class="info-box">
+            <h3>作成されるテストユーザー</h3>
+            <div class="credentials">
+                <div>メール: <strong>test@staffsearch.com</strong></div>
+                <div>パスワード: <strong>test123456</strong></div>
+            </div>
+            <p style="margin-top: 12px; font-size: 14px; color: #666;">
+                このアカウントでログインテストができます
+            </p>
+        </div>
+        
+        <button id="createUserBtn">テストユーザーを作成</button>
+        
+        <div id="message" style="display: none;"></div>
+        
+        <div class="link">
+            <a href="login.html">→ ログイン画面へ</a>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <script src="js/firebase-config.js"></script>
+    <script>
+        const db = firebase.firestore();
+        const createUserBtn = document.getElementById('createUserBtn');
+        const messageDiv = document.getElementById('message');
+        
+        function showMessage(text, isSuccess) {
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + (isSuccess ? 'success' : 'error');
+            messageDiv.style.display = 'block';
+        }
+        
+        createUserBtn.addEventListener('click', async () => {
+            createUserBtn.disabled = true;
+            createUserBtn.textContent = '作成中...';
+            
+            try {
+                // テストユーザーを作成
+                const userCredential = await auth.createUserWithEmailAndPassword(
+                    'test@staffsearch.com',
+                    'test123456'
+                );
+                
+                const user = userCredential.user;
+                
+                // Firestoreにユーザー情報を保存
+                await db.collection('users').doc(user.uid).set({
+                    id: user.uid,
+                    email: user.email,
+                    name: 'テストユーザー',
+                    profileImage: '',
+                    bio: 'テストアカウントです',
+                    role: 'user',
+                    points: 1000,
+                    privacyPolicyAccepted: true,
+                    privacyPolicyAcceptedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    privacyPolicyVersion: 'v1.0',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                showMessage('✅ テストユーザーの作成に成功しました！ログイン画面からログインできます。', true);
+                
+                // ログアウト（テストユーザーの状態を残さないため）
+                await auth.signOut();
+                
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('エラー:', error);
+                
+                if (error.code === 'auth/email-already-in-use') {
+                    showMessage('このメールアドレスは既に使用されています。既存のアカウントでログインできます。', true);
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 3000);
+                } else {
+                    showMessage('❌ エラー: ' + error.message, false);
+                    createUserBtn.disabled = false;
+                    createUserBtn.textContent = 'テストユーザーを作成';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

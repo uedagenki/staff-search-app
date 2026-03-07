@@ -11,7 +11,9 @@ import 'staff_profile_edit_screen.dart';
 import '../staff_messages_screen.dart';
 
 class StaffDashboardScreen extends StatefulWidget {
-  const StaffDashboardScreen({super.key});
+  final String? userId; // ユーザーIDを受け取る
+  
+  const StaffDashboardScreen({super.key, this.userId});
 
   @override
   State<StaffDashboardScreen> createState() => _StaffDashboardScreenState();
@@ -357,10 +359,11 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
     );
   }
 
-  void _showStaffPreview() {
+  void _showStaffPreview() async {
     try {
-      // LocalStorageから現在のスタッフプロフィールを読み込み
-      final staffProfileJson = html.window.localStorage['current_staff_profile'];
+      // SharedPreferencesから現在のスタッフプロフィールを読み込み
+      final prefs = await SharedPreferences.getInstance();
+      final staffProfileJson = prefs.getString('current_staff_profile');
       
       if (staffProfileJson == null) {
         ScaffoldMessenger.of(context).showSnackBar(

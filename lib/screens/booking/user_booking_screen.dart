@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/booking.dart';
 import '../../models/staff.dart';
-import '../../services/booking_service.dart';
+import '../../services/firebase_booking_service.dart';
 
 class UserBookingScreen extends StatefulWidget {
   final Staff staff;
@@ -14,7 +14,7 @@ class UserBookingScreen extends StatefulWidget {
 }
 
 class _UserBookingScreenState extends State<UserBookingScreen> {
-  final _bookingService = BookingService();
+  final _bookingService = FirebaseBookingService();
   final _notesController = TextEditingController();
   
   List<Service> _services = [];
