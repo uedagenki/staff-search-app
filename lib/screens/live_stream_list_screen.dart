@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import '../models/live_stream.dart';
 import '../services/live_stream_service.dart';
+import 'live_stream/tiktok_live_stream_screen.dart';
 // ライブ配信画面のインポートはモバイルのみ
 import 'live_broadcaster_screen.dart' if (dart.library.html) 'live_broadcaster_screen_stub.dart';
 import 'live_viewer_screen.dart' if (dart.library.html) 'live_viewer_screen_stub.dart';
@@ -73,19 +74,13 @@ class _LiveStreamListScreenState extends State<LiveStreamListScreen> {
   }
 
   void _viewLiveStream(LiveStream stream) {
-    if (kIsWeb) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('ライブ配信機能はモバイルアプリでのみ利用できます'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-    
+    // TikTok風のライブ配信画面へ遷移
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => LiveViewerScreen(liveStream: stream),
+        builder: (context) => TikTokLiveStreamScreen(
+          liveStream: stream,
+          currentUserId: 'user_${DateTime.now().millisecondsSinceEpoch}',
+        ),
       ),
     );
   }

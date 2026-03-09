@@ -318,12 +318,12 @@ class _HomeScreenState extends State<HomeScreen> {
           // ロゴ
           Row(
             children: [
-              Icon(
-                Icons.search,
-                color: Theme.of(context).colorScheme.primary,
-                size: 20,
+              Image.asset(
+                'assets/images/staff-search-logo.png',
+                width: 32,
+                height: 32,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Text(
                 'スタッフサーチ',
                 style: TextStyle(

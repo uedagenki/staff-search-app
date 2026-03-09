@@ -12,6 +12,7 @@ import 'staff_management_profile_screen.dart';
 import 'staff_booking_management_screen.dart';
 import 'staff_coupon_management_screen.dart';
 import 'staff_menu_management_screen.dart';
+import 'revenue_dashboard_screen.dart';
 import '../staff_messages_screen.dart';
 import '../booking_system_debug_screen.dart';
 import '../staff_received_offers_screen.dart';
@@ -345,6 +346,24 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                   builder: (context) => const StaffCouponManagementScreen(),
                 ),
               );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
+            '収益ダッシュボード',
+            Icons.analytics,
+            Colors.purple[700]!,
+            () async {
+              final user = await _authService.getCurrentUser();
+              if (user != null && mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RevenueDashboardScreen(staffId: user.id),
+                  ),
+                );
+              }
             },
           ),
           const SizedBox(height: 12),

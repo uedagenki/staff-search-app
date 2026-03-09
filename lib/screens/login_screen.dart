@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../services/local_auth_service.dart';
 import 'register_screen.dart';
 import 'staff/staff_registration_screen.dart';
+import 'registration_type_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -138,10 +139,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 const SizedBox(height: 40),
                 
                 // ロゴ
-                Icon(
-                  Icons.person_search,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.primary,
+                Image.asset(
+                  'assets/images/staff-search-logo.png',
+                  width: 100,
+                  height: 100,
                 ),
                 const SizedBox(height: 24),
                 
@@ -342,6 +343,44 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // 企業/店舗登録ボタン
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegistrationTypeSelectionScreen(),
+                      ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(
+                      color: Colors.blue[700]!,
+                      width: 2,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.business, color: Colors.blue[700], size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        '企業・店舗として登録',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
