@@ -9,6 +9,8 @@ import 'reports_screen.dart';
 import 'admin_support_chat_screen.dart';
 import 'admin_login_screen.dart';
 import 'sns_management_screen.dart';
+import 'company_store_management_screen.dart';
+import 'live_revenue_management_screen.dart';
 import '../../utils/storage_helper.dart';
 import 'dart:convert';
 
@@ -381,6 +383,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const AdminSupportChatScreen(),
+                      ),
+                    );
+                  },
+                  isWide ? constraints.maxWidth / 2 - 8 : constraints.maxWidth,
+                ),
+                _buildMenuCard(
+                  '企業・店舗管理',
+                  '企業・店舗の承認・管理',
+                  Icons.business,
+                  Colors.indigo,
+                  () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const CompanyStoreManagementScreen(),
+                      ),
+                    );
+                  },
+                  isWide ? constraints.maxWidth / 2 - 8 : constraints.maxWidth,
+                ),
+                _buildMenuCard(
+                  'ライブ配信・収益管理',
+                  'ライブ配信統計・収益分析',
+                  Icons.live_tv,
+                  Colors.pink,
+                  () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const LiveRevenueManagementScreen(),
                       ),
                     );
                   },
