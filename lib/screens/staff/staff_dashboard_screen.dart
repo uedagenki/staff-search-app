@@ -13,6 +13,8 @@ import 'staff_booking_management_screen.dart';
 import 'staff_coupon_management_screen.dart';
 import 'staff_menu_management_screen.dart';
 import 'revenue_dashboard_screen.dart';
+import 'staff_block_management_screen.dart';
+import 'staff_payout_screen.dart';
 import '../staff_messages_screen.dart';
 import '../booking_system_debug_screen.dart';
 import '../staff_received_offers_screen.dart';
@@ -434,6 +436,36 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const LiveShardScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
+            '🚫 ブロック管理',
+            Icons.block,
+            Colors.red[700]!,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StaffBlockManagementScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          _buildActionButton(
+            '💰 出金管理 (Stripe)',
+            Icons.account_balance_wallet,
+            Colors.green[700]!,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StaffPayoutScreen(),
                 ),
               );
             },

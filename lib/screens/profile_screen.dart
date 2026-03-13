@@ -23,6 +23,7 @@ import 'booking/user_booking_list_screen.dart';
 import 'company/company_staff_management_screen.dart';
 import 'store_management/store_signup_screen.dart';
 import 'store_management/store_list_screen.dart';
+import 'terms/terms_and_guidelines_screen.dart';
 import '../services/company_service.dart';
 import 'point_purchase_screen.dart';
 import 'point_earn_screen.dart';
@@ -688,6 +689,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const UserBlockManagementScreen()),
+                );
+              },
+            ),
+            
+            _buildMenuItem(
+              context,
+              icon: Icons.gavel,
+              title: '利用規約・ガイドライン',
+              color: Colors.blue,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TermsAndGuidelinesScreen(),
+                  ),
                 );
               },
             ),
