@@ -1,3 +1,5 @@
+// SCREEN: Chat Screen | CHAT-03
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/message.dart';
@@ -18,7 +20,10 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Chat Screen | CHAT-03';
+
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<Message> _messages = [];

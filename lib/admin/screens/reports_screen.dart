@@ -1,3 +1,5 @@
+// SCREEN: Reports Screen | ADMIN (no spec)
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../utils/storage_helper.dart';
@@ -11,7 +13,10 @@ class ReportsScreen extends StatefulWidget {
   State<ReportsScreen> createState() => _ReportsScreenState();
 }
 
-class _ReportsScreenState extends State<ReportsScreen> {
+class _ReportsScreenState extends State<ReportsScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Reports Screen | ADMIN (no spec)';
+
   final _exportService = ExportService();
   bool _isLoading = true;
   Map<String, dynamic> _stats = {};

@@ -1,3 +1,5 @@
+// SCREEN: Staff Profile Edit Screen | STAFF-01
+import '../../../utils/screen_logger.dart';
 import '../../utils/storage_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -11,7 +13,10 @@ class StaffProfileEditScreen extends StatefulWidget {
   State<StaffProfileEditScreen> createState() => _StaffProfileEditScreenState();
 }
 
-class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> {
+class _StaffProfileEditScreenState extends State<StaffProfileEditScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Staff Profile Edit Screen | STAFF-01';
+
   final TextEditingController _nameController = TextEditingController(text: '田中 美咲');
   final TextEditingController _jobTitleController = TextEditingController(text: '美容師');
   final TextEditingController _bioController = TextEditingController(

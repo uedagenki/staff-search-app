@@ -1,3 +1,4 @@
+// SCREEN: Live Viewer Screen (Web Stub) | LIVE-04
 import 'package:flutter/material.dart';
 import '../models/live_stream.dart';
 
@@ -12,6 +13,9 @@ class LiveViewerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    debugPrint('📱 SCREEN: Live Viewer Screen (Web Stub) | LIVE-04'); // debug only
+
     return Scaffold(
       appBar: AppBar(title: const Text('ライブ視聴')),
       body: const Center(

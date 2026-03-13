@@ -1,3 +1,5 @@
+// SCREEN: Live Stream Screen (Viewer) | LIVE-04
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../models/staff.dart';
@@ -16,7 +18,10 @@ class LiveStreamScreen extends StatefulWidget {
   State<LiveStreamScreen> createState() => _LiveStreamScreenState();
 }
 
-class _LiveStreamScreenState extends State<LiveStreamScreen> with SingleTickerProviderStateMixin {
+class _LiveStreamScreenState extends State<LiveStreamScreen> with ScreenLogMixin, SingleTickerProviderStateMixin {
+  @override
+  String get screenId => 'Live Stream Screen (Viewer) | LIVE-04';
+
   late VideoPlayerController _videoController;
   late AnimationController _pulseController;
   bool _isVideoInitialized = false;

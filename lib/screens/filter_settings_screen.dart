@@ -1,3 +1,5 @@
+// SCREEN: Filter Settings Screen | SEARCH-03
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/job_categories.dart';
@@ -9,7 +11,10 @@ class FilterSettingsScreen extends StatefulWidget {
   State<FilterSettingsScreen> createState() => _FilterSettingsScreenState();
 }
 
-class _FilterSettingsScreenState extends State<FilterSettingsScreen> {
+class _FilterSettingsScreenState extends State<FilterSettingsScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Filter Settings Screen | SEARCH-03';
+
   double _maxDistance = 50.0; // km
   double _minRating = 0.0;
   bool _onlineOnly = false;

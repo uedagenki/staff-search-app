@@ -1,3 +1,4 @@
+// SCREEN: Live List Screen | LIVE-07
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/staff.dart';
@@ -15,6 +16,9 @@ class LiveListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    debugPrint('📱 SCREEN: Live List Screen | LIVE-07'); // debug only
+
     final staffList = MockData.getStaffList();
     final liveStaffList = staffList.where((staff) => 
       staff.isLive && _liveVideoUrls.containsKey(staff.id)

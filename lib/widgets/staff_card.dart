@@ -103,6 +103,9 @@ class _StaffCardState extends State<StaffCard> {
       child: Stack(
         children: [
           // 画像スライダー
+          if (widget.staff.profileImages.isEmpty)
+            Container(color: Colors.grey[900]),
+          if (widget.staff.profileImages.isNotEmpty)
           PageView.builder(
             controller: _imagePageController,
             onPageChanged: (index) {
@@ -112,21 +115,18 @@ class _StaffCardState extends State<StaffCard> {
             },
             itemCount: widget.staff.profileImages.length,
             itemBuilder: (context, index) {
-              return Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: CachedNetworkImageProvider(
-                      widget.staff.profileImages[index],
-                    ),
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(color: Colors.grey[900]),
+                  CachedNetworkImage(
+                    imageUrl: widget.staff.profileImages[index],
                     fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                      Colors.black.withValues(alpha: 0.3),
-                      BlendMode.darken,
-                    ),
+                    color: Colors.black.withValues(alpha: 0.3),
+                    colorBlendMode: BlendMode.darken,
+                    errorWidget: (_, __, ___) => const SizedBox.shrink(),
                   ),
-                ),
+                ],
               );
             },
           ),

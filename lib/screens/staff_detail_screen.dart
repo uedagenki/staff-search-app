@@ -1,3 +1,5 @@
+// SCREEN: Staff Profile Screen (Visitor) | STAFF-07
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -18,7 +20,10 @@ class StaffDetailScreen extends StatefulWidget {
   State<StaffDetailScreen> createState() => _StaffDetailScreenState();
 }
 
-class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTickerProviderStateMixin {
+class _StaffDetailScreenState extends State<StaffDetailScreen> with ScreenLogMixin, SingleTickerProviderStateMixin {
+  @override
+  String get screenId => 'Staff Profile Screen (Visitor) | STAFF-07';
+
   final PageController _imagePageController = PageController();
   int _currentImageIndex = 0;
   late AnimationController _hintAnimationController;

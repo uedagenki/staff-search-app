@@ -1,3 +1,5 @@
+// SCREEN: Map Search Screen | SEARCH-05
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -13,7 +15,10 @@ class MapSearchScreen extends StatefulWidget {
   State<MapSearchScreen> createState() => _MapSearchScreenState();
 }
 
-class _MapSearchScreenState extends State<MapSearchScreen> {
+class _MapSearchScreenState extends State<MapSearchScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Map Search Screen | SEARCH-05';
+
   final MapController _mapController = MapController();
   LatLng _currentLocation = const LatLng(35.6812, 139.7671); // 東京駅（デフォルト）
   bool _isLoadingLocation = false;

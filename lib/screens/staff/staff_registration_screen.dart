@@ -1,6 +1,11 @@
+// SCREEN: Staff Registration Screen | AUTH-05
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
-import '../../services/local_auth_service.dart';
-import '../staff/staff_dashboard_screen.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/staff_provider.dart';
+import '../../services/api_client.dart';
+import '../../widgets/job_category_dropdown.dart';
 
 class StaffRegistrationScreen extends StatefulWidget {
   const StaffRegistrationScreen({super.key});
@@ -9,82 +14,60 @@ class StaffRegistrationScreen extends StatefulWidget {
   State<StaffRegistrationScreen> createState() => _StaffRegistrationScreenState();
 }
 
-class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
+class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Staff Registration Screen | AUTH-05';
+
   final _formKey = GlobalKey<FormState>();
-  final _authService = LocalAuthService();
-  
-  final _nameController = TextEditingController();
   final _jobTitleController = TextEditingController();
+  final _locationController = TextEditingController();
   final _bioController = TextEditingController();
+  String? _selectedJobCategory;
+  bool _acceptBookings = true;
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _nameController.dispose();
     _jobTitleController.dispose();
+    _locationController.dispose();
     _bioController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleSubmit() async {
+  Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      // 現在のユーザーを取得
-      final user = await _authService.getCurrentUser();
-      
-      if (user == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('ログインしてください'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        return;
-      }
-
-      // ユーザーをスタッフとして登録
-      final updatedUser = user.copyWith(
-        name: _nameController.text.isNotEmpty ? _nameController.text : user.name,
-        role: 'staff',
-        isStaffRegistered: true,
+    if (_selectedJobCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a job category.'), backgroundColor: Colors.red),
       );
-      
-      await _authService.updateUser(updatedUser);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('スタッフ登録が完了しました'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // スタッフダッシュボードに遷移
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const StaffDashboardScreen(),
-          ),
-        );
-      }
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      await context.read<StaffProvider>().createProfile({
+        'job_title': _jobTitleController.text.trim(),
+        'job_category': _selectedJobCategory!,
+        if (_locationController.text.trim().isNotEmpty) 'location': _locationController.text.trim(),
+        if (_bioController.text.trim().isNotEmpty) 'bio': _bioController.text.trim(),
+        'accept_bookings': _acceptBookings,
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Staff profile created successfully.'), backgroundColor: Colors.green),
+      );
+      Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
+    } on UnauthorizedException {
+      if (!mounted) return;
+      await context.read<AuthProvider>().logout();
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('登録中にエラーが発生しました: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: Colors.red),
+      );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -105,7 +88,7 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ヘッダー
+                // Header
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -119,11 +102,7 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.work_outline,
-                        color: Colors.white,
-                        size: 40,
-                      ),
+                      Icon(Icons.work_outline, color: Colors.white, size: 40),
                       SizedBox(height: 12),
                       Text(
                         'スタッフとして活躍しませんか？',
@@ -136,88 +115,95 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
                       SizedBox(height: 8),
                       Text(
                         'あなたのスキルと経験を活かして、お客様にサービスを提供しましょう。',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.white70),
                       ),
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
-                // 基本情報フォーム
+
                 const Text(
                   '基本情報',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
-                
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: '表示名',
-                    hintText: 'あなたの名前を入力してください',
-                    prefixIcon: Icon(Icons.person),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '表示名を入力してください';
-                    }
-                    return null;
-                  },
-                ),
-                
-                const SizedBox(height: 16),
-                
+
+                // Job Title
                 TextFormField(
                   controller: _jobTitleController,
-                  decoration: const InputDecoration(
-                    labelText: '職種',
-                    hintText: '例: ヘアスタイリスト、ネイリスト',
-                    prefixIcon: Icon(Icons.work),
-                    border: OutlineInputBorder(),
+                  maxLength: 100,
+                  decoration: InputDecoration(
+                    labelText: 'Job Title',
+                    hintText: 'e.g. Hair Stylist, Nail Artist',
+                    prefixIcon: const Icon(Icons.work),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '職種を入力してください';
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Job title is required.';
                     }
                     return null;
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
+                // Job Category
+                JobCategoryDropdown(
+                  onChanged: (key) {
+                    setState(() {
+                      _selectedJobCategory = key;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                // Location (optional)
+                TextFormField(
+                  controller: _locationController,
+                  decoration: InputDecoration(
+                    labelText: 'Location (optional)',
+                    hintText: 'e.g. Tokyo, Shibuya',
+                    prefixIcon: const Icon(Icons.location_on),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Bio (optional)
                 TextFormField(
                   controller: _bioController,
-                  decoration: const InputDecoration(
-                    labelText: '自己紹介',
-                    hintText: 'あなたのスキルや経験をアピールしてください',
-                    prefixIcon: Icon(Icons.description),
-                    border: OutlineInputBorder(),
+                  maxLines: 5,
+                  decoration: InputDecoration(
+                    labelText: 'Bio (optional)',
+                    hintText: 'Tell customers about your skills and experience...',
+                    prefixIcon: const Icon(Icons.description),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  maxLines: 4,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '自己紹介を入力してください';
-                    }
-                    return null;
-                  },
                 ),
-                
+
+                const SizedBox(height: 16),
+
+                // Accept Bookings toggle
+                SwitchListTile(
+                  title: const Text('Accept Bookings'),
+                  subtitle: const Text('Allow customers to book you'),
+                  value: _acceptBookings,
+                  onChanged: (val) => setState(() => _acceptBookings = val),
+                  contentPadding: EdgeInsets.zero,
+                ),
+
                 const SizedBox(height: 32),
-                
-                // 登録ボタン
+
+                // Save button
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleSubmit,
+                    onPressed: _isLoading ? null : _handleSave,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6A1B9A),
                       foregroundColor: Colors.white,
@@ -229,17 +215,14 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                             'スタッフとして登録する',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
-                // 注意事項
+
+                // Note
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -256,10 +239,7 @@ class _StaffRegistrationScreenState extends State<StaffRegistrationScreen> {
                           SizedBox(width: 8),
                           Text(
                             '注意事項',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
                           ),
                         ],
                       ),

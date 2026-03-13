@@ -1,3 +1,5 @@
+// SCREEN: Live Stream List Screen | LIVE-07
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import '../models/live_stream.dart';
@@ -13,7 +15,10 @@ class LiveStreamListScreen extends StatefulWidget {
   State<LiveStreamListScreen> createState() => _LiveStreamListScreenState();
 }
 
-class _LiveStreamListScreenState extends State<LiveStreamListScreen> {
+class _LiveStreamListScreenState extends State<LiveStreamListScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Live Stream List Screen | LIVE-07';
+
   final _liveStreamService = LiveStreamService();
   List<LiveStream> _liveStreams = [];
   bool _isLoading = true;
@@ -143,7 +148,7 @@ class _LiveStreamListScreenState extends State<LiveStreamListScreen> {
                       crossAxisCount: 2,
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
-                      childAspectRatio: 0.75,
+                      childAspectRatio: 0.62,
                     ),
                     itemCount: _liveStreams.length,
                     itemBuilder: (context, index) {

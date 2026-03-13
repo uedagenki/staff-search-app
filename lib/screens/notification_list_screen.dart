@@ -1,3 +1,5 @@
+// SCREEN: Notification List Screen | NOTIF-04
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import '../models/push_notification.dart';
 import '../services/fcm_service.dart';
@@ -9,7 +11,10 @@ class NotificationListScreen extends StatefulWidget {
   State<NotificationListScreen> createState() => _NotificationListScreenState();
 }
 
-class _NotificationListScreenState extends State<NotificationListScreen> {
+class _NotificationListScreenState extends State<NotificationListScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Notification List Screen | NOTIF-04';
+
   final _fcmService = FCMService();
   
   List<PushNotification> _notifications = [];

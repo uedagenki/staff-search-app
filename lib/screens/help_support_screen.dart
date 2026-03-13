@@ -1,3 +1,4 @@
+// SCREEN: Help & Support Screen | — (no spec)
 import 'package:flutter/material.dart';
 import 'support_chat_screen.dart';
 
@@ -6,6 +7,9 @@ class HelpSupportScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    debugPrint('📱 SCREEN: Help & Support Screen | — (no spec)'); // debug only
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('ヘルプ・サポート'),

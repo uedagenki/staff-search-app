@@ -1,3 +1,5 @@
+// SCREEN: Booking Detail Screen | BOOK-04
+import '../../../utils/screen_logger.dart';
 import '../../utils/storage_helper.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -14,7 +16,10 @@ class BookingDetailScreen extends StatefulWidget {
   State<BookingDetailScreen> createState() => _BookingDetailScreenState();
 }
 
-class _BookingDetailScreenState extends State<BookingDetailScreen> {
+class _BookingDetailScreenState extends State<BookingDetailScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Booking Detail Screen | BOOK-04';
+
   late String _status;
   bool _isProcessing = false;
 

@@ -1,8 +1,12 @@
+// SCREEN: Staff Dashboard Screen | STAFF-01
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../models/staff.dart';
+import '../../models/staff_profile.dart';
+import '../../services/staff_service.dart';
 import '../staff_detail_screen.dart';
 import 'staff_posts_management_screen.dart';
 import 'staff_bookings_screen.dart';
@@ -19,10 +23,14 @@ class StaffDashboardScreen extends StatefulWidget {
   State<StaffDashboardScreen> createState() => _StaffDashboardScreenState();
 }
 
-class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
+class _StaffDashboardScreenState extends State<StaffDashboardScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Staff Dashboard Screen | STAFF-01';
+
   int _currentIndex = 0;
   String _staffName = 'スタッフ';
   bool _isOnline = false;
+  StaffProfile? _staffProfile;
 
   @override
   void initState() {
@@ -31,11 +39,25 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
   }
 
   Future<void> _loadStaffInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _staffName = prefs.getString('staff_name') ?? 'スタッフ';
-      _isOnline = prefs.getBool('staff_is_online') ?? false;
-    });
+    try {
+      final profile = await StaffService.instance.getMyProfile();
+      if (mounted && profile != null) {
+        setState(() {
+          _staffProfile = profile;
+          _staffName = profile.name;
+          _isOnline = profile.isAvailable;
+        });
+      }
+    } catch (_) {
+      // fallback to SharedPreferences if API fails
+      final prefs = await SharedPreferences.getInstance();
+      if (mounted) {
+        setState(() {
+          _staffName = prefs.getString('staff_name') ?? 'スタッフ';
+          _isOnline = prefs.getBool('staff_is_online') ?? false;
+        });
+      }
+    }
   }
 
   Future<void> _toggleOnlineStatus() async {

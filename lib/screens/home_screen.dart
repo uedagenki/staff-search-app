@@ -1,15 +1,17 @@
+// SCREEN: Home Feed Screen | FEED-02
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../models/staff.dart';
 import '../models/staff_story.dart';
 import '../data/mock_data.dart';
-import '../widgets/staff_card.dart';
 import '../services/location_service.dart';
+import '../services/staff_service.dart';
 import '../services/story_service.dart';
+import '../widgets/staff_card.dart';
 import 'search_screen.dart';
 import 'profile_screen.dart';
 import 'messages_screen.dart';
@@ -26,7 +28,10 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Home Feed Screen | FEED-02';
+
   final PageController _pageController = PageController();
   final LocationService _locationService = LocationService();
   final StoryService _storyService = StoryService();
@@ -46,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadStaffFromLocalStorage();
+    _loadStaffFromAPI();
     _loadFilterSettings();
     _loadLocation();
     _loadStories();
@@ -61,94 +66,23 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _loadStaffFromLocalStorage() async {
+  Future<void> _loadStaffFromAPI() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      // SharedPreferencesからスタッフリストを読み込み
-      final staffListJson = prefs.getString('staff_list');
-      
-      if (staffListJson != null) {
-        final List<dynamic> staffData = jsonDecode(staffListJson);
-        
-        // JSONからStaffオブジェクトに変換
-        final registeredStaff = staffData.map((data) {
-          // カテゴリーから最初の1つを取得
-          final categories = data['categories'] != null
-              ? List<String>.from(data['categories'])
-              : ['beauty_health'];
-          final categoryMap = {
-            'beauty_health': '美容・健康',
-            'sales_consulting': '営業・接客',
-            'professional': '専門職',
-            'creative': 'クリエイティブ',
-            'it_tech': 'IT・技術',
-            'education': '教育',
-            'medical_care': '医療・介護',
-            'other': 'その他',
-          };
-          final category = categoryMap[categories.first] ?? '美容・健康';
-          
-          return Staff(
-            id: data['id'] ?? '',
-            name: data['name'] ?? '',
-            jobTitle: data['jobTitle'] ?? '',
-            category: category,
-            profileImage: (data['profileImages'] as List?)?.isNotEmpty == true
-                ? data['profileImages'][0]
-                : 'https://via.placeholder.com/400',
-            profileImages: data['profileImages'] != null
-                ? List<String>.from(data['profileImages'])
-                : null,
-            rating: (data['rating'] ?? 4.8).toDouble(),
-            reviewCount: data['reviewCount'] ?? 0,
-            location: data['location'] ?? '',
-            experience: int.tryParse(data['experience']?.toString() ?? '0') ?? 0,
-            bio: data['bio'] ?? '',
-            skills: (data['bio'] as String?)?.isNotEmpty == true
-                ? [data['jobTitle'] ?? '']
-                : ['スキル'],
-            latitude: data['storeLatitude'] != null
-                ? double.tryParse(data['storeLatitude'].toString())
-                : null,
-            longitude: data['storeLongitude'] != null
-                ? double.tryParse(data['storeLongitude'].toString())
-                : null,
-            isOnline: true,
-            isLive: false,
-            qrCode: 'qr_${data['id']}',
-            storeName: data['storeName'],
-            companyName: data['companyName'],
-          );
-        }).toList();
-
-        if (kDebugMode) {
-          debugPrint('✅ LocalStorageからスタッフを読み込みました: ${registeredStaff.length}件');
-        }
-
-        // MockDataのスタッフリストと統合
+      final apiStaff = await StaffService.instance.getStaffList(limit: 50);
+      if (mounted) {
         setState(() {
-          _staffList = [
-            ...registeredStaff,
-            ...MockData.getStaffList(),
-          ];
+          _staffList = apiStaff.isNotEmpty ? apiStaff : MockData.getStaffList();
           _applyFilters();
         });
-      } else {
-        // LocalStorageにデータがない場合はMockDataのみ使用
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ Staff API unavailable, using mock data: $e');
+      if (mounted) {
         setState(() {
           _staffList = MockData.getStaffList();
           _applyFilters();
         });
       }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('❌ スタッフ読み込みエラー: $e');
-      }
-      // エラー時はMockDataのみ使用
-      setState(() {
-        _staffList = MockData.getStaffList();
-        _applyFilters();
-      });
     }
   }
 
@@ -206,8 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
               return false;
             }
           } else {
-            // 位置情報がないスタッフは除外
-            return false;
+            // 位置情報がないスタッフは距離フィルターをスキップ
           }
         } else if (_currentPosition != null) {
           // 距離制限なしの場合でも距離を計算
@@ -250,31 +183,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 80,
-                            color: Colors.grey[300],
-                          ),
+                          Icon(Icons.search_off, size: 80, color: Colors.grey[300]),
                           const SizedBox(height: 16),
                           Text(
                             '条件に合うスタッフが見つかりません',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
+                            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                           ),
                           const SizedBox(height: 8),
                           TextButton(
                             onPressed: () async {
                               final result = await Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => const FilterSettingsScreen(),
-                                ),
+                                MaterialPageRoute(builder: (context) => const FilterSettingsScreen()),
                               );
-                              if (result == true) {
-                                _loadFilterSettings();
-                              }
+                              if (result == true) _loadFilterSettings();
                             },
                             child: const Text('絞り込み設定を変更'),
                           ),

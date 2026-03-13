@@ -1,3 +1,7 @@
+// SCREEN: Create Post Screen (Staff) | FEED-01
+import '../../../utils/screen_logger.dart';
+import '../../../services/api_client.dart';
+import '../../../services/post_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -9,7 +13,10 @@ class CreatePostScreen extends StatefulWidget {
   State<CreatePostScreen> createState() => _CreatePostScreenState();
 }
 
-class _CreatePostScreenState extends State<CreatePostScreen> {
+class _CreatePostScreenState extends State<CreatePostScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Create Post Screen (Staff) | FEED-01';
+
   final TextEditingController _captionController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   
@@ -123,18 +130,45 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       return;
     }
 
-    setState(() {
-      _isUploading = true;
-    });
+    setState(() => _isUploading = true);
 
-    // TODO: 実際のアップロード処理（Firebase Storageなど）
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('投稿しました！')),
+    try {
+      // 1. Upload file to local storage
+      final uploadResp = await ApiClient().uploadMultipart(
+        '/api/v1/media/upload',
+        _selectedMedia!,
+        queryParams: {'folder': 'posts'},
       );
+      if (!uploadResp.isSuccess || uploadResp.data == null) {
+        throw Exception(uploadResp.message ?? 'Upload failed.');
+      }
+      final publicUrl = uploadResp.data!['public_url'] as String?;
+      if (publicUrl == null || publicUrl.isEmpty) {
+        throw Exception('No public_url returned from upload.');
+      }
+
+      // 2. Create post record
+      final caption = _captionController.text.trim();
+      await PostService.instance.createPost(
+        content: caption.isNotEmpty ? caption : null,
+        mediaUrl: publicUrl,
+        mediaType: _isVideo ? 'video' : 'image',
+      );
+
+      if (mounted) {
+        Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('投稿しました！')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('投稿に失敗しました: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
     }
   }
 
@@ -251,13 +285,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Widget _buildMediaSelector() {
     return Container(
-      height: 300,
       decoration: BoxDecoration(
         color: Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey[300]!, width: 2),
       ),
+      padding: const EdgeInsets.symmetric(vertical: 24),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(

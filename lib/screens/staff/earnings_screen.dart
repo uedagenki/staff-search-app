@@ -1,3 +1,5 @@
+// SCREEN: Staff Earnings Screen | PAY-09
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../services/point_service.dart';
@@ -11,7 +13,10 @@ class EarningsScreen extends StatefulWidget {
   State<EarningsScreen> createState() => _EarningsScreenState();
 }
 
-class _EarningsScreenState extends State<EarningsScreen> {
+class _EarningsScreenState extends State<EarningsScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Staff Earnings Screen | PAY-09';
+
   final _pointService = PointService();
   final _authService = AuthService();
 

@@ -1,7 +1,9 @@
-import '../utils/storage_helper.dart';
+// SCREEN: Profile Settings Screen | DB-02
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'dart:convert';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/user_service.dart';
 import 'notification_settings_screen.dart';
 import 'password_change_screen.dart';
 import 'privacy_settings_screen.dart';
@@ -13,125 +15,72 @@ class ProfileSettingsScreen extends StatefulWidget {
   State<ProfileSettingsScreen> createState() => _ProfileSettingsScreenState();
 }
 
-class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _ageController = TextEditingController();
-  String _selectedGender = 'other';
-  List<String> _selectedCategories = [];
-  bool _isLoading = true;
-  bool _isSaving = false;
+class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Profile Settings Screen | DB-02';
 
-  final List<Map<String, String>> _categories = [
-    {'value': 'beauty_health', 'label': '美容・健康'},
-    {'value': 'sales_consulting', 'label': '営業・接客'},
-    {'value': 'professional', 'label': '専門職'},
-    {'value': 'creative', 'label': 'クリエイティブ'},
-    {'value': 'it_tech', 'label': 'IT・技術'},
-    {'value': 'education', 'label': '教育'},
-    {'value': 'medical_care', 'label': '医療・介護'},
-    {'value': 'other', 'label': 'その他'},
-  ];
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    final user = context.read<AuthProvider>().currentUser;
+    _nameController.text = user?.name ?? '';
+    _phoneController.text = user?.phoneNumber ?? '';
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
-    _addressController.dispose();
-    _ageController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadProfile() async {
-    try {
-      final profileData = await StorageHelper.getString('user_profile');
-      if (profileData != null) {
-        final profile = json.decode(profileData);
-        setState(() {
-          _nameController.text = profile['name'] ?? 'ゲストユーザー';
-          _emailController.text = profile['email'] ?? 'guest@example.com';
-          _addressController.text = profile['address'] ?? '';
-          _ageController.text = profile['age']?.toString() ?? '';
-          _selectedGender = profile['gender'] ?? 'other';
-          _selectedCategories = List<String>.from(profile['categories'] ?? []);
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Failed to load profile: $e');
-      }
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
   Future<void> _saveProfile() async {
-    if (_selectedCategories.isEmpty) {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('少なくとも1つのカテゴリーを選択してください')),
+        const SnackBar(content: Text('名前を入力してください')),
+      );
+      return;
+    }
+    if (name.length > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('名前は100文字以内で入力してください')),
       );
       return;
     }
 
-    if (_selectedCategories.length > 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('カテゴリーは最大3つまで選択できます')),
-      );
-      return;
-    }
-
-    setState(() {
-      _isSaving = true;
-    });
+    setState(() => _isSaving = true);
 
     try {
-      final userData = {
-        'name': _nameController.text,
-        'email': _emailController.text,
-        'address': _addressController.text,
-        'age': _ageController.text,
-        'gender': _selectedGender,
-        'categories': _selectedCategories,
-        'updatedAt': DateTime.now().toIso8601String(),
-      };
-
-      await StorageHelper.setString('user_profile', json.encode(userData));
-
-      setState(() {
-        _isSaving = false;
+      final updatedUser = await UserService.instance.updateProfile({
+        'name': name,
+        'phone': _phoneController.text.trim().isNotEmpty
+            ? _phoneController.text.trim()
+            : null,
       });
 
-      if (mounted) {
+      if (!mounted) return;
+      if (updatedUser != null) {
+        context.read<AuthProvider>().updateCurrentUser(updatedUser);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('プロフィールを保存しました')),
+          const SnackBar(
+            content: Text('Profile updated successfully.'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pop(context);
       }
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Failed to save profile: $e');
-      }
-      setState(() {
-        _isSaving = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('保存に失敗しました')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -142,8 +91,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         title: const Text('プロフィール設定'),
         elevation: 0,
         actions: [
-          if (!_isLoading)
-            TextButton(
+          TextButton(
               onPressed: _isSaving ? null : _saveProfile,
               child: _isSaving
                   ? const SizedBox(
@@ -155,9 +103,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -167,14 +113,18 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     Center(
                       child: Stack(
                         children: [
-                          CircleAvatar(
-                            radius: 60,
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            child: const Icon(
-                              Icons.person,
-                              size: 60,
-                              color: Colors.white,
-                            ),
+                          Consumer<AuthProvider>(
+                            builder: (context, auth, _) {
+                              final avatarUrl = auth.currentUser?.profileImage;
+                              return CircleAvatar(
+                                radius: 60,
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                                child: avatarUrl == null
+                                    ? const Icon(Icons.person, size: 60, color: Colors.white)
+                                    : null,
+                              );
+                            },
                           ),
                           Positioned(
                             bottom: 0,
@@ -183,16 +133,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                               backgroundColor: Theme.of(context).colorScheme.primary,
                               radius: 20,
                               child: IconButton(
-                                icon: const Icon(
-                                  Icons.camera_alt,
-                                  size: 20,
-                                  color: Colors.white,
-                                ),
+                                icon: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
                                 onPressed: () {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('画像選択機能（開発中）'),
-                                    ),
+                                    const SnackBar(content: Text('画像選択機能（開発中）')),
                                   );
                                 },
                               ),
@@ -201,192 +145,54 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // 名前
-                    const Text(
-                      '名前',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     TextField(
                       controller: _nameController,
                       decoration: InputDecoration(
-                        hintText: '名前を入力',
+                        labelText: '名前',
                         prefixIcon: const Icon(Icons.person),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         filled: true,
                         fillColor: Colors.grey[100],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
-                    // メールアドレス
-                    const Text(
-                      'メールアドレス',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+
+                    // メールアドレス（読み取り専用）
+                    Consumer<AuthProvider>(
+                      builder: (context, auth, _) => TextField(
+                        enabled: false,
+                        controller: TextEditingController(text: auth.currentUser?.email ?? ''),
+                        decoration: InputDecoration(
+                          labelText: 'メールアドレス',
+                          prefixIcon: const Icon(Icons.email),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+
+                    const SizedBox(height: 20),
+
+                    // 電話番号
                     TextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
                       decoration: InputDecoration(
-                        hintText: 'example@email.com',
-                        prefixIcon: const Icon(Icons.email),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        labelText: '電話番号',
+                        prefixIcon: const Icon(Icons.phone),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         filled: true,
                         fillColor: Colors.grey[100],
+                        hintText: '090-1234-5678',
                       ),
                     ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // 年齢
-                    const Text(
-                      '年齢',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _ageController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: '例: 25',
-                        prefixIcon: const Icon(Icons.cake),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // 性別
-                    const Text(
-                      '性別',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedGender,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.person_outline),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'male', child: Text('男性')),
-                        DropdownMenuItem(value: 'female', child: Text('女性')),
-                        DropdownMenuItem(value: 'other', child: Text('その他')),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _selectedGender = value;
-                          });
-                        }
-                      },
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // 住所
-                    const Text(
-                      '住所',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _addressController,
-                      maxLines: 2,
-                      decoration: InputDecoration(
-                        hintText: '東京都渋谷区...',
-                        prefixIcon: const Icon(Icons.location_on),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[100],
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // カテゴリー選択
-                    const Text(
-                      '興味のあるカテゴリー（最大3つ）',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.grey[50],
-                      ),
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _categories.map((category) {
-                          final isSelected = _selectedCategories.contains(category['value']);
-                          return FilterChip(
-                            label: Text(category['label']!),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                if (selected) {
-                                  if (_selectedCategories.length < 3) {
-                                    _selectedCategories.add(category['value']!);
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('カテゴリーは最大3つまで選択できます'),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
-                                } else {
-                                  _selectedCategories.remove(category['value']);
-                                }
-                              });
-                            },
-                            selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                            checkmarkColor: Theme.of(context).colorScheme.primary,
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    
+
                     const SizedBox(height: 32),
                     
                     // アカウント設定

@@ -1,3 +1,5 @@
+// SCREEN: Content Moderation Screen | ADMIN (no spec)
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -8,7 +10,10 @@ class ContentModerationScreen extends StatefulWidget {
   State<ContentModerationScreen> createState() => _ContentModerationScreenState();
 }
 
-class _ContentModerationScreenState extends State<ContentModerationScreen> with SingleTickerProviderStateMixin {
+class _ContentModerationScreenState extends State<ContentModerationScreen> with ScreenLogMixin, SingleTickerProviderStateMixin {
+  @override
+  String get screenId => 'Content Moderation Screen | ADMIN (no spec)';
+
   late TabController _tabController;
   
   final List<ReviewItem> _pendingReviews = [

@@ -1,12 +1,12 @@
-import '../utils/storage_helper.dart';
+// SCREEN: User Profile Screen | AUTH-01 / DB-02
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:convert';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../services/tip_service.dart';
 import '../services/gifter_service.dart';
-import '../services/local_auth_service.dart';
 import '../models/gifter_level.dart';
-import 'login_screen.dart';
 import 'following_screen.dart';
 import 'staff/staff_registration_screen.dart';
 import 'staff/staff_dashboard_screen.dart';
@@ -26,27 +26,19 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'User Profile Screen | AUTH-01 / DB-02';
+
   final TipService _tipService = TipService();
   final GifterService _gifterService = GifterService();
-  final LocalAuthService _authService = LocalAuthService();
   double _totalTips = 0.0;
   bool _isLoading = true;
   UserGifterInfo? _gifterInfo;
-  
-  // ユーザー情報
-  String _userName = 'ゲストユーザー';
-  String _userEmail = 'guest@example.com';
-  int? _userAge;
-  String? _userAddress;
-  String? _userGender;
-  List<String> _userCategories = [];
 
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
-    _loadUserProfile();
     _loadTotalTips();
     _loadGifterInfo();
   }
@@ -67,121 +59,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _checkLoginStatus() {
-    // アプリ起動時にログイン状態を確認（Firebase Authentication）
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final isLoggedIn = await _authService.isLoggedIn();
-      if (!isLoggedIn) {
-        _showLoginPrompt();
-      }
-    });
-  }
-
-  void _showLoginPrompt() {
-    if (!mounted) return;
-    
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 12),
-            const Text('ログインしてください'),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'プロフィール機能を利用するにはログインが必要です。',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 12),
-            Text(
-              'ログイン後、以下の機能が利用できます：',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text('• プロフィール編集', style: TextStyle(fontSize: 14)),
-            Text('• 予約履歴の確認', style: TextStyle(fontSize: 14)),
-            Text('• チップ履歴の確認', style: TextStyle(fontSize: 14)),
-            Text('• レビューの投稿', style: TextStyle(fontSize: 14)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // ホーム画面に戻る
-              Navigator.pop(context);
-            },
-            child: const Text('後で'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              // ログイン画面に遷移
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
-              
-              // ログインが成功したらプロフィールをリロード
-              if (result == true) {
-                _loadUserProfile();
-                _loadTotalTips();
-                _loadGifterInfo();
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('ログイン'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _loadUserProfile() async {
-    try {
-      // まずFirebase Authenticationからユーザー情報を取得
-      final currentUser = await _authService.getCurrentUser();
-      if (currentUser != null) {
-        setState(() {
-          _userName = currentUser.name;
-          _userEmail = currentUser.email;
-          _userAge = currentUser.age;
-          _userAddress = currentUser.address;
-          _userGender = currentUser.gender;
-          _userCategories = currentUser.interests ?? [];
-        });
-        return;
-      }
-      
-      // Firebaseにユーザーがいない場合はローカルストレージから読み込み
-      final profileData = await StorageHelper.getString('user_profile');
-      if (profileData != null) {
-        final profile = json.decode(profileData);
-        setState(() {
-          _userName = profile['name'] ?? 'ゲストユーザー';
-          _userEmail = profile['email'] ?? 'guest@example.com';
-          _userAge = profile['age'] != null ? int.tryParse(profile['age'].toString()) : null;
-          _userAddress = profile['address'];
-          _userGender = profile['gender'];
-          _userCategories = List<String>.from(profile['categories'] ?? []);
-        });
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Failed to load user profile: $e');
-      }
-    }
-  }
 
   Future<void> _loadTotalTips() async {
     await _tipService.initializeDemoData();
@@ -193,35 +70,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // スタッフモード切り替え処理
-  Future<void> _handleStaffModeSwitch() async {
-    // ログイン確認
-    final isLoggedIn = await _authService.isLoggedIn();
-    if (!isLoggedIn) {
-      _showLoginPrompt();
-      return;
-    }
-
-    // 現在のユーザー情報を取得
-    final user = await _authService.getCurrentUser();
-    if (user == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('ユーザー情報の取得に失敗しました'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      return;
-    }
+  void _handleStaffModeSwitch() {
+    final user = context.read<AuthProvider>().currentUser;
+    if (user == null) return;
 
     if (kDebugMode) {
       debugPrint('🔄 スタッフモード切り替え: role=${user.role}, isStaffRegistered=${user.isStaffRegistered}');
     }
 
-    // スタッフ登録済みかチェック
     if (user.isStaffRegistered) {
-      // スタッフダッシュボードに遷移
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -229,18 +86,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
     } else {
-      // スタッフ登録画面に遷移
-      final result = await Navigator.push(
+      Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => const StaffRegistrationScreen(),
         ),
       );
-      
-      // 登録完了後、プロフィールを再読み込み
-      if (result == true) {
-        _loadUserProfile();
-      }
     }
   }
 
@@ -255,99 +106,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           children: [
             // プロフィールヘッダー
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-              ),
-              child: Column(
-                children: [
-                  // プロフィール画像
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    child: const Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.white,
-                    ),
+            Consumer<AuthProvider>(
+              builder: (context, auth, _) {
+                final user = auth.currentUser;
+                final name = user?.name ?? 'ゲストユーザー';
+                final email = user?.email ?? '';
+                final avatarUrl = user?.profileImage;
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _userName,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _userEmail,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  if (_userAge != null || _userAddress != null || _userGender != null) ...[
-                    const SizedBox(height: 12),
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        if (_userAge != null)
-                          Chip(
-                            avatar: const Icon(Icons.cake, size: 18),
-                            label: Text('$_userAge歳'),
-                            backgroundColor: Colors.blue[50],
-                          ),
-                        if (_userGender != null)
-                          Chip(
-                            avatar: Icon(
-                              _userGender == 'male' ? Icons.male : 
-                              _userGender == 'female' ? Icons.female : Icons.person,
-                              size: 18,
-                            ),
-                            label: Text(
-                              _userGender == 'male' ? '男性' :
-                              _userGender == 'female' ? '女性' : 'その他'
-                            ),
-                            backgroundColor: Colors.purple[50],
-                          ),
-                        if (_userAddress != null)
-                          Chip(
-                            avatar: const Icon(Icons.location_on, size: 18),
-                            label: Text(_userAddress!),
-                            backgroundColor: Colors.green[50],
-                          ),
-                      ],
-                    ),
-                  ],
-                  if (_userCategories.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    const Text(
-                      '興味のあるカテゴリー',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                        child: avatarUrl == null
+                            ? const Icon(Icons.person, size: 50, color: Colors.white)
+                            : null,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _userCategories.map((category) {
-                        return Chip(
-                          label: Text(_getCategoryLabel(category)),
-                          backgroundColor: Colors.orange[50],
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ],
-              ),
+                      const SizedBox(height: 16),
+                      Text(
+                        name,
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        email,
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             
             const SizedBox(height: 16),
@@ -687,20 +481,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  String _getCategoryLabel(String category) {
-    const categoryMap = {
-      'beauty_health': '美容・健康',
-      'sales_consulting': '営業・接客',
-      'professional': '専門職',
-      'creative': 'クリエイティブ',
-      'it_tech': 'IT・技術',
-      'education': '教育',
-      'medical_care': '医療・介護',
-      'other': 'その他',
-    };
-    return categoryMap[category] ?? category;
-  }
-
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -714,40 +494,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              try {
-                // Firebase Authentication からログアウト
-                await _authService.logout();
-                
-                // ローカルストレージもクリア
-                await StorageHelper.clear();
-                
-                if (kDebugMode) {
-                  debugPrint('✅ ログアウト成功: Firebase Auth + LocalStorage cleared');
-                }
-                
-                // ダイアログを閉じる
-                Navigator.pop(dialogContext);
-                
-                // ログイン画面に遷移し、戻れないようにする
-                if (context.mounted) {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    '/login',
-                    (route) => false, // すべての履歴をクリア
-                  );
-                }
-              } catch (e) {
-                if (kDebugMode) {
-                  debugPrint('❌ ログアウトエラー: $e');
-                }
-                Navigator.pop(dialogContext);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('ログアウトに失敗しました: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+              Navigator.pop(dialogContext);
+              await context.read<AuthProvider>().logout();
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
               }
             },
             style: ElevatedButton.styleFrom(

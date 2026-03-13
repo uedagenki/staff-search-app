@@ -1,3 +1,4 @@
+// SCREEN: Privacy Policy Screen | AUTH-01
 import 'package:flutter/material.dart';
 
 /// プライバシーポリシー表示画面
@@ -13,6 +14,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    debugPrint('📱 SCREEN: Privacy Policy Screen | AUTH-01'); // debug only
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('プライバシーポリシー'),

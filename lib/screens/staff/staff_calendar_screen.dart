@@ -1,3 +1,5 @@
+// SCREEN: Staff Calendar Screen | BOOK-03
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/booking.dart';
@@ -10,7 +12,10 @@ class StaffCalendarScreen extends StatefulWidget {
   State<StaffCalendarScreen> createState() => _StaffCalendarScreenState();
 }
 
-class _StaffCalendarScreenState extends State<StaffCalendarScreen> {
+class _StaffCalendarScreenState extends State<StaffCalendarScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Staff Calendar Screen | BOOK-03';
+
   final _bookingService = BookingService();
   DateTime _selectedDate = DateTime.now();
   DateTime _focusedMonth = DateTime.now();

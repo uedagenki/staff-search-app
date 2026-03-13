@@ -1,3 +1,5 @@
+// SCREEN: Staff Management Screen | ADMIN (no spec)
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../utils/storage_helper.dart';
@@ -11,7 +13,10 @@ class StaffManagementScreen extends StatefulWidget {
   State<StaffManagementScreen> createState() => _StaffManagementScreenState();
 }
 
-class _StaffManagementScreenState extends State<StaffManagementScreen> {
+class _StaffManagementScreenState extends State<StaffManagementScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Staff Management Screen | ADMIN (no spec)';
+
   List<Staff> _staffList = [];
   List<Staff> _filteredStaff = [];
   bool _isLoading = true;

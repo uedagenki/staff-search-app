@@ -1,3 +1,5 @@
+// SCREEN: Booking List Screen | BOOK-01 / BOOK-04
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/booking.dart';
@@ -18,7 +20,10 @@ class BookingListScreen extends StatefulWidget {
 }
 
 class _BookingListScreenState extends State<BookingListScreen>
-    with SingleTickerProviderStateMixin {
+    with ScreenLogMixin, SingleTickerProviderStateMixin {
+  @override
+  String get screenId => 'Booking List Screen | BOOK-01 / BOOK-04';
+
   final _bookingService = FirebaseBookingService();
   late TabController _tabController;
 

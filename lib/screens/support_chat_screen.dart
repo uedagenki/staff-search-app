@@ -1,3 +1,5 @@
+// SCREEN: Support Chat Screen | CHAT-03
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 
 class SupportChatScreen extends StatefulWidget {
@@ -7,7 +9,10 @@ class SupportChatScreen extends StatefulWidget {
   State<SupportChatScreen> createState() => _SupportChatScreenState();
 }
 
-class _SupportChatScreenState extends State<SupportChatScreen> {
+class _SupportChatScreenState extends State<SupportChatScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Support Chat Screen | CHAT-03';
+
   final TextEditingController _messageController = TextEditingController();
   final List<Map<String, dynamic>> _messages = [
     {

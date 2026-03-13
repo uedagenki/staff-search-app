@@ -1,3 +1,5 @@
+// SCREEN: Admin Push Notification Screen | ADMIN (no spec)
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../services/fcm_service.dart';
@@ -9,7 +11,10 @@ class AdminPushNotificationScreen extends StatefulWidget {
   State<AdminPushNotificationScreen> createState() => _AdminPushNotificationScreenState();
 }
 
-class _AdminPushNotificationScreenState extends State<AdminPushNotificationScreen> {
+class _AdminPushNotificationScreenState extends State<AdminPushNotificationScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Admin Push Notification Screen | ADMIN (no spec)';
+
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _bodyController = TextEditingController();

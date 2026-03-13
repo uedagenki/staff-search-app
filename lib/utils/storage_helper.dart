@@ -1,3 +1,7 @@
+// DEPRECATED: Do not use this class for new user-facing persistent data.
+// Use AuthProvider for user state and ApiClient for API calls instead.
+// This class is kept for backward compatibility during migration.
+// See docs/screens/DB-02-migrate-localstorage-to-db.md
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// クロスプラットフォーム対応のストレージヘルパー

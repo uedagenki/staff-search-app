@@ -1,3 +1,5 @@
+// SCREEN: Content Moderation Screen | ADMIN (no spec)
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../utils/storage_helper.dart';
@@ -10,7 +12,10 @@ class ContentModerationScreen extends StatefulWidget {
   State<ContentModerationScreen> createState() => _ContentModerationScreenState();
 }
 
-class _ContentModerationScreenState extends State<ContentModerationScreen> {
+class _ContentModerationScreenState extends State<ContentModerationScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Content Moderation Screen | ADMIN (no spec)';
+
   List<ContentItem> _allContent = [];
   List<ContentItem> _filteredContent = [];
   bool _isLoading = true;

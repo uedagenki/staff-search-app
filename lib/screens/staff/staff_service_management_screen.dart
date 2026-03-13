@@ -1,3 +1,5 @@
+// SCREEN: Staff Service Management Screen | STAFF-01
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/booking.dart';
@@ -10,7 +12,10 @@ class StaffServiceManagementScreen extends StatefulWidget {
   State<StaffServiceManagementScreen> createState() => _StaffServiceManagementScreenState();
 }
 
-class _StaffServiceManagementScreenState extends State<StaffServiceManagementScreen> {
+class _StaffServiceManagementScreenState extends State<StaffServiceManagementScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Staff Service Management Screen | STAFF-01';
+
   final _bookingService = BookingService();
   List<Service> _services = [];
   bool _isLoading = true;

@@ -1,3 +1,5 @@
+// SCREEN: User Block Management Screen | AUTH-08
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../utils/storage_helper.dart';
@@ -9,7 +11,10 @@ class UserBlockManagementScreen extends StatefulWidget {
   State<UserBlockManagementScreen> createState() => _UserBlockManagementScreenState();
 }
 
-class _UserBlockManagementScreenState extends State<UserBlockManagementScreen> {
+class _UserBlockManagementScreenState extends State<UserBlockManagementScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'User Block Management Screen | AUTH-08';
+
   List<Map<String, dynamic>> _blockedStaff = [];
   List<String> _ngWords = [];
   final TextEditingController _ngWordController = TextEditingController();

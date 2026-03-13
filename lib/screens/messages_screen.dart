@@ -1,3 +1,5 @@
+// SCREEN: Messages Inbox Screen | CHAT-02
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/message.dart';
@@ -10,7 +12,10 @@ class MessagesScreen extends StatefulWidget {
   State<MessagesScreen> createState() => _MessagesScreenState();
 }
 
-class _MessagesScreenState extends State<MessagesScreen> {
+class _MessagesScreenState extends State<MessagesScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Messages Inbox Screen | CHAT-02';
+
   // サンプルメッセージデータ
   final List<Message> _latestMessages = [
     Message(

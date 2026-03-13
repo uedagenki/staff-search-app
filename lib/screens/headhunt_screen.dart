@@ -1,3 +1,5 @@
+// SCREEN: Headhunt Screen | — (no spec)
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import '../models/headhunt_offer.dart';
 import '../services/headhunt_service.dart';
@@ -9,7 +11,10 @@ class HeadhuntScreen extends StatefulWidget {
   State<HeadhuntScreen> createState() => _HeadhuntScreenState();
 }
 
-class _HeadhuntScreenState extends State<HeadhuntScreen> {
+class _HeadhuntScreenState extends State<HeadhuntScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Headhunt Screen | — (no spec)';
+
   final HeadhuntService _headhuntService = HeadhuntService();
   List<HeadhuntOffer> _offers = [];
   bool _isLoading = true;

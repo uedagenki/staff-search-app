@@ -1,3 +1,4 @@
+// SCREEN: Staff Tips Screen | PAY-08
 import 'package:flutter/material.dart';
 
 class StaffTipsScreen extends StatelessWidget {
@@ -5,6 +6,9 @@ class StaffTipsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    debugPrint('📱 SCREEN: Staff Tips Screen | PAY-08'); // debug only
+
     return Scaffold(
       body: SafeArea(
         child: Column(

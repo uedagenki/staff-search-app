@@ -1,3 +1,4 @@
+// SCREEN: Store Detail Screen | — (no spec)
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -18,6 +19,9 @@ class StoreDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    debugPrint('📱 SCREEN: Store Detail Screen | — (no spec)'); // debug only
+
     // 平均評価を計算
     final averageRating = staffList.isEmpty
         ? 0.0

@@ -1,3 +1,5 @@
+// SCREEN: My Reviews Screen | REV-03
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -11,7 +13,10 @@ class MyReviewsScreen extends StatefulWidget {
   State<MyReviewsScreen> createState() => _MyReviewsScreenState();
 }
 
-class _MyReviewsScreenState extends State<MyReviewsScreen> {
+class _MyReviewsScreenState extends State<MyReviewsScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'My Reviews Screen | REV-03';
+
   final ReviewService _reviewService = ReviewService();
   List<Review> _reviews = [];
   bool _isLoading = true;

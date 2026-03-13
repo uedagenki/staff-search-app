@@ -1,3 +1,4 @@
+// SCREEN: Staff Posts Screen | FEED-01
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/staff.dart';
@@ -76,6 +77,9 @@ class StaffPostsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    debugPrint('📱 SCREEN: Staff Posts Screen | FEED-01'); // debug only
+
     final posts = _getMockPosts();
 
     return Scaffold(

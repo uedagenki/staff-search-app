@@ -1,3 +1,5 @@
+// SCREEN: Point Purchase Screen | PAY-03
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../models/point_transaction.dart';
@@ -11,7 +13,10 @@ class PointPurchaseScreen extends StatefulWidget {
   State<PointPurchaseScreen> createState() => _PointPurchaseScreenState();
 }
 
-class _PointPurchaseScreenState extends State<PointPurchaseScreen> {
+class _PointPurchaseScreenState extends State<PointPurchaseScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Point Purchase Screen | PAY-03';
+
   final PointService _pointService = PointService();
   final AuthService _authService = AuthService();
   

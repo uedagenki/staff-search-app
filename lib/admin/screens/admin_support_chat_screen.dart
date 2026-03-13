@@ -1,3 +1,5 @@
+// SCREEN: Admin Support Chat Screen | ADMIN (no spec)
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../utils/storage_helper.dart';
@@ -10,7 +12,10 @@ class AdminSupportChatScreen extends StatefulWidget {
   State<AdminSupportChatScreen> createState() => _AdminSupportChatScreenState();
 }
 
-class _AdminSupportChatScreenState extends State<AdminSupportChatScreen> {
+class _AdminSupportChatScreenState extends State<AdminSupportChatScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Admin Support Chat Screen | ADMIN (no spec)';
+
   List<ChatTicket> _tickets = [];
   List<ChatTicket> _filteredTickets = [];
   bool _isLoading = true;

@@ -1,3 +1,5 @@
+// SCREEN: Write Review Screen | REV-01
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -14,7 +16,10 @@ class WriteReviewScreen extends StatefulWidget {
   State<WriteReviewScreen> createState() => _WriteReviewScreenState();
 }
 
-class _WriteReviewScreenState extends State<WriteReviewScreen> {
+class _WriteReviewScreenState extends State<WriteReviewScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Write Review Screen | REV-01';
+
   final ReviewService _reviewService = ReviewService();
   final TextEditingController _commentController = TextEditingController();
   double _rating = 5.0;

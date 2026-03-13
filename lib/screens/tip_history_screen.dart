@@ -1,3 +1,5 @@
+// SCREEN: Tip History Screen | PAY-08
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/tip_history.dart';
@@ -10,7 +12,10 @@ class TipHistoryScreen extends StatefulWidget {
   State<TipHistoryScreen> createState() => _TipHistoryScreenState();
 }
 
-class _TipHistoryScreenState extends State<TipHistoryScreen> {
+class _TipHistoryScreenState extends State<TipHistoryScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Tip History Screen | PAY-08';
+
   final TipService _tipService = TipService();
   List<TipHistory> _tipHistory = [];
   double _totalAmount = 0.0;

@@ -1,3 +1,5 @@
+// SCREEN: Admin Dashboard Screen | ADMIN (no spec)
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../services/admin_auth_service.dart';
@@ -19,7 +21,10 @@ class AdminDashboardScreen extends StatefulWidget {
   State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
 
-class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Admin Dashboard Screen | ADMIN (no spec)';
+
   final _adminAuthService = AdminAuthService();
   AdminUser? _currentAdmin;
   Map<String, int> _stats = {};

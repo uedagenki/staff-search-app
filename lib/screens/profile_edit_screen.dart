@@ -1,6 +1,10 @@
+// SCREEN: Profile Edit Screen | DB-02
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/user.dart';
-import '../services/auth_service.dart';
+import '../providers/auth_provider.dart';
+import '../services/user_service.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   final User user;
@@ -11,13 +15,15 @@ class ProfileEditScreen extends StatefulWidget {
   State<ProfileEditScreen> createState() => _ProfileEditScreenState();
 }
 
-class _ProfileEditScreenState extends State<ProfileEditScreen> {
+class _ProfileEditScreenState extends State<ProfileEditScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Profile Edit Screen | DB-02';
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _bioController = TextEditingController();
   final _addressController = TextEditingController();
-  final _authService = AuthService();
   
   String? _selectedGender;
   DateTime? _selectedBirthDate;
@@ -62,41 +68,51 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-
-    final updatedUser = widget.user.copyWith(
-      name: _nameController.text.trim(),
-      phoneNumber: _phoneController.text.trim().isNotEmpty
-          ? _phoneController.text.trim()
-          : null,
-      bio: _bioController.text.trim().isNotEmpty
-          ? _bioController.text.trim()
-          : null,
-      address: _addressController.text.trim().isNotEmpty
-          ? _addressController.text.trim()
-          : null,
-      gender: _selectedGender,
-      birthDate: _selectedBirthDate,
-    );
-
-    final success = await _authService.updateUser(updatedUser);
-
-    setState(() => _isLoading = false);
-
-    if (!mounted) return;
-
-    if (success) {
+    final nameValue = _nameController.text.trim();
+    if (nameValue.length > 100) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('プロフィールを更新しました'),
-          backgroundColor: Colors.green,
+          content: Text('Name must be 100 characters or fewer.'),
+          backgroundColor: Colors.red,
         ),
       );
-      Navigator.pop(context, true);
-    } else {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final fields = <String, dynamic>{
+        'name': nameValue,
+        'bio': _bioController.text.trim().isNotEmpty
+            ? _bioController.text.trim()
+            : null,
+        'phone': _phoneController.text.trim().isNotEmpty
+            ? _phoneController.text.trim()
+            : null,
+      };
+
+      final updatedUser = await UserService.instance.updateProfile(fields);
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (updatedUser != null) {
+        context.read<AuthProvider>().updateCurrentUser(updatedUser);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('プロフィールの更新に失敗しました'),
+        SnackBar(
+          content: Text(e.toString()),
           backgroundColor: Colors.red,
         ),
       );
@@ -170,10 +186,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         child: IconButton(
                           icon: const Icon(Icons.camera_alt, color: Colors.white),
                           onPressed: () {
-                            // 画像アップロード機能は今後実装
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('画像アップロード機能は準備中です'),
+                                content: Text('Profile photo upload coming soon.'),
                               ),
                             );
                           },

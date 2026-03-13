@@ -1,3 +1,5 @@
+// SCREEN: Gift Screen | PAY-05 / PAY-11
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +20,10 @@ class TikTokGiftScreen extends StatefulWidget {
   State<TikTokGiftScreen> createState() => _TikTokGiftScreenState();
 }
 
-class _TikTokGiftScreenState extends State<TikTokGiftScreen> with SingleTickerProviderStateMixin {
+class _TikTokGiftScreenState extends State<TikTokGiftScreen> with ScreenLogMixin, SingleTickerProviderStateMixin {
+  @override
+  String get screenId => 'Gift Screen | PAY-05 / PAY-11';
+
   final TipService _tipService = TipService();
   final GifterService _gifterService = GifterService();
   late TabController _tabController;

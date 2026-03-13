@@ -1,3 +1,5 @@
+// SCREEN: Point Charge Screen | PAY-03
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import '../models/gift.dart';
 import '../data/gift_data.dart';
@@ -11,7 +13,10 @@ class PointChargeScreen extends StatefulWidget {
   State<PointChargeScreen> createState() => _PointChargeScreenState();
 }
 
-class _PointChargeScreenState extends State<PointChargeScreen> {
+class _PointChargeScreenState extends State<PointChargeScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Point Charge Screen | PAY-03';
+
   ChargePackage? _selectedPackage;
   final List<ChargePackage> _packages = ChargeData.getChargePackages();
 

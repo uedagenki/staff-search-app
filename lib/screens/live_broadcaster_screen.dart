@@ -1,3 +1,5 @@
+// SCREEN: Live Broadcaster Screen | LIVE-03
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
@@ -12,7 +14,10 @@ class LiveBroadcasterScreen extends StatefulWidget {
   State<LiveBroadcasterScreen> createState() => _LiveBroadcasterScreenState();
 }
 
-class _LiveBroadcasterScreenState extends State<LiveBroadcasterScreen> {
+class _LiveBroadcasterScreenState extends State<LiveBroadcasterScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Live Broadcaster Screen | LIVE-03';
+
   final _liveStreamService = LiveStreamService();
   final _titleController = TextEditingController();
   

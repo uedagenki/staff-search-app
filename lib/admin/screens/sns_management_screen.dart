@@ -1,3 +1,4 @@
+// SCREEN: SNS Management Screen | ADMIN (no spec)
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -43,6 +44,9 @@ class _SnsManagementScreenState extends State<SnsManagementScreen> with SingleTi
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    debugPrint('📱 SCREEN: SNS Management Screen | ADMIN (no spec)'); // debug only
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('SNS機能管理'),

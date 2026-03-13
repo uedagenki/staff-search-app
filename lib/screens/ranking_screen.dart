@@ -1,3 +1,5 @@
+// SCREEN: Ranking Screen | RANK-02
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -12,7 +14,10 @@ class RankingScreen extends StatefulWidget {
   State<RankingScreen> createState() => _RankingScreenState();
 }
 
-class _RankingScreenState extends State<RankingScreen> with SingleTickerProviderStateMixin {
+class _RankingScreenState extends State<RankingScreen> with ScreenLogMixin, SingleTickerProviderStateMixin {
+  @override
+  String get screenId => 'Ranking Screen | RANK-02';
+
   late TabController _tabController;
   final List<Staff> _allStaff = MockData.getStaffList();
 

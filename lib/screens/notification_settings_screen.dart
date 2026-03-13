@@ -1,3 +1,5 @@
+// SCREEN: Notification Settings Screen | NOTIF-01
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../models/push_notification.dart';
@@ -10,7 +12,10 @@ class NotificationSettingsScreen extends StatefulWidget {
   State<NotificationSettingsScreen> createState() => _NotificationSettingsScreenState();
 }
 
-class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
+class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Notification Settings Screen | NOTIF-01';
+
   final _fcmService = FCMService();
   
   bool _isLoading = true;

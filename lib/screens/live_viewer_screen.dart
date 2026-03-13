@@ -1,3 +1,5 @@
+// SCREEN: Live Viewer Screen | LIVE-04
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
@@ -17,7 +19,10 @@ class LiveViewerScreen extends StatefulWidget {
   State<LiveViewerScreen> createState() => _LiveViewerScreenState();
 }
 
-class _LiveViewerScreenState extends State<LiveViewerScreen> {
+class _LiveViewerScreenState extends State<LiveViewerScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Live Viewer Screen | LIVE-04';
+
   final _liveStreamService = LiveStreamService();
   final _commentController = TextEditingController();
   

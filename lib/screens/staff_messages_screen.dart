@@ -1,3 +1,5 @@
+// SCREEN: Staff Messages Screen (User-side) | CHAT-02
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import '../models/message.dart';
 
@@ -8,7 +10,10 @@ class StaffMessagesScreen extends StatefulWidget {
   State<StaffMessagesScreen> createState() => _StaffMessagesScreenState();
 }
 
-class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
+class _StaffMessagesScreenState extends State<StaffMessagesScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Staff Messages Screen (User-side) | CHAT-02';
+
   // サンプルメッセージデータ
   final List<Message> _messages = [
     Message(

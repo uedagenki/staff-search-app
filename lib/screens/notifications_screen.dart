@@ -1,3 +1,5 @@
+// SCREEN: Notifications Screen | NOTIF-04
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/notification.dart';
@@ -10,7 +12,10 @@ class NotificationsScreen extends StatefulWidget {
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
+class _NotificationsScreenState extends State<NotificationsScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Notifications Screen | NOTIF-04';
+
   final List<AppNotification> _notifications = [
     AppNotification(
       id: '1',

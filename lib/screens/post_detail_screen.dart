@@ -1,3 +1,4 @@
+// SCREEN: Post Detail Screen | FEED-03
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/staff_post.dart';
@@ -15,6 +16,9 @@ class PostDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    debugPrint('📱 SCREEN: Post Detail Screen | FEED-03'); // debug only
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(

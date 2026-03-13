@@ -1,3 +1,5 @@
+// SCREEN: Favorites Screen | SOCIAL-01
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -13,7 +15,10 @@ class FavoritesScreen extends StatefulWidget {
   State<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
-class _FavoritesScreenState extends State<FavoritesScreen> {
+class _FavoritesScreenState extends State<FavoritesScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Favorites Screen | SOCIAL-01';
+
   final FavoriteService _favoriteService = FavoriteService();
   List<Staff> _favoriteStaff = [];
   bool _isLoading = true;

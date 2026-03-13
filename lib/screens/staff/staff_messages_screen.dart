@@ -1,3 +1,5 @@
+// SCREEN: Staff Messages Screen (Staff-side) | CHAT-02
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../staff_chat_screen.dart';
@@ -10,7 +12,10 @@ class StaffMessagesScreen extends StatefulWidget {
   State<StaffMessagesScreen> createState() => _StaffMessagesScreenState();
 }
 
-class _StaffMessagesScreenState extends State<StaffMessagesScreen> {
+class _StaffMessagesScreenState extends State<StaffMessagesScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Staff Messages Screen (Staff-side) | CHAT-02';
+
   final List<ChatRoom> _chatRooms = [
     ChatRoom(
       id: 'room_001',

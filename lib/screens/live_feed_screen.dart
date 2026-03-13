@@ -1,3 +1,4 @@
+// SCREEN: Live Feed Screen | LIVE-04
 import 'package:flutter/material.dart';
 
 /// ライブ配信画面（Web専用機能のためAndroidでは利用不可）
@@ -6,6 +7,9 @@ class LiveFeedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: avoid_print
+    debugPrint('📱 SCREEN: Live Feed Screen | LIVE-04'); // debug only
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('ライブ配信'),

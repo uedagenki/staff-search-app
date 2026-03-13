@@ -1,5 +1,8 @@
+// SCREEN: Password Change Screen | AUTH-01
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
-import '../utils/storage_helper.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class PasswordChangeScreen extends StatefulWidget {
   const PasswordChangeScreen({super.key});
@@ -8,7 +11,10 @@ class PasswordChangeScreen extends StatefulWidget {
   State<PasswordChangeScreen> createState() => _PasswordChangeScreenState();
 }
 
-class _PasswordChangeScreenState extends State<PasswordChangeScreen> {
+class _PasswordChangeScreenState extends State<PasswordChangeScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Password Change Screen | AUTH-01';
+
   final _formKey = GlobalKey<FormState>();
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -35,40 +41,31 @@ class _PasswordChangeScreenState extends State<PasswordChangeScreen> {
       _isLoading = true;
     });
 
-    // 現在のパスワードを確認
-    final storedPassword = await StorageHelper.getString('user_password');
-    if (storedPassword != _currentPasswordController.text) {
-      setState(() {
-        _isLoading = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('現在のパスワードが正しくありません'),
-            backgroundColor: Colors.red,
-          ),
+    final error = await context.read<AuthProvider>().changePassword(
+          _currentPasswordController.text,
+          _newPasswordController.text,
         );
-      }
-      return;
-    }
 
-    // 新しいパスワードを保存
-    await Future.delayed(const Duration(seconds: 1)); // API呼び出しシミュレーション
-    await StorageHelper.setString('user_password', _newPasswordController.text);
+    if (!mounted) return;
 
     setState(() {
       _isLoading = false;
     });
 
-    if (mounted) {
+    if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('パスワードを変更しました'),
-          backgroundColor: Colors.green,
-        ),
+        SnackBar(content: Text(error), backgroundColor: Colors.red),
       );
-      Navigator.pop(context);
+      return;
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('パスワードを変更しました'),
+        backgroundColor: Colors.green,
+      ),
+    );
+    Navigator.pop(context);
   }
 
   @override

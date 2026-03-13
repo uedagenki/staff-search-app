@@ -1,3 +1,5 @@
+// SCREEN: User Booking Screen | BOOK-01
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/booking.dart';
@@ -13,7 +15,10 @@ class UserBookingScreen extends StatefulWidget {
   State<UserBookingScreen> createState() => _UserBookingScreenState();
 }
 
-class _UserBookingScreenState extends State<UserBookingScreen> {
+class _UserBookingScreenState extends State<UserBookingScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'User Booking Screen | BOOK-01';
+
   final _bookingService = FirebaseBookingService();
   final _notesController = TextEditingController();
   

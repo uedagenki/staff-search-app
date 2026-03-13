@@ -72,6 +72,49 @@ class Staff {
     );
   }
 
+  factory Staff.fromApiResponse(Map<String, dynamic> json) {
+    final photos = (json['portfolio_photos'] as List<dynamic>? ?? [])
+        .map((p) => p['photo_url'] as String)
+        .where((url) => url.isNotEmpty)
+        .toList();
+    final postMediaUrls = (json['post_media_urls'] as List<dynamic>? ?? [])
+        .map((u) => u as String)
+        .where((url) => url.isNotEmpty)
+        .toList();
+    final avatarUrl = json['avatar_url'] as String?;
+
+    // Priority: avatar → portfolio photos → latest post images
+    final allImages = [
+      if (avatarUrl != null && avatarUrl.isNotEmpty) avatarUrl,
+      ...photos,
+      if (photos.isEmpty) ...postMediaUrls,
+    ];
+
+    final profileImage = allImages.isNotEmpty ? allImages.first : '';
+    final validImages = allImages.where((u) => u.isNotEmpty).toList();
+    return Staff(
+      id: json['user_id'] as String,
+      name: json['name'] as String? ?? '',
+      jobTitle: json['job_title'] as String? ?? '',
+      category: json['job_category'] as String? ?? '',
+      profileImage: profileImage,
+      profileImages: validImages.isNotEmpty ? validImages : [],
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+      reviewCount: json['review_count'] as int? ?? 0,
+      isOnline: json['is_available'] as bool? ?? false,
+      isLive: false,
+      location: json['location'] as String? ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      bio: json['bio'] as String? ?? '',
+      skills: [json['job_title'] as String? ?? ''],
+      experience: 0,
+      qrCode: json['staff_number'] as String? ?? '',
+      followersCount: json['followers_count'] as int? ?? 0,
+      giftAmount: (json['total_tips_received'] as int? ?? 0).toDouble(),
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

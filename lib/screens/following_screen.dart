@@ -1,3 +1,5 @@
+// SCREEN: Following Screen | SOCIAL-02
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -13,7 +15,10 @@ class FollowingScreen extends StatefulWidget {
   State<FollowingScreen> createState() => _FollowingScreenState();
 }
 
-class _FollowingScreenState extends State<FollowingScreen> with SingleTickerProviderStateMixin {
+class _FollowingScreenState extends State<FollowingScreen> with ScreenLogMixin, SingleTickerProviderStateMixin {
+  @override
+  String get screenId => 'Following Screen | SOCIAL-02';
+
   late TabController _tabController;
   final FollowService _followService = FollowService();
   List<Staff> _followingStaff = [];

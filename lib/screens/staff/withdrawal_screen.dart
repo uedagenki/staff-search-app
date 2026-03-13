@@ -1,3 +1,5 @@
+// SCREEN: Withdrawal Screen | PAY-12
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -65,7 +67,10 @@ class WithdrawalScreen extends StatefulWidget {
   State<WithdrawalScreen> createState() => _WithdrawalScreenState();
 }
 
-class _WithdrawalScreenState extends State<WithdrawalScreen> {
+class _WithdrawalScreenState extends State<WithdrawalScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Withdrawal Screen | PAY-12';
+
   final _formKey = GlobalKey<FormState>();
   final _pointService = PointService();
   final _authService = AuthService();

@@ -1,3 +1,5 @@
+// SCREEN: Story Viewer Screen | FEED-04
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/staff_story.dart';
@@ -18,7 +20,10 @@ class StoryViewerScreen extends StatefulWidget {
 }
 
 class _StoryViewerScreenState extends State<StoryViewerScreen>
-    with TickerProviderStateMixin {
+    with ScreenLogMixin, TickerProviderStateMixin {
+  @override
+  String get screenId => 'Story Viewer Screen | FEED-04';
+
   late PageController _pageController;
   late int _currentStoryIndex;
   late AnimationController _progressController;

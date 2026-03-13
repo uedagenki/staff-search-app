@@ -1,3 +1,5 @@
+// SCREEN: Users Management Screen | ADMIN (no spec)
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../utils/storage_helper.dart';
@@ -11,7 +13,10 @@ class UsersManagementScreen extends StatefulWidget {
   State<UsersManagementScreen> createState() => _UsersManagementScreenState();
 }
 
-class _UsersManagementScreenState extends State<UsersManagementScreen> {
+class _UsersManagementScreenState extends State<UsersManagementScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Users Management Screen | ADMIN (no spec)';
+
   List<User> _users = [];
   List<User> _filteredUsers = [];
   bool _isLoading = true;

@@ -1,3 +1,5 @@
+// SCREEN: Create Message Screen | CHAT-03
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/staff.dart';
@@ -11,7 +13,10 @@ class CreateMessageScreen extends StatefulWidget {
   State<CreateMessageScreen> createState() => _CreateMessageScreenState();
 }
 
-class _CreateMessageScreenState extends State<CreateMessageScreen> {
+class _CreateMessageScreenState extends State<CreateMessageScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Create Message Screen | CHAT-03';
+
   final TextEditingController _messageController = TextEditingController();
   bool _isSending = false;
 

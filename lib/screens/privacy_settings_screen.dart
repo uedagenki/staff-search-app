@@ -1,3 +1,5 @@
+// SCREEN: Privacy Settings Screen | AUTH-08
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../utils/storage_helper.dart';
@@ -9,7 +11,10 @@ class PrivacySettingsScreen extends StatefulWidget {
   State<PrivacySettingsScreen> createState() => _PrivacySettingsScreenState();
 }
 
-class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
+class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Privacy Settings Screen | AUTH-08';
+
   // プライバシー設定
   bool _profilePublic = true;
   bool _showAge = true;

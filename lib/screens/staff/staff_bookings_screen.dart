@@ -1,3 +1,5 @@
+// SCREEN: Staff Bookings Screen | BOOK-01 / BOOK-04
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../models/booking.dart';
@@ -13,7 +15,10 @@ class StaffBookingsScreen extends StatefulWidget {
   State<StaffBookingsScreen> createState() => _StaffBookingsScreenState();
 }
 
-class _StaffBookingsScreenState extends State<StaffBookingsScreen> with SingleTickerProviderStateMixin {
+class _StaffBookingsScreenState extends State<StaffBookingsScreen> with ScreenLogMixin, SingleTickerProviderStateMixin {
+  @override
+  String get screenId => 'Staff Bookings Screen | BOOK-01 / BOOK-04';
+
   final _bookingService = BookingService();
   late TabController _tabController;
 

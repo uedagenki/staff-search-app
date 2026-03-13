@@ -1,3 +1,5 @@
+// SCREEN: Admin Login Screen | ADMIN (no spec)
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import '../services/admin_auth_service.dart';
 import 'admin_dashboard_screen.dart';
@@ -9,7 +11,10 @@ class AdminLoginScreen extends StatefulWidget {
   State<AdminLoginScreen> createState() => _AdminLoginScreenState();
 }
 
-class _AdminLoginScreenState extends State<AdminLoginScreen> {
+class _AdminLoginScreenState extends State<AdminLoginScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Admin Login Screen | ADMIN (no spec)';
+
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();

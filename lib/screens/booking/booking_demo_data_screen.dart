@@ -1,3 +1,5 @@
+// SCREEN: Booking Demo Data Screen | BOOK-01
+import '../../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import '../../services/firebase_booking_service.dart';
 
@@ -10,7 +12,10 @@ class BookingDemoDataScreen extends StatefulWidget {
   State<BookingDemoDataScreen> createState() => _BookingDemoDataScreenState();
 }
 
-class _BookingDemoDataScreenState extends State<BookingDemoDataScreen> {
+class _BookingDemoDataScreenState extends State<BookingDemoDataScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Booking Demo Data Screen | BOOK-01';
+
   final _bookingService = FirebaseBookingService();
   final _staffIdController = TextEditingController(text: 'staff_001');
   final _staffNameController = TextEditingController(text: 'テストスタッフ');

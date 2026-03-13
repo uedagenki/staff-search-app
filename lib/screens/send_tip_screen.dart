@@ -1,3 +1,5 @@
+// SCREEN: Send Tip Screen | PAY-04 / PAY-07
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/staff.dart';
@@ -13,7 +15,10 @@ class SendTipScreen extends StatefulWidget {
   State<SendTipScreen> createState() => _SendTipScreenState();
 }
 
-class _SendTipScreenState extends State<SendTipScreen> {
+class _SendTipScreenState extends State<SendTipScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Send Tip Screen | PAY-04 / PAY-07';
+
   final TipService _tipService = TipService();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();

@@ -1,3 +1,5 @@
+// SCREEN: Search Screen | SEARCH-01 / SEARCH-03
+import '../../utils/screen_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -17,7 +19,10 @@ class SearchScreen extends StatefulWidget {
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _SearchScreenState extends State<SearchScreen> with ScreenLogMixin {
+  @override
+  String get screenId => 'Search Screen | SEARCH-01 / SEARCH-03';
+
   final TextEditingController _searchController = TextEditingController();
   final LocationService _locationService = LocationService();
   final List<Staff> _staffList = MockData.getStaffList();
@@ -115,6 +120,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 16,
+        toolbarHeight: 68,
         title: const Text(
           'スタッフ検索',
           style: TextStyle(
