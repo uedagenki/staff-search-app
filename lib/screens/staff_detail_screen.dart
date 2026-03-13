@@ -8,10 +8,13 @@ import 'write_review_screen.dart';
 import 'staff_posts_screen.dart';
 import 'tiktok_gift_screen.dart';
 import 'booking/user_booking_screen.dart';
+import 'create_booking_screen.dart';
 import 'create_message_screen.dart';
 import 'company/send_headhunting_offer_screen.dart';
 import '../widgets/qr_code_dialog.dart';
 import '../services/local_booking_service.dart';
+import '../services/company_service.dart';
+import '../services/headhunting_auth_service.dart';
 
 class StaffDetailScreen extends StatefulWidget {
   final Staff staff;
@@ -923,7 +926,7 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTicker
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const UserBookingScreen(),
+                          builder: (context) => CreateBookingScreen(staff: widget.staff),
                         ),
                       );
                     },
@@ -943,32 +946,73 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> with SingleTicker
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  // ダミーのCompanyデータを作成
-                  final dummyCompany = Company(
-                    id: 'company_001',
-                    name: '求人企業',
-                    industry: 'サービス業',
-                    description: 'ヘッドハンティングオファーを送信します',
-                    address: '東京都渋谷区',
-                    contactEmail: 'contact@company.com',
-                    contactPerson: '採用担当者',
-                    employeeCount: 50,
-                    establishedDate: DateTime(2010, 1, 1),
-                    benefits: ['社会保険完備', '交通費支給'],
-                    createdAt: DateTime.now(),
-                    updatedAt: DateTime.now(),
-                  );
+                onPressed: () async {
+                  // ヘッドハンティング企業認証チェック
+                  final companyService = CompanyService();
+                  final headhuntingAuthService = HeadhuntingAuthService();
                   
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SendHeadhuntingOfferScreen(
-                        company: dummyCompany,
-                        staff: widget.staff,
+                  final currentCompany = await companyService.getCurrentCompany();
+                  
+                  if (currentCompany == null) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('先に企業情報を登録してください'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    }
+                    return;
+                  }
+                  
+                  final isHeadhuntingCompany = await headhuntingAuthService.isHeadhuntingCompany(currentCompany.id);
+                  
+                  if (!isHeadhuntingCompany) {
+                    if (mounted) {
+                      final result = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('ヘッドハンティング企業登録が必要です'),
+                          content: const Text(
+                            'この機能を利用するには、ヘッドハンティング企業として登録する必要があります。\n\n'
+                            'プロフィール画面の「ヘッドハンティング企業管理」から登録してください。',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('キャンセル'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('登録画面へ'),
+                            ),
+                          ],
+                        ),
+                      );
+                      
+                      if (result == true && mounted) {
+                        Navigator.pushNamed(context, '/profile');
+                      }
+                    }
+                    return;
+                  }
+                  
+                  // 認証OK - オファー送信画面へ
+                  if (mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SendHeadhuntingOfferScreen(
+                          company: currentCompany,
+                          staff: widget.staff,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
                 icon: const Icon(Icons.business_center),
                 label: const Text('ヘッドハンティング'),

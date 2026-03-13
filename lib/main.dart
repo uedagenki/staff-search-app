@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'admin/screens/admin_login_screen.dart';
@@ -26,6 +27,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'スタッフサーチ',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ja', 'JP'),
+      ],
       routes: {
         '/': (context) => const HomeScreen(),
         '/login': (context) => const LoginScreen(),

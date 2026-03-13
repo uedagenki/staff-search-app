@@ -15,13 +15,14 @@ import 'tip_history_screen.dart';
 import 'my_reviews_screen.dart';
 import 'profile_settings_screen.dart';
 import 'ranking_screen.dart';
-import 'headhunt_screen.dart';
+import 'integrated_headhunting_screen.dart';
 import 'help_support_screen.dart';
 import 'saved_posts_screen.dart';
 import 'user_block_management_screen.dart';
 import 'booking/user_booking_list_screen.dart';
-import 'company/company_management_screen.dart';
 import 'company/company_staff_management_screen.dart';
+import 'store_management/store_signup_screen.dart';
+import 'store_management/store_list_screen.dart';
 import '../services/company_service.dart';
 import 'point_purchase_screen.dart';
 import 'point_earn_screen.dart';
@@ -549,26 +550,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             
             _buildMenuItem(
               context,
-              icon: Icons.work,
-              title: 'ヘッドハンティング',
+              icon: Icons.business_center,
+              title: 'ヘッドハンティング企業管理',
               color: Colors.deepPurple,
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const HeadhuntScreen()),
-                );
-              },
-            ),
-            
-            _buildMenuItem(
-              context,
-              icon: Icons.business_center,
-              title: '企業管理（ヘッドハンティング用）',
-              color: Colors.indigo,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CompanyManagementScreen()),
+                  MaterialPageRoute(builder: (context) => IntegratedHeadhuntingScreen()),
                 );
               },
             ),
@@ -578,44 +566,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icons.store,
               title: '店舗（会社）管理',
               color: Colors.purple,
-              onTap: () async {
-                // 現在の企業を取得
-                final currentCompany = await _companyService.getCurrentCompany();
-                
-                if (currentCompany == null) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('先に企業を登録してください'),
-                        backgroundColor: Colors.orange,
-                      ),
-                    );
-                  }
-                  return;
-                }
-                
-                if (!currentCompany.isStore) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('企業を「店舗として登録」に設定してください'),
-                        backgroundColor: Colors.orange,
-                      ),
-                    );
-                  }
-                  return;
-                }
-                
-                if (mounted) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CompanyStaffManagementScreen(
-                        company: currentCompany,
-                      ),
-                    ),
-                  );
-                }
+              onTap: () {
+                // 複数店舗一覧画面へ遷移
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const StoreListScreen(),
+                  ),
+                );
               },
             ),
             

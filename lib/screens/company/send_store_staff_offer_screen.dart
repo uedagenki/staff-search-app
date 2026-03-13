@@ -28,7 +28,7 @@ class _SendStoreStaffOfferScreenState extends State<SendStoreStaffOfferScreen> {
   final _messageController = TextEditingController();
   final _benefitController = TextEditingController();
 
-  double _tipCommissionRate = 0.05; // デフォルト5%
+  double _tipCommissionRate = 0.10; // デフォルト10%（スタッフ還元率）
   final List<String> _benefits = [];
   bool _isLoading = false;
 
@@ -266,8 +266,8 @@ class _SendStoreStaffOfferScreenState extends State<SendStoreStaffOfferScreen> {
                 Slider(
                   value: _tipCommissionRate,
                   min: 0.0,
-                  max: 0.10,
-                  divisions: 20,
+                  max: 1.0,
+                  divisions: 100,
                   label: '${(_tipCommissionRate * 100).toStringAsFixed(1)}%',
                   onChanged: (value) {
                     setState(() {
@@ -276,7 +276,7 @@ class _SendStoreStaffOfferScreenState extends State<SendStoreStaffOfferScreen> {
                   },
                 ),
                 const Text(
-                  '※ 0%〜10%の範囲で設定可能',
+                  '※ 0%〜100%の範囲で設定可能（店舗がスタッフから受け取る還元率）',
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],

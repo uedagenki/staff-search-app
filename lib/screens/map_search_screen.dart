@@ -3,6 +3,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/staff.dart';
+import '../models/company.dart';
+import '../services/company_service.dart';
 import 'staff_detail_screen.dart';
 
 /// OpenStreetMapを使用した地図検索画面
@@ -15,15 +17,20 @@ class MapSearchScreen extends StatefulWidget {
 
 class _MapSearchScreenState extends State<MapSearchScreen> {
   final MapController _mapController = MapController();
+  final CompanyService _companyService = CompanyService();
   LatLng _currentLocation = const LatLng(35.6812, 139.7671); // 東京駅（デフォルト）
   bool _isLoadingLocation = false;
   List<Staff> _nearbyStaff = [];
+  List<Company> _nearbyCompanies = [];
+  bool _showStaffMarkers = true; // スタッフピンを表示
+  bool _showCompanyMarkers = true; // 店舗ピンを表示
   
   @override
   void initState() {
     super.initState();
     _loadCurrentLocation();
     _loadNearbyStaff();
+    _loadNearbyCompanies();
   }
 
   /// 現在地を取得
@@ -182,6 +189,20 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     });
   }
 
+  /// 近くの店舗・企業を読み込み
+  Future<void> _loadNearbyCompanies() async {
+    try {
+      final companies = await _companyService.getAllCompanies();
+      setState(() {
+        _nearbyCompanies = companies.where((company) => 
+          company.latitude != null && company.longitude != null
+        ).toList();
+      });
+    } catch (e) {
+      debugPrint('店舗読み込みエラー: $e');
+    }
+  }
+
   /// スタッフマーカーをタップ
   void _onStaffMarkerTap(Staff staff) {
     showModalBottomSheet(
@@ -286,6 +307,89 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     );
   }
 
+  /// 店舗マーカーをタップ
+  void _onCompanyMarkerTap(Company company) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: company.isStore ? Colors.purple : Colors.blue,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    company.isStore ? Icons.store : Icons.business,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        company.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        company.industry,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    company.address,
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // TODO: 店舗詳細画面の実装
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${company.name}の詳細画面は準備中です')),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+              child: const Text('詳細を見る'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -353,43 +457,84 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                   ),
                   
                   // スタッフマーカー
-                  ..._nearbyStaff.map((staff) {
-                    return Marker(
-                      point: LatLng(staff.latitude!, staff.longitude!),
-                      width: 50,
-                      height: 50,
-                      child: GestureDetector(
-                        onTap: () => _onStaffMarkerTap(staff),
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: staff.isOnline 
-                                    ? Colors.green 
-                                    : Colors.grey,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                  if (_showStaffMarkers)
+                    ..._nearbyStaff.map((staff) {
+                      return Marker(
+                        point: LatLng(staff.latitude!, staff.longitude!),
+                        width: 50,
+                        height: 50,
+                        child: GestureDetector(
+                          onTap: () => _onStaffMarkerTap(staff),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: staff.isOnline 
+                                      ? Colors.green 
+                                      : Colors.grey,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.2),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.person,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }),
+                      );
+                    }),
+                  
+                  // 店舗・企業マーカー
+                  if (_showCompanyMarkers)
+                    ..._nearbyCompanies.map((company) {
+                      return Marker(
+                        point: LatLng(company.latitude!, company.longitude!),
+                        width: 50,
+                        height: 50,
+                        child: GestureDetector(
+                          onTap: () => _onCompanyMarkerTap(company),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: company.isStore 
+                                      ? Colors.purple 
+                                      : Colors.blue,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.2),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  company.isStore ? Icons.store : Icons.business,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
                 ],
               ),
             ],

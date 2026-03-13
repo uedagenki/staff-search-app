@@ -19,8 +19,12 @@ class Company {
   
   // 店舗（会社）スタッフ管理用フィールド
   final List<String> staffIds; // 所属スタッフIDリスト
-  final double tipCommissionRate; // 投げ銭還元率（0.0〜0.10 = 0%〜10%）
+  final double tipCommissionRate; // スタッフ還元率：店舗がスタッフから受け取れる割合（0.0〜100.0 = 0%〜100%）
   final bool isStore; // 店舗かどうか（true=店舗、false=一般企業）
+  
+  // 位置情報フィールド（地図検索用）
+  final double? latitude; // 緯度
+  final double? longitude; // 経度
 
   Company({
     required this.id,
@@ -42,6 +46,8 @@ class Company {
     List<String>? staffIds,
     this.tipCommissionRate = 0.0,
     this.isStore = false,
+    this.latitude,
+    this.longitude,
   }) : staffIds = staffIds ?? [];
 
   factory Company.fromJson(Map<String, dynamic> json) {
@@ -65,6 +71,8 @@ class Company {
       staffIds: json['staffIds'] != null ? List<String>.from(json['staffIds'] as List) : [],
       tipCommissionRate: (json['tipCommissionRate'] as num?)?.toDouble() ?? 0.0,
       isStore: json['isStore'] as bool? ?? false,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
     );
   }
 
@@ -89,6 +97,8 @@ class Company {
       'staffIds': staffIds,
       'tipCommissionRate': tipCommissionRate,
       'isStore': isStore,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 

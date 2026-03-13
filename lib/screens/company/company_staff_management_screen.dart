@@ -6,6 +6,7 @@ import '../../services/company_service.dart';
 import '../../services/local_auth_service.dart';
 import '../../services/store_staff_offer_service.dart';
 import '../../data/mock_data.dart';
+import '../store_management/store_edit_screen.dart';
 import 'send_store_staff_offer_screen.dart';
 import 'store_staff_offers_list_screen.dart';
 
@@ -24,11 +25,12 @@ class CompanyStaffManagementScreen extends StatefulWidget {
 }
 
 class _CompanyStaffManagementScreenState
-    extends State<CompanyStaffManagementScreen> {
+    extends State<CompanyStaffManagementScreen> with SingleTickerProviderStateMixin {
   final CompanyService _companyService = CompanyService();
   final LocalAuthService _authService = LocalAuthService();
   final StoreStaffOfferService _offerService = StoreStaffOfferService();
-
+  
+  late TabController _tabController;
   List<Staff> _companyStaff = [];
   List<Staff> _availableStaff = [];
   bool _isLoading = true;
@@ -38,8 +40,15 @@ class _CompanyStaffManagementScreenState
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 4, vsync: this);
     _tipCommissionRate = widget.company.tipCommissionRate;
     _loadData();
+  }
+  
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -196,68 +205,113 @@ class _CompanyStaffManagementScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.company.name} - スタッフ管理'),
+        title: Text('${widget.company.name} - 管理'),
         actions: [
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.mail),
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => StoreStaffOffersListScreen(
-                        company: widget.company,
-                      ),
-                    ),
-                  );
-                  _loadData();
-                },
-              ),
-              if (_pendingOffersCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    child: Text(
-                      '$_pendingOffersCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => StoreEditScreen(company: widget.company),
                 ),
-            ],
+              );
+              if (result == true) {
+                _loadData();
+              }
+            },
+            tooltip: '店舗情報編集',
           ),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          tabs: const [
+            Tab(icon: Icon(Icons.people), text: '所属スタッフ'),
+            Tab(icon: Icon(Icons.mail), text: 'オファー管理'),
+            Tab(icon: Icon(Icons.payments), text: '還元率設定'),
+            Tab(icon: Icon(Icons.live_tv), text: 'ライブ特典'),
+          ],
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildCommissionRateCard(),
-                  _buildLiveBroadcastInfoCard(),
-                  _buildStaffListSection(),
-                ],
-              ),
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildStaffManagementTab(),
+                _buildOfferManagementTab(),
+                _buildCommissionRateTab(),
+                _buildLiveBenefitsTab(),
+              ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddStaffDialog,
-        child: const Icon(Icons.person_add),
+      floatingActionButton: _tabController.index == 0
+          ? FloatingActionButton(
+              onPressed: _showAddStaffDialog,
+              child: const Icon(Icons.person_add),
+            )
+          : null,
+    );
+  }
+
+  // タブ1: 所属スタッフ管理
+  Widget _buildStaffManagementTab() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildStaffListSection(),
+        ],
+      ),
+    );
+  }
+
+  // タブ2: オファー管理
+  Widget _buildOfferManagementTab() {
+    return Column(
+      children: [
+        if (_pendingOffersCount > 0)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            color: Colors.orange.shade100,
+            child: Row(
+              children: [
+                const Icon(Icons.notifications, color: Colors.orange),
+                const SizedBox(width: 8),
+                Text(
+                  '保留中のオファー: $_pendingOffersCount件',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        Expanded(
+          child: StoreStaffOffersListScreen(company: widget.company),
+        ),
+      ],
+    );
+  }
+
+  // タブ3: 還元率設定
+  Widget _buildCommissionRateTab() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: _buildCommissionRateCard(),
+      ),
+    );
+  }
+
+  // タブ4: ライブ配信特典
+  Widget _buildLiveBenefitsTab() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: _buildLiveBroadcastInfoCard(),
       ),
     );
   }
@@ -275,7 +329,7 @@ class _CompanyStaffManagementScreenState
                 const Icon(Icons.payments, color: Colors.green),
                 const SizedBox(width: 8),
                 Text(
-                  '投げ銭還元率設定',
+                  'スタッフ還元率設定',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ],
@@ -287,7 +341,7 @@ class _CompanyStaffManagementScreenState
             ),
             const SizedBox(height: 8),
             const Text(
-              'スタッフが受け取った投げ銭から、店舗が受け取る還元率を設定します。\n（0%〜10%まで設定可能）',
+              'スタッフが受け取った収入から、店舗が受け取るスタッフ還元率を設定します。\n（0%〜100%まで設定可能）',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 16),
@@ -297,8 +351,8 @@ class _CompanyStaffManagementScreenState
                   child: Slider(
                     value: _tipCommissionRate,
                     min: 0.0,
-                    max: 0.10,
-                    divisions: 20,
+                    max: 1.0,
+                    divisions: 100,
                     label: '${(_tipCommissionRate * 100).toStringAsFixed(1)}%',
                     onChanged: (value) {
                       setState(() {

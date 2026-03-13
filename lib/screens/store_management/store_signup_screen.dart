@@ -25,7 +25,7 @@ class _StoreSignupScreenState extends State<StoreSignupScreen> {
   final _contactPersonController = TextEditingController();
   final _employeeCountController = TextEditingController();
   final _benefitsController = TextEditingController();
-  final _tipCommissionRateController = TextEditingController(text: '5.0');
+  final _tipCommissionRateController = TextEditingController(text: '10.0');
   
   bool _isLoading = false;
   DateTime? _establishedDate;
@@ -103,8 +103,13 @@ class _StoreSignupScreenState extends State<StoreSignupScreen> {
           .where((e) => e.isNotEmpty)
           .toList();
       
-      // チップ手数料率を計算（0.0〜0.10の範囲に正規化）
-      final tipRate = (double.tryParse(_tipCommissionRateController.text) ?? 5.0) / 100.0;
+      // スタッフ還元率を計算（0.0〜1.0の範囲に正規化：店舗がスタッフから受け取る割合）
+      final tipRate = (double.tryParse(_tipCommissionRateController.text) ?? 10.0) / 100.0;
+      
+      // 簡易的な位置情報（東京中心から±0.1度の範囲でランダム生成）
+      final random = DateTime.now().millisecondsSinceEpoch % 1000 / 1000.0;
+      final latitude = 35.6812 + (random - 0.5) * 0.2; // 東京駅周辺
+      final longitude = 139.7671 + (random - 0.5) * 0.2;
       
       final store = Company(
         id: 'store_${DateTime.now().millisecondsSinceEpoch}',
@@ -123,6 +128,8 @@ class _StoreSignupScreenState extends State<StoreSignupScreen> {
         updatedAt: DateTime.now(),
         isStore: true, // 店舗として登録
         tipCommissionRate: tipRate,
+        latitude: latitude,
+        longitude: longitude,
       );
       
       await _companyService.createCompany(store);
@@ -134,7 +141,7 @@ class _StoreSignupScreenState extends State<StoreSignupScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true); // 登録成功を通知
       }
     } catch (e) {
       if (kDebugMode) {
@@ -424,20 +431,20 @@ class _StoreSignupScreenState extends State<StoreSignupScreen> {
                     TextFormField(
                       controller: _tipCommissionRateController,
                       decoration: const InputDecoration(
-                        labelText: 'チップ手数料率 *',
+                        labelText: 'スタッフ還元率 *',
                         prefixIcon: Icon(Icons.monetization_on),
                         border: OutlineInputBorder(),
                         suffixText: '%',
-                        helperText: 'スタッフへのチップに対する店舗手数料（0〜10%）',
+                        helperText: 'スタッフから店舗が受け取れる還元率（0〜100%）',
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return '手数料率を入力してください';
+                          return 'スタッフ還元率を入力してください';
                         }
                         final rate = double.tryParse(value);
-                        if (rate == null || rate < 0 || rate > 10) {
-                          return '0〜10の範囲で入力してください';
+                        if (rate == null || rate < 0 || rate > 100) {
+                          return '0〜100の範囲で入力してください';
                         }
                         return null;
                       },

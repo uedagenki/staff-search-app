@@ -29,8 +29,15 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
   List<Coupon> _availableCoupons = [];
   List<ServiceMenu> _selectedMenus = [];
   Coupon? _selectedCoupon;
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
-  String? _selectedTime;
+  
+  // 3つの希望日時
+  DateTime _selectedDate1 = DateTime.now().add(const Duration(days: 1));
+  String? _selectedTime1;
+  DateTime _selectedDate2 = DateTime.now().add(const Duration(days: 2));
+  String? _selectedTime2;
+  DateTime _selectedDate3 = DateTime.now().add(const Duration(days: 3));
+  String? _selectedTime3;
+  
   bool _isLoading = true;
 
   final List<String> _availableTimes = [
@@ -74,6 +81,20 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
     }
   }
 
+  String? _buildNoteWithPreferences() {
+    final dateFormat = DateFormat('yyyy年MM月dd日 (E) HH:mm', 'ja_JP');
+    final preferences = [
+      '【第1希望】${dateFormat.format(_selectedDate1.add(Duration(hours: int.parse(_selectedTime1!.split(':')[0]), minutes: int.parse(_selectedTime1!.split(':')[1]))))}',
+      '【第2希望】${dateFormat.format(_selectedDate2.add(Duration(hours: int.parse(_selectedTime2!.split(':')[0]), minutes: int.parse(_selectedTime2!.split(':')[1]))))}',
+      '【第3希望】${dateFormat.format(_selectedDate3.add(Duration(hours: int.parse(_selectedTime3!.split(':')[0]), minutes: int.parse(_selectedTime3!.split(':')[1]))))}',
+    ].join('\n');
+    
+    if (_noteController.text.isNotEmpty) {
+      return '$preferences\n\n【備考】\n${_noteController.text}';
+    }
+    return preferences;
+  }
+
   int _calculateTotalPrice() {
     return _selectedMenus.fold(0, (sum, menu) => sum + menu.price);
   }
@@ -104,10 +125,10 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
       return;
     }
 
-    if (_selectedTime == null) {
+    if (_selectedTime1 == null || _selectedTime2 == null || _selectedTime3 == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('予約時間を選択してください'),
+          content: Text('3つの希望日時をすべて選択してください'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -128,7 +149,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
       return;
     }
 
-    // 予約作成
+    // 予約作成（第1希望を基本として保存）
     final booking = Booking(
       id: 'booking_${DateTime.now().millisecondsSinceEpoch}',
       userId: user.id,
@@ -140,8 +161,8 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
       staffJobTitle: widget.staff.jobTitle,
       storeName: widget.staff.storeName,
       storeAddress: widget.staff.location,
-      bookingDate: _selectedDate,
-      bookingTime: _selectedTime!,
+      bookingDate: _selectedDate1,
+      bookingTime: _selectedTime1!,
       menus: _selectedMenus
           .map((m) => BookingMenu(
                 id: m.id,
@@ -156,7 +177,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
       finalPrice: _calculateFinalPrice(),
       status: BookingStatus.pending,
       createdAt: DateTime.now(),
-      note: _noteController.text.isNotEmpty ? _noteController.text : null,
+      note: _buildNoteWithPreferences(),
     );
 
     try {
@@ -247,7 +268,10 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: _selectedMenus.isEmpty || _selectedTime == null
+                        onPressed: _selectedMenus.isEmpty || 
+                            _selectedTime1 == null || 
+                            _selectedTime2 == null || 
+                            _selectedTime3 == null
                             ? null
                             : _handleSubmit,
                         child: Text(
@@ -373,61 +397,144 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          '日時選択',
+          '希望日時を3つ選択してください',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 12),
-
-        // 日付選択
-        Card(
-          child: ListTile(
-            leading: const Icon(Icons.calendar_today, color: Colors.blue),
-            title: const Text('予約日'),
-            subtitle: Text(dateFormat.format(_selectedDate)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () async {
-              final date = await showDatePicker(
-                context: context,
-                initialDate: _selectedDate,
-                firstDate: DateTime.now(),
-                lastDate: DateTime.now().add(const Duration(days: 90)),
-              );
-              if (date != null) {
-                setState(() => _selectedDate = date);
-              }
-            },
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // 時間選択
-        const Text(
-          '予約時間',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _availableTimes.map((time) {
-            final isSelected = _selectedTime == time;
-            return ChoiceChip(
-              label: Text(time),
-              selected: isSelected,
-              onSelected: (selected) {
-                setState(() => _selectedTime = selected ? time : null);
-              },
-            );
-          }).toList(),
+        const Text(
+          '※ 第1希望から順に空き状況を確認します',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // 第1希望
+        _buildDateTimeCard(
+          '第1希望',
+          _selectedDate1,
+          _selectedTime1,
+          (date) => setState(() => _selectedDate1 = date),
+          (time) => setState(() => _selectedTime1 = time),
+          Colors.red,
+        ),
+        const SizedBox(height: 12),
+
+        // 第2希望
+        _buildDateTimeCard(
+          '第2希望',
+          _selectedDate2,
+          _selectedTime2,
+          (date) => setState(() => _selectedDate2 = date),
+          (time) => setState(() => _selectedTime2 = time),
+          Colors.orange,
+        ),
+        const SizedBox(height: 12),
+
+        // 第3希望
+        _buildDateTimeCard(
+          '第3希望',
+          _selectedDate3,
+          _selectedTime3,
+          (date) => setState(() => _selectedDate3 = date),
+          (time) => setState(() => _selectedTime3 = time),
+          Colors.blue,
         ),
       ],
+    );
+  }
+
+  Widget _buildDateTimeCard(
+    String label,
+    DateTime selectedDate,
+    String? selectedTime,
+    Function(DateTime) onDateChanged,
+    Function(String?) onTimeChanged,
+    Color accentColor,
+  ) {
+    final dateFormat = DateFormat('yyyy年MM月dd日 (E)', 'ja_JP');
+
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: accentColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // 日付選択
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.calendar_today, color: accentColor),
+              title: const Text('予約日'),
+              subtitle: Text(dateFormat.format(selectedDate)),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: selectedDate,
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 90)),
+                );
+                if (date != null) {
+                  onDateChanged(date);
+                }
+              },
+            ),
+
+            const Divider(),
+
+            // 時間選択
+            const Text(
+              '予約時間',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _availableTimes.map((time) {
+                final isSelected = selectedTime == time;
+                return ChoiceChip(
+                  label: Text(time),
+                  selected: isSelected,
+                  selectedColor: accentColor.withValues(alpha: 0.3),
+                  onSelected: (selected) {
+                    onTimeChanged(selected ? time : null);
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
